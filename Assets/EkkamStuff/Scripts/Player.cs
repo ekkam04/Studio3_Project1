@@ -3,17 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using System.Threading.Tasks;
+using UnityEngine.UI;
 
 namespace Ekkam
 {
-    public class Player : MonoBehaviour
+    public class Player : Damagable
     {
         public Rigidbody rb;
         public Animator anim;
+        Inventory inventory;
         
         public bool allowMovement = true;
         public bool allowFall = true;
 
+        public float freeWill = 50f;
+        public Slider freeWillSlider;
+
+        public Vector3 viewDirection;
         public Transform orientation;
         public Transform cameraObj;
         private Vector3 cameraOffset;
@@ -41,22 +48,34 @@ namespace Ekkam
         private float initialJumpVelocity;
         private float jumpStartTime;
 
+        public float interactDistance = 3f;
+        float swordTimer;
+        float swordResetCooldown = 1.25f;
+        float swordAttackCooldown = 0.25f;
+
+        [SerializeField] public GameObject itemHolderRight;
+        [SerializeField] public GameObject swordHitbox;
+
         void Start()
         {
             rb = GetComponent<Rigidbody>();
             anim = GetComponent<Animator>();
+            inventory = FindObjectOfType<Inventory>();
 
             cameraObj = GameObject.FindObjectOfType<Camera>().transform;
             cameraOffset = cameraObj.position - transform.position;
 
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
             initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
 
         void Update()
         {
             // Movement
-            Vector3 viewDirection = transform.position - new Vector3(cameraObj.position.x, transform.position.y, cameraObj.position.z);
+            viewDirection = transform.position - new Vector3(cameraObj.position.x, transform.position.y, cameraObj.position.z);
             orientation.forward = viewDirection.normalized;
 
             moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
@@ -73,10 +92,24 @@ namespace Ekkam
             
             ControlSpeed();
             CheckForGround();
-            
-            // Camera follow
-            cameraObj.position = transform.position + cameraOffset;
 
+            // left click for use (temporary, will be changed to new input system)
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                inventory.UseItem();
+            }
+            
+            swordTimer += Time.deltaTime;
+            if (swordTimer >= swordResetCooldown)
+            {
+                anim.SetLayerWeight(1, Mathf.Lerp(anim.GetLayerWeight(1), 0.75f, Time.deltaTime * 10));
+            }
+            else
+            {
+                anim.SetLayerWeight(1, 0);
+            }
+
+            freeWillSlider.value = freeWill;
         }
 
         void FixedUpdate()
@@ -104,7 +137,6 @@ namespace Ekkam
 
         public void OnMove(InputAction.CallbackContext context)
         {
-            if (!allowMovement) return;
             Vector2 input = context.ReadValue<Vector2>();
             horizontalInput = input.x;
             verticalInput = input.y;
@@ -117,6 +149,7 @@ namespace Ekkam
                 if (!isGrounded && allowDoubleJump && !doubleJumped)
                 {
                     doubleJumped = true;
+                    anim.SetTrigger("doubleJump");
                     StartJump(jumpHeightApex, jumpDuration);
                 }
                 else if (isGrounded)
@@ -124,6 +157,14 @@ namespace Ekkam
                     doubleJumped = false;
                     StartJump(jumpHeightApex, jumpDuration);
                 }
+            }
+        }
+
+        public void OnInventoryCycle(InputAction.CallbackContext context)
+        {
+            if (context.started)
+            {
+                inventory.CycleSlot(context.ReadValue<float>() > 0);
             }
         }
 
@@ -164,7 +205,7 @@ namespace Ekkam
         void CheckForGround()
         {
             RaycastHit hit1;
-            if (Physics.Raycast(transform.position + new Vector3(0, 0.5f, 0), Vector3.down, out hit1, groundDistance + 0.1f))
+            if (Physics.BoxCast(transform.position + new Vector3(0, 0.5f, 0), new Vector3(0.5f, 0.5f, 0.5f), Vector3.down, out hit1, Quaternion.identity, groundDistance + 0.1f))
             {
                 isGrounded = true;
                 rb.drag = groundDrag;
@@ -180,16 +221,29 @@ namespace Ekkam
                 isGrounded = false;
                 rb.drag = 0;
             }
-            Debug.DrawRay(transform.position + new Vector3(0, 1, 0), Vector3.down * (groundDistance + 0.1f), Color.red);
 
-            RaycastHit hit2;
-            if (Physics.Raycast(transform.position + new Vector3(0, 0.5f, 0), Vector3.down, out hit2, groundDistanceLandingOffset + 0.1f))
-            {
-                if (!isGrounded && !isJumping)
-                {
-                    anim.SetBool("isJumping", false);
-                }
-            }
+            // RaycastHit hit2;
+            // if (Physics.Raycast(transform.position + new Vector3(0, 0.5f, 0), Vector3.down, out hit2, groundDistanceLandingOffset + 0.1f))
+            // {
+            //     if (!isGrounded && !isJumping)
+            //     {
+            //         anim.SetBool("isJumping", false);
+            //     }
+            // }
+        }
+
+        public async void SwingSword()
+        {
+            if (swordTimer < swordAttackCooldown) return;
+            allowMovement = false;
+            swordTimer = 0;
+            anim.SetTrigger("swordAttack");
+            anim.SetLayerWeight(1, 0);
+            await Task.Delay(250);
+            swordHitbox.SetActive(true);
+            await Task.Delay(50);
+            swordHitbox.SetActive(false);  
+            allowMovement = true;
         }
     }
 }
