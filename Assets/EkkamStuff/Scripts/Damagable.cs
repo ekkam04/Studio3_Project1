@@ -22,7 +22,7 @@ namespace Ekkam
 
         public void Die()
         {
-            Destroy(gameObject);
+            gameObject.SetActive(false);
         }
     }
 }

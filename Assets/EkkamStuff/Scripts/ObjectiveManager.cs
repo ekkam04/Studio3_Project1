@@ -11,9 +11,11 @@ namespace Ekkam {
     {
         public int currentObjectiveIndex = 0;
         public float objectiveTargetDistance;
+        
+        public int objectivesCompleted = 0;
+        public int objectivesActive = 0;
 
         public List<Objective> objectives = new List<Objective>();
-        public List<Objective> completedObjectives = new List<Objective>();
         public List<Objective> activeObjectives = new List<Objective>();
 
         public List<ObjectiveCompletionAction> objectiveCompletionActions = new List<ObjectiveCompletionAction>();
@@ -28,7 +30,7 @@ namespace Ekkam {
             // hide all objective targets if type is Reach
             foreach (Objective objective in objectives)
             {
-                if (objective.objectiveType == Objective.ObjectiveType.Reach)
+                if (objective.objectiveTarget != null)
                 {
                     objective.objectiveTarget.gameObject.SetActive(false);
                 }
@@ -36,108 +38,139 @@ namespace Ekkam {
 
             if (objectives.Count > 0)
             {
-                activeObjectives.Add(objectives[currentObjectiveIndex]);
+                objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
                 AddObjectiveToUI(objectives[currentObjectiveIndex]);
             }
         }
 
         void Update()
         {
-
-            List<Objective> completedObjectives = new List<Objective>();
-            foreach (Objective objective in activeObjectives)
+            foreach (Objective objective in objectives)
             {
-                if (objective.isCompleted)
-                {
-                    completedObjectives.Add(objective);
-                    RemoveObjectiveFromUI(objective);
-                }
-            }
+                if (objective.status != Objective.ObjectiveStatus.Active || objective.objectiveTarget == null) continue;
 
-            if (activeObjectives.Count < 2 && completedObjectives.Count > 0 && currentObjectiveIndex < objectives.Count - 1)
-            {
-                CheckForObjectiveCompletion();
-                AddNextObjective();
-            }
-            else if (activeObjectives.Count < 1)
-            {
-                print("All objectives completed!");
-            }
-
-            foreach (Objective objective in completedObjectives)
-            {
-                CompleteObjective(objective);
-            }
-            
-
-            foreach (Objective objective in activeObjectives)
-            {
-                if (objective.objectiveTarget == null) continue;
-
+                var objectiveTargetRadius = 3.5f;
                 objectiveTargetDistance = Vector3.Distance(player.transform.position, objective.objectiveTarget.transform.position);
 
-
-                if (objective.objectiveType == Objective.ObjectiveType.Reach)
+                if (objective.objectiveType == Objective.ObjectiveType.Reach) // if objective is of type Reach ------------------------------------------
                 {
-                    if (objectiveTargetDistance < 3.5f)
+                    if (objectiveTargetDistance < objectiveTargetRadius)
                     {
                         objective.objectiveTarget.gameObject.SetActive(false);
                         objectiveTargetDistance = Mathf.Infinity;
-                        objective.isCompleted = true;
+                        CompleteObjective(objective);
                     }
                     else
                     {
                         objective.objectiveTarget.gameObject.SetActive(true);
                     }
                 }
-                else if (objective.objectiveType == Objective.ObjectiveType.Interact)
+                else if (objective.objectiveType == Objective.ObjectiveType.Interact) // if objective is of type Interact -------------------------------
                 {
-                    if (objective.objectiveTarget.GetComponent<Interactable>().timesInteracted > 0)
+                    foreach (GameObject target in objective.objectiveMultiTargets)
                     {
-                        objective.isCompleted = true;
+                        if (target.GetComponent<Interactable>() == null) continue;
+                        if (target.GetComponent<Interactable>().timesInteracted > 0)
+                        {
+                            objective.objectiveTarget.gameObject.SetActive(false);
+                            CompleteObjective(objective);
+                        }
                     }
                 }
-                else if (objective.objectiveType == Objective.ObjectiveType.Destroy)
+                else if (objective.objectiveType == Objective.ObjectiveType.Destroy) // if objective is of type Destroy ---------------------------------
                 {
                     int numberOfTargetsToDestroy = objective.objectiveMultiTargets.Length;
                     int numberOfDestroyedTargets = 0;
                     foreach (GameObject target in objective.objectiveMultiTargets)
                     {
-                        if (target == null)
+                        if (target == null || target.activeSelf == false)
                         {
                             numberOfDestroyedTargets++;
                         }
                     }
+
+                    if (objectiveTargetDistance < objectiveTargetRadius)
+                    {
+                        objective.objectiveTarget.gameObject.SetActive(false);
+                    }
+
                     if (numberOfDestroyedTargets == numberOfTargetsToDestroy)
                     {
-                        objective.isCompleted = true;
+                        objective.objectiveTarget.gameObject.SetActive(false);
+                        CompleteObjective(objective);
                     }
                 }
             }
+
         }
 
-        public void AddNextObjective()
+        public void AddNextObjectives()
         {
+            activeObjectives.Clear();
             bool autoAssignNextObjective = true;
             while (autoAssignNextObjective)
             {
                 currentObjectiveIndex++;
-                activeObjectives.Add(objectives[currentObjectiveIndex]);
-                AddObjectiveToUI(objectives[currentObjectiveIndex]);
-                if (currentObjectiveIndex < objectives.Count - 1)
+                if (currentObjectiveIndex < objectives.Count)
                 {
-                     autoAssignNextObjective = objectives[currentObjectiveIndex].autoAssignNextObjective;
+                    objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
+                    AddObjectiveToUI(objectives[currentObjectiveIndex]);
+                    activeObjectives.Add(objectives[currentObjectiveIndex]);
+                    if (currentObjectiveIndex < objectives.Count - 1)
+                    {
+                         autoAssignNextObjective = objectives[currentObjectiveIndex].autoAssignNextObjective;
+                    }
+                }
+                else
+                {
+                    autoAssignNextObjective = false;
                 }
             }
         }
 
         public void CompleteObjective(Objective objective)
         {
-            completedObjectives.Add(objective);
-            activeObjectives.Remove(objective);
+            objective.status = Objective.ObjectiveStatus.Completed;
+            RemoveObjectiveFromUI(objective);
+
+            if (GetNumberOfObjectives(Objective.ObjectiveStatus.Active) < 1 && currentObjectiveIndex < objectives.Count - 1)
+            {
+                CheckForCompletionActions();
+                DetermineFreeWill(objective);
+                AddNextObjectives();
+            }
+            else if (GetNumberOfObjectives(Objective.ObjectiveStatus.Completed) == objectives.Count)
+            {
+                print("All objectives completed!");
+            }
         }
 
-        public void CheckForObjectiveCompletion()
+        int GetNumberOfObjectives(Objective.ObjectiveStatus status)
+        {
+            int numberOfObjectives = 0;
+            foreach (Objective objective in objectives)
+            {
+                if (objective.status == status)
+                {
+                    numberOfObjectives++;
+                }
+            }
+            return numberOfObjectives;
+        }
+
+        void DetermineFreeWill(Objective completedObjective)
+        {
+            if (activeObjectives.Count > 1 && activeObjectives[0] == completedObjective)
+            {
+                player.freeWill += 10;
+            }
+            else if (activeObjectives.Count > 1)
+            {
+                player.freeWill -= 10;
+            }
+        }
+
+        public void CheckForCompletionActions()
         {
             foreach (ObjectiveCompletionAction action in objectiveCompletionActions)
             {
@@ -194,10 +227,10 @@ namespace Ekkam {
 
         public async void RemoveObjectiveFromUI(Objective objective)
         {
-            // set color to green
             objective.objectiveUIText.color = Color.green;
-            await Task.Delay(1500);
-            Destroy(objective.objectiveUIText.gameObject);
+            await Task.Delay(1000);
+            objective.objectiveUIText.gameObject.SetActive(false);
+            objective.objectiveUIText = null;
         }
     }
 }

@@ -21,6 +21,15 @@ namespace Ekkam {
         public GameObject[] objectiveMultiTargets;
         public TMP_Text objectiveUIText;
         public bool autoAssignNextObjective;
-        public bool isCompleted;
+        public enum ObjectiveStatus
+        {
+            Inactive,
+            Active,
+            Completed,
+            Failed
+        }
+        public ObjectiveStatus status;
+        // public bool isActive;
+        // public bool isCompleted;
     }
 }

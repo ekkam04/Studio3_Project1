@@ -2345,7 +2345,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 100
   m_WholeNumbers: 1
-  m_Value: 50
+  m_Value: 30
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -8976,7 +8976,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 836253225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12218327, y: 0.000000017077465, z: -0.0000000021023319, w: 0.9925076}
+  m_LocalRotation: {x: 0.12218325, y: -0.000000017077465, z: 0.0000000021023316, w: 0.9925076}
   m_LocalPosition: {x: 2.25, y: 19.359, z: -20.41}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -15008,7 +15008,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1357090410}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12218327, y: 0.000000017077465, z: -0.0000000021023319, w: 0.9925076}
+  m_LocalRotation: {x: 0.12218325, y: -0.000000017077465, z: 0.0000000021023316, w: 0.9925076}
   m_LocalPosition: {x: 2.25, y: 19.359, z: -20.41}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -15432,6 +15432,8 @@ MonoBehaviour:
   anim: {fileID: 0}
   allowMovement: 1
   allowFall: 1
+  freeWill: 30
+  freeWillSlider: {fileID: 252014921}
   viewDirection: {x: 0, y: 0, z: 0}
   orientation: {fileID: 1868711204}
   cameraObj: {fileID: 1357090412}
@@ -22692,6 +22694,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentObjectiveIndex: 0
   objectiveTargetDistance: 0
+  objectivesCompleted: 0
+  objectivesActive: 0
   objectives:
   - objectiveText: Walk to the first waypoint
     objectiveType: 3
@@ -22699,66 +22703,53 @@ MonoBehaviour:
     objectiveMultiTargets: []
     objectiveUIText: {fileID: 0}
     autoAssignNextObjective: 0
-    isCompleted: 0
+    status: 0
   - objectiveText: Walk to the second waypoint
     objectiveType: 3
     objectiveTarget: {fileID: 855699187}
     objectiveMultiTargets: []
     objectiveUIText: {fileID: 0}
     autoAssignNextObjective: 1
-    isCompleted: 0
+    status: 0
   - objectiveText: Walk to the third waypoint
     objectiveType: 3
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets: []
     objectiveUIText: {fileID: 0}
     autoAssignNextObjective: 0
-    isCompleted: 0
+    status: 0
   - objectiveText: Reach the next waypoint
     objectiveType: 3
     objectiveTarget: {fileID: 1630602572}
     objectiveMultiTargets: []
     objectiveUIText: {fileID: 0}
     autoAssignNextObjective: 0
-    isCompleted: 0
+    status: 0
   - objectiveText: Reach the next waypoint
     objectiveType: 3
     objectiveTarget: {fileID: 1070051176}
     objectiveMultiTargets: []
     objectiveUIText: {fileID: 0}
     autoAssignNextObjective: 0
-    isCompleted: 0
+    status: 0
   - objectiveText: Reach the next waypoint
     objectiveType: 3
     objectiveTarget: {fileID: 976009036}
     objectiveMultiTargets: []
     objectiveUIText: {fileID: 0}
     autoAssignNextObjective: 0
-    isCompleted: 0
-  - objectiveText: Go to the sword
-    objectiveType: 3
-    objectiveTarget: {fileID: 1725223405}
-    objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
-    autoAssignNextObjective: 1
-    isCompleted: 0
+    status: 0
   - objectiveText: Pick up the sword
     objectiveType: 1
-    objectiveTarget: {fileID: 1133635814}
-    objectiveMultiTargets: []
+    objectiveTarget: {fileID: 1725223405}
+    objectiveMultiTargets:
+    - {fileID: 1133635814}
     objectiveUIText: {fileID: 0}
     autoAssignNextObjective: 0
-    isCompleted: 0
-  - objectiveText: Go to the first set of crates
-    objectiveType: 3
-    objectiveTarget: {fileID: 701376409}
-    objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
-    autoAssignNextObjective: 1
-    isCompleted: 0
+    status: 0
   - objectiveText: Destroy the first set of crates
     objectiveType: 2
-    objectiveTarget: {fileID: 1464522401}
+    objectiveTarget: {fileID: 701376409}
     objectiveMultiTargets:
     - {fileID: 779663292}
     - {fileID: 808407372}
@@ -22766,17 +22757,10 @@ MonoBehaviour:
     - {fileID: 942001581}
     objectiveUIText: {fileID: 0}
     autoAssignNextObjective: 1
-    isCompleted: 0
-  - objectiveText: Go to the second set of crates
-    objectiveType: 3
-    objectiveTarget: {fileID: 1208806580}
-    objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
-    autoAssignNextObjective: 1
-    isCompleted: 0
+    status: 0
   - objectiveText: Destroy the second set of crates
     objectiveType: 2
-    objectiveTarget: {fileID: 1464522401}
+    objectiveTarget: {fileID: 1208806580}
     objectiveMultiTargets:
     - {fileID: 1025291179}
     - {fileID: 1255497107}
@@ -22790,64 +22774,14 @@ MonoBehaviour:
     - {fileID: 1534727658}
     objectiveUIText: {fileID: 0}
     autoAssignNextObjective: 0
-    isCompleted: 0
-  - objectiveText: Way to the new area
+    status: 0
+  - objectiveText: Go to the next waypoint
     objectiveType: 3
     objectiveTarget: {fileID: 123409184}
     objectiveMultiTargets: []
     objectiveUIText: {fileID: 0}
     autoAssignNextObjective: 0
-    isCompleted: 0
-  - objectiveText: Now idk bruh
-    objectiveType: 3
-    objectiveTarget: {fileID: 1464522401}
-    objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
-    autoAssignNextObjective: 0
-    isCompleted: 0
-  - objectiveText: Reach the waypoint
-    objectiveType: 3
-    objectiveTarget: {fileID: 1464522401}
-    objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
-    autoAssignNextObjective: 0
-    isCompleted: 0
-  - objectiveText: Reach the waypoint
-    objectiveType: 3
-    objectiveTarget: {fileID: 1464522401}
-    objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
-    autoAssignNextObjective: 0
-    isCompleted: 0
-  - objectiveText: Reach the waypoint
-    objectiveType: 3
-    objectiveTarget: {fileID: 1464522401}
-    objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
-    autoAssignNextObjective: 0
-    isCompleted: 0
-  - objectiveText: Reach the waypoint
-    objectiveType: 3
-    objectiveTarget: {fileID: 1464522401}
-    objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
-    autoAssignNextObjective: 0
-    isCompleted: 0
-  - objectiveText: Reach the waypoint
-    objectiveType: 3
-    objectiveTarget: {fileID: 1464522401}
-    objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
-    autoAssignNextObjective: 0
-    isCompleted: 0
-  - objectiveText: Reach the waypoint
-    objectiveType: 3
-    objectiveTarget: {fileID: 1464522401}
-    objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
-    autoAssignNextObjective: 0
-    isCompleted: 0
-  completedObjectives: []
+    status: 0
   activeObjectives: []
   objectiveCompletionActions:
   - objectiveIndexToComplete: 2
@@ -22858,7 +22792,7 @@ MonoBehaviour:
     completionAction: 0
     target: {fileID: 1814360243}
     targetPositionOffset: {x: 0, y: -20, z: 0}
-  - objectiveIndexToComplete: 11
+  - objectiveIndexToComplete: 8
     completionAction: 0
     target: {fileID: 353645560}
     targetPositionOffset: {x: 0, y: -20, z: 0}
