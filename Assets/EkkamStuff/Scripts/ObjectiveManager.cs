@@ -177,12 +177,12 @@ namespace Ekkam {
             if (activeObjectives.Count > 1 && activeObjectives[0] == completedObjective)
             {
                 player.freeWill += 10;
-                StartCoroutine(PulseVignette(Color.blue, 0.5f, 2.5f));
+                StartCoroutine(PulseVignette(Color.red, 0.5f, 2.5f));
             }
             else if (activeObjectives.Count > 1)
             {
                 player.freeWill -= 10;
-                StartCoroutine(PulseVignette(Color.red, 0.5f, 2.5f));
+                StartCoroutine(PulseVignette(Color.blue, 0.5f, 2.5f));
             }
         }
 

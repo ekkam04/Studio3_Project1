@@ -111,21 +111,36 @@ namespace Ekkam {
             ShowEquippedItem();
         }
 
-        public void UseItem()
+        // public void UseItem()
+        // {
+        //     // Use item in selected slot
+        //     if (selectedSlot.transform.childCount > 0)
+        //     {
+        //         Item item = items[slots.IndexOf(selectedSlot)];
+        //         switch (item.tag)
+        //         {
+        //             case "Sword":
+        //                 player.SwingSword();
+        //                 break;
+        //             case "Bow":
+        //                 player.ShootArrow();
+        //                 break;
+        //             case "Staff":
+        //                 player.ShootSpellBall();
+        //                 break;
+        //             default:
+        //                 break;
+        //         }
+        //     }
+        // }
+        
+        public Item GetSelectedItem()
         {
-            // Use item in selected slot
             if (selectedSlot.transform.childCount > 0)
             {
-                Item item = items[slots.IndexOf(selectedSlot)];
-                switch (item.tag)
-                {
-                    case "Sword":
-                        player.SwingSword();
-                        break;
-                    default:
-                        break;
-                }
+                return items[slots.IndexOf(selectedSlot)];
             }
+            return null;
         }
 
         public void ShowEquippedItem()
@@ -148,7 +163,7 @@ namespace Ekkam {
                 // {
                 //     uiManager.ShowLighterUI();
                 // }
-                if (item.tag == "Sword")
+                if (item.tag == "Sword" || item.tag == "Staff")
                 {
                     player.anim.SetBool("isHoldingSword", true);
                 }

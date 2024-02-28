@@ -53,7 +53,14 @@ namespace Ekkam
         float swordResetCooldown = 1.25f;
         float swordAttackCooldown = 0.25f;
 
+        private float bowTimer;
+        private float bowResetCooldown = 1.25f;
+        private float bowAttackCooldown = 1.25f;
+
         [SerializeField] public GameObject itemHolderRight;
+        [SerializeField] public GameObject itemHolderLeft;
+        [SerializeField] public GameObject arrow;
+        [SerializeField] public GameObject spellBall;
         [SerializeField] public GameObject swordHitbox;
 
         void Start()
@@ -95,11 +102,13 @@ namespace Ekkam
 
             // left click for use (temporary, will be changed to new input system)
             if (Input.GetKeyDown(KeyCode.Mouse0))
-            {
-                inventory.UseItem();
+            { 
+                UseItem();
             }
             
             swordTimer += Time.deltaTime;
+            bowTimer += Time.deltaTime;
+            
             if (swordTimer >= swordResetCooldown)
             {
                 anim.SetLayerWeight(1, Mathf.Lerp(anim.GetLayerWeight(1), 0.75f, Time.deltaTime * 10));
@@ -109,7 +118,7 @@ namespace Ekkam
                 anim.SetLayerWeight(1, 0);
             }
 
-            if (swordTimer >= swordResetCooldown - 0.25f)
+            if (swordTimer >= swordResetCooldown - 0.25f && bowTimer >= bowResetCooldown - 0.25f)
             {
                 allowMovement = true;
                 if (verticalInput != 0 || horizontalInput != 0)
@@ -230,15 +239,26 @@ namespace Ekkam
                 isGrounded = false;
                 rb.drag = 0;
             }
-
-            // RaycastHit hit2;
-            // if (Physics.Raycast(transform.position + new Vector3(0, 0.5f, 0), Vector3.down, out hit2, groundDistanceLandingOffset + 0.1f))
-            // {
-            //     if (!isGrounded && !isJumping)
-            //     {
-            //         anim.SetBool("isJumping", false);
-            //     }
-            // }
+        }
+        
+        private void UseItem()
+        {
+            Item item = inventory.GetSelectedItem();
+            if (item == null) return;
+            switch (item.tag)
+            {
+                case "Sword":
+                    SwingSword();
+                    break;
+                case "Bow":
+                    ShootArrow();
+                    break;
+                case "Staff":
+                    ShootSpellBall();
+                    break;
+                default:
+                    break;
+            }
         }
 
         public async void SwingSword()
@@ -253,6 +273,44 @@ namespace Ekkam
             rb.AddForce(transform.forward * 3.5f, ForceMode.Impulse);
             await Task.Delay(50);
             swordHitbox.SetActive(false);
+        }
+        
+        public async void ShootArrow()
+        {
+            if (bowTimer < bowAttackCooldown || isGrounded == false) return;
+            allowMovement = false;
+            bowTimer = 0;
+            anim.SetTrigger("bowAttack");
+            await Task.Delay(250);
+            
+            GameObject newArrow = Instantiate(arrow, itemHolderLeft.transform.position, Quaternion.identity, itemHolderRight.transform);
+            newArrow.transform.localRotation = Quaternion.identity;
+            newArrow.transform.Rotate(0, 90, 0);
+            newArrow.transform.localPosition = new Vector3(0, 0, 0);
+            newArrow.SetActive(true);
+            await Task.Delay(550);
+            
+            newArrow.transform.SetParent(null);
+            newArrow.transform.forward = transform.forward;
+            newArrow.GetComponent<Projectile>().speed = 15;
+            await Task.Delay(100);
+            newArrow.GetComponent<Collider>().enabled = true;
+        }
+        
+        public async void ShootSpellBall()
+        {
+            if (swordTimer < swordAttackCooldown || isGrounded == false) return;
+            swordTimer = 0;
+            allowMovement = false;
+            bowTimer = 0;
+            anim.SetTrigger("swordAttack");
+            await Task.Delay(250);
+            // spawn ball in front of player
+            GameObject newSpellBall = Instantiate(spellBall, transform.position + transform.forward + new Vector3(0, 1, 0), Quaternion.identity);
+            // rotate to look away from player
+            newSpellBall.transform.forward = transform.forward;
+            newSpellBall.SetActive(true);
+            
         }
     }
 }

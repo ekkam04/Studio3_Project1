@@ -44,9 +44,25 @@ namespace Ekkam {
             if (GetComponent<Item>())
             {
                 inventory.AddItem(GetComponent<Item>());
-                transform.SetParent(player.itemHolderRight.transform);
-                transform.localPosition = Vector3.zero;
-                transform.localRotation = Quaternion.identity;
+                if (tag == "Sword")
+                {
+                    transform.SetParent(player.itemHolderRight.transform);
+                    transform.localPosition = Vector3.zero;
+                    transform.localRotation = Quaternion.identity;
+                }
+                else if (tag == "Bow")
+                {
+                    transform.SetParent(player.itemHolderLeft.transform);
+                    transform.localPosition = Vector3.zero;
+                    transform.localRotation = Quaternion.identity;
+                    transform.Rotate(0, 75, 0);
+                }
+                else if (tag == "Staff")
+                {
+                    transform.SetParent(player.itemHolderRight.transform);
+                    transform.localPosition = Vector3.zero;
+                    transform.localRotation = Quaternion.identity;
+                }
             }
         }
     }
