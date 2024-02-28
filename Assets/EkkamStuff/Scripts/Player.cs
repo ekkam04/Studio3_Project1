@@ -109,6 +109,15 @@ namespace Ekkam
                 anim.SetLayerWeight(1, 0);
             }
 
+            if (swordTimer >= swordResetCooldown - 0.25f)
+            {
+                allowMovement = true;
+                if (verticalInput != 0 || horizontalInput != 0)
+                {
+                    anim.SetLayerWeight(1, 0.75f);
+                }
+            }
+
             freeWillSlider.value = freeWill;
         }
 
@@ -234,16 +243,16 @@ namespace Ekkam
 
         public async void SwingSword()
         {
-            if (swordTimer < swordAttackCooldown) return;
+            if (swordTimer < swordAttackCooldown || isGrounded == false) return;
             allowMovement = false;
             swordTimer = 0;
             anim.SetTrigger("swordAttack");
             anim.SetLayerWeight(1, 0);
             await Task.Delay(250);
             swordHitbox.SetActive(true);
+            rb.AddForce(transform.forward * 3.5f, ForceMode.Impulse);
             await Task.Delay(50);
-            swordHitbox.SetActive(false);  
-            allowMovement = true;
+            swordHitbox.SetActive(false);
         }
     }
 }
