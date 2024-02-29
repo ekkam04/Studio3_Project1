@@ -5,10 +5,17 @@ using UnityEngine;
 
 public class Node : MonoBehaviour
 {
+    public Vector2Int gridPosition;
     public List<Node> neighbours = new List<Node>();
     public bool isBlocked;
     private int gCost;
     public TMP_Text gCostText;
+    private Color initialColor;
+
+    void Awake()
+    {
+        initialColor = GetComponent<MeshRenderer>().material.color;
+    }
     public int GCost
     {
         get
@@ -52,7 +59,7 @@ public class Node : MonoBehaviour
     
     public void SetColor(Color color)
     {
-        if (GetComponent<MeshRenderer>().material.color == Color.black)
+        if (GetComponent<MeshRenderer>().material.color == initialColor)
         {
             GetComponent<MeshRenderer>().material.color = color;
         }
@@ -60,5 +67,10 @@ public class Node : MonoBehaviour
     public void SetPathColor(Color color)
     {
         GetComponent<MeshRenderer>().material.color = color;
+    }
+    
+    public void ResetColor()
+    {
+        GetComponent<MeshRenderer>().material.color = initialColor;
     }
 }

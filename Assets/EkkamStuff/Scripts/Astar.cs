@@ -7,44 +7,25 @@ using System.Threading.Tasks;
 
 public class Astar : MonoBehaviour
 {
-    private Grid grid;
+    private PathfindingGrid grid;
     [SerializeField] Vector2Int startNodePosition;
     [SerializeField] Vector2Int endNodePosition;
-    [SerializeField] Vector2Int[] blockedPositions;
     
     public List<Node> neighbours = new List<Node>();
     public List<Node> openNodes = new List<Node>();
     public List<Node> closedNodes = new List<Node>();
+    private Node[] allNodes;
 
     public bool findPath;
     void Start()
     {
-        grid = FindObjectOfType<Grid>();
+        grid = FindObjectOfType<PathfindingGrid>();
         
         Node startingNode = grid.GetNode(startNodePosition);
         startingNode.SetColor(new Color(0, 0.5f, 0, 1));
         
         Node endingNode = grid.GetNode(endNodePosition);
         endingNode.SetColor(new Color(0.5f, 0, 0, 1));
-        
-        foreach (var blockedPosition in blockedPositions)
-        {
-            Node blockedNode = grid.GetNode(blockedPosition);
-            blockedNode.SetColor(new Color(0.3f, 0.3f, 0.3f, 1));
-            blockedNode.isBlocked = true;
-        }
-        
-        var allNodes = FindObjectsOfType<Node>();
-        foreach (var node in allNodes)
-        {
-            // checkbox for isBlocked
-            bool isBlocked = Physics.CheckBox(node.transform.position, new Vector3(0.5f, 0.5f, 0.5f), Quaternion.identity);
-            if (isBlocked)
-            {
-                node.SetColor(new Color(0.3f, 0.3f, 0.3f, 1));
-                node.isBlocked = true;
-            }
-        }
         
         openNodes.Add(startingNode);
         
@@ -54,7 +35,13 @@ public class Astar : MonoBehaviour
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space)) findPath = true;
-        if (!findPath || openNodes.Count < 1) return;
+        if (!findPath) return;
+        if (openNodes.Count < 1)
+        {
+            print("No path found");
+            findPath = false;
+            return;
+        }
         var currentNode = openNodes[0];
         foreach (var node in openNodes)
         {
@@ -74,10 +61,10 @@ public class Astar : MonoBehaviour
             return;
         }
         
-        var currentNeighbours = GetNeighbours(currentNode, grid.GetGridPosition(currentNode));
+        var currentNeighbours = GetNeighbours(currentNode, currentNode.gridPosition);
         foreach (var neighbour in currentNeighbours)
         {
-            var neighborGridPosition = grid.GetGridPosition(neighbour);
+            var neighborGridPosition = neighbour.gridPosition;
             print("neighbour: " + neighborGridPosition);
             // check if it is in blocked positions or closed nodes
             if (neighbour.isBlocked || closedNodes.Contains(neighbour))
@@ -116,28 +103,28 @@ public class Astar : MonoBehaviour
         if (rightNodePosition.x < grid.gridCellCountX)
         {
             Node rightNode = grid.GetNode(rightNodePosition);
-            rightNode.SetColor(new Color(0f, 0.25f, 0f , 1));
+            // rightNode.SetColor(new Color(0f, 0.25f, 0f , 1));
             node.neighbours.Add(rightNode);
         }
         Vector2Int leftNodePosition = new Vector2Int(nodePosition.x - 1, nodePosition.y);
         if (leftNodePosition.x >= 0)
         {
             Node leftNode = grid.GetNode(leftNodePosition);
-            leftNode.SetColor(new Color(0f, 0.25f, 0f , 1));
+            // leftNode.SetColor(new Color(0f, 0.25f, 0f , 1));
             node.neighbours.Add(leftNode);
         }
         Vector2Int upNodePosition = new Vector2Int(nodePosition.x, nodePosition.y + 1);
         if (upNodePosition.y < grid.gridCellCountZ)
         {
             Node upNode = grid.GetNode(upNodePosition);
-            upNode.SetColor(new Color(0f, 0.25f, 0f , 1));
+            // upNode.SetColor(new Color(0f, 0.25f, 0f , 1));
             node.neighbours.Add(upNode);
         }
         Vector2Int downNodePosition = new Vector2Int(nodePosition.x, nodePosition.y - 1);
         if (downNodePosition.y >= 0)
         {
             Node downNode = grid.GetNode(downNodePosition);
-            downNode.SetColor(new Color(0f, 0.25f, 0f , 1));
+            // downNode.SetColor(new Color(0f, 0.25f, 0f , 1));
             node.neighbours.Add(downNode);
         }
 
@@ -146,17 +133,9 @@ public class Astar : MonoBehaviour
     
     int GetDistance(Node nodeA, Node nodeB)
     {
-        int distanceX = Mathf.Abs(grid.GetGridPosition(nodeA).x - grid.GetGridPosition(nodeB).x);
-        int distanceY = Mathf.Abs(grid.GetGridPosition(nodeA).y - grid.GetGridPosition(nodeB).y);
+        int distanceX = Mathf.Abs(nodeA.gridPosition.x - nodeB.gridPosition.x);
+        int distanceY = Mathf.Abs(nodeA.gridPosition.y - nodeB.gridPosition.y);
         // return manhattan distance
         return distanceX + distanceY;
     }
-    
-    // void ResetNeighbours()
-    // {
-    //     foreach (var node in neighbours)
-    //     {
-    //         node.SetColor(new Color(0f, 0f, 0f , 1));
-    //     }
-    // }
 }

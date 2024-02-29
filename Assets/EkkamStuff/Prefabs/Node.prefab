@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3197424974474974124}
   - component: {fileID: 9095549951281586079}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Node
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -411,7 +411,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7255462353416595135
 RectTransform:
   m_ObjectHideFlags: 0
