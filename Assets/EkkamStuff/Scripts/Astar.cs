@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 public class Astar : MonoBehaviour
 {
-    private PathfindingGrid grid;
+    [SerializeField] PathfindingGrid grid;
     [SerializeField] Vector2Int startNodePosition;
     [SerializeField] Vector2Int endNodePosition;
     
@@ -19,7 +19,7 @@ public class Astar : MonoBehaviour
     public bool findPath;
     void Start()
     {
-        grid = FindObjectOfType<PathfindingGrid>();
+        // grid = FindObjectOfType<PathfindingGrid>();
         
         Node startingNode = grid.GetNode(startNodePosition);
         startingNode.SetColor(new Color(0, 0.5f, 0, 1));

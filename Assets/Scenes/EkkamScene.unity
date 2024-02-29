@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028373, g: 0.22571398, b: 0.30692294, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -1810,8 +1810,9 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1806179620}
-  - {fileID: 2023345457}
   - {fileID: 252599493}
+  - {fileID: 2023345457}
+  - {fileID: 1864151845}
   - {fileID: 1577662357}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -4000,8 +4001,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nodes: []
-  gridCellCountX: 65
-  gridCellCountZ: 165
+  gridCellCountX: 53
+  gridCellCountZ: 52
   cube: {fileID: 68791774227447905, guid: 6f880193db5724c3481338dae1161111, type: 3}
   startingPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &258881381
@@ -13395,7 +13396,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 836253225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12218327, y: 0.000000017077465, z: -0.0000000021023319, w: 0.9925076}
+  m_LocalRotation: {x: 0.12218325, y: -0.000000017077465, z: 0.0000000021023316, w: 0.9925076}
   m_LocalPosition: {x: 2.25, y: 19.359, z: -20.41}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -22335,7 +22336,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1357090410}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12218327, y: 0.000000017077465, z: -0.0000000021023319, w: 0.9925076}
+  m_LocalRotation: {x: 0.12218325, y: -0.000000017077465, z: 0.0000000021023316, w: 0.9925076}
   m_LocalPosition: {x: 2.25, y: 19.359, z: -20.41}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -28448,6 +28449,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e4a5eb236f3948f581c1548f017fb0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  grid: {fileID: 252599494}
   startNodePosition: {x: 25, y: 5}
   endNodePosition: {x: 30, y: 30}
   neighbours: []
@@ -30101,6 +30103,55 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1862041003}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1864151844
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1864151845}
+  - component: {fileID: 1864151846}
+  m_Layer: 0
+  m_Name: PathfindingGrid (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1864151845
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1864151844}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 95.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 107388208}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1864151846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1864151844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de8dfb59576c44053b0ed2d2dfca055a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nodes: []
+  gridCellCountX: 62
+  gridCellCountZ: 61
+  cube: {fileID: 68791774227447905, guid: 6f880193db5724c3481338dae1161111, type: 3}
+  startingPosition: {x: 0, y: 0, z: 0}
 --- !u!1 &1868711203
 GameObject:
   m_ObjectHideFlags: 0
@@ -32141,8 +32192,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e4a5eb236f3948f581c1548f017fb0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startNodePosition: {x: 20, y: 5}
-  endNodePosition: {x: 25, y: 30}
+  grid: {fileID: 1864151846}
+  startNodePosition: {x: 12, y: 17}
+  endNodePosition: {x: 30, y: 59}
   neighbours: []
   openNodes: []
   closedNodes: []
