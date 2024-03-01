@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -26,8 +27,18 @@ namespace Ekkam {
             if (other.gameObject.GetComponent<Damagable>())
             {
                 other.gameObject.GetComponent<Damagable>().TakeDamage(damage);
-                if (destroyOnHit) Destroy(gameObject);
             }
+            if (destroyOnHit) Destroy(gameObject);
+        }
+
+        private void OnCollisionEnter(Collision other)
+        {
+            print("Hit " + other.gameObject.name);
+            if (other.gameObject.GetComponent<Damagable>())
+            {
+                other.gameObject.GetComponent<Damagable>().TakeDamage(damage);
+            }
+            if (destroyOnHit) Destroy(gameObject);
         }
     }
 }
