@@ -24,6 +24,7 @@ namespace Ekkam {
         public List<ObjectiveCompletionAction> objectiveCompletionActions = new List<ObjectiveCompletionAction>();
 
         [SerializeField] GameObject objectiveUI;
+        [SerializeField] GameObject objectiveItem;
         Player player;
 
         public Volume vignetteVolume;
@@ -231,22 +232,29 @@ namespace Ekkam {
 
         public void AddObjectiveToUI(Objective objective)
         {
-            GameObject objectiveText = new GameObject();
-            objectiveText.transform.SetParent(objectiveUI.transform);
-            objectiveText.AddComponent<TextMeshProUGUI>();
-            objectiveText.GetComponent<TextMeshProUGUI>().text = objective.objectiveText;
-            objectiveText.GetComponent<TextMeshProUGUI>().fontSize = 36;
-            objectiveText.GetComponent<TextMeshProUGUI>().rectTransform.sizeDelta = new Vector2(500, 50);
-            objectiveText.transform.localScale = new Vector3(1, 1, 1);
-            objective.objectiveUIText = objectiveText.GetComponent<TextMeshProUGUI>();
+            // GameObject objectiveText = new GameObject();
+            // objectiveText.transform.SetParent(objectiveUI.transform);
+            // objectiveText.AddComponent<TextMeshProUGUI>();
+            // objectiveText.GetComponent<TextMeshProUGUI>().text = objective.objectiveText;
+            // objectiveText.GetComponent<TextMeshProUGUI>().fontSize = 36;
+            // objectiveText.GetComponent<TextMeshProUGUI>().rectTransform.sizeDelta = new Vector2(500, 50);
+            // objectiveText.transform.localScale = new Vector3(1, 1, 1);
+            // objective.objectiveUIText = objectiveText.GetComponent<TextMeshProUGUI>();
+            GameObject objectiveUIItem = Instantiate(objectiveItem, objectiveUI.transform);
+            objectiveUIItem.GetComponentInChildren<TextMeshProUGUI>().text = objective.objectiveText;
+            objective.objectiveUIItem = objectiveUIItem;
+            objectiveUIItem.GetComponentInChildren<Animator>().SetBool("Active", false);
         }
 
         public async void RemoveObjectiveFromUI(Objective objective)
         {
-            objective.objectiveUIText.color = Color.green;
-            await Task.Delay(1000);
-            objective.objectiveUIText.gameObject.SetActive(false);
-            objective.objectiveUIText = null;
+            // objective.objectiveUIText.color = Color.green;
+            // await Task.Delay(1000);
+            // objective.objectiveUIText.gameObject.SetActive(false);
+            // objective.objectiveUIText = null;
+            objective.objectiveUIItem.GetComponentInChildren<Animator>().SetBool("Active", true);
+            await Task.Delay(2000);
+            objective.objectiveUIItem.SetActive(false);
         }
 
         IEnumerator PulseVignette(Color color, float fadeInDuration, float fadeOutDuration)

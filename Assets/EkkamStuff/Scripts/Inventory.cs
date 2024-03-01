@@ -7,14 +7,14 @@ namespace Ekkam {
     public class Inventory : MonoBehaviour
     {
         
-        [SerializeField] private Texture2D[] slotTexture; // 0 = unselected, 1 = selected
-        [SerializeField] private GameObject SlotsHolder;
+        // [SerializeField] private Texture2D[] slotTexture; // 0 = unselected, 1 = selected
+        // [SerializeField] private GameObject SlotsHolder;
         
-        [SerializeField] private int slotCount = 5;
+        // [SerializeField] private int slotCount = 5;
         // [SerializeField] private float slotPositionXOffset = 150f;
         // [SerializeField] private float slotPositionYOffset = 50f;
-        [SerializeField] private float slotSize = 50f;
-        [SerializeField] private float slotTransparency = 0.5f;
+        // [SerializeField] private float slotSize = 50f;
+        // [SerializeField] private float slotTransparency = 0.5f;
 
         public List<GameObject> slots = new List<GameObject>();
         public List<Item> items = new List<Item>();
@@ -27,44 +27,44 @@ namespace Ekkam {
         void Start()
         {
             player = FindObjectOfType<Player>();
-            // uiManager = GameObject.FindObjectOfType<UIManager>();
-            // Create slots as raw image with texture 0
-            for (int i = 0; i < slotCount; i++)
+            
+            foreach (Transform child in transform)
             {
-                GameObject slot = new GameObject("Slot " + i);
-                slot.transform.SetParent(SlotsHolder.transform);
-                slot.AddComponent<RawImage>();
-                slot.GetComponent<RawImage>().texture = slotTexture[0];
-
-                Color tempColor = slot.GetComponent<RawImage>().color;
-                tempColor.a = slotTransparency;
-                slot.GetComponent<RawImage>().color = tempColor;
-                
-                float scaleFactor = slot.GetComponentInParent<Canvas>().scaleFactor;
-                slot.GetComponent<RectTransform>().sizeDelta = new Vector2(slotSize * scaleFactor, slotSize * scaleFactor);
-
-                // slot.GetComponent<RectTransform>().localPosition = new Vector3(slotPositionX, slotPositionYOffset, 0);
-                // slotPositionX += slotPositionXOffset;
+                GameObject slot = child.gameObject;
                 slots.Add(slot);
             }
-
-            // Center slots and take slot count into account
-            // SlotsHolder.GetComponent<RectTransform>().localPosition = new Vector3(-slotPositionX / 2 + slotPositionXOffset / 2, 0, 0);
-
-            // Set first slot to selected
-            slots[0].GetComponent<RawImage>().texture = slotTexture[1];
+            
             selectedSlot = slots[0];
+            selectedSlot.GetComponentInChildren<Animator>().SetTrigger("Pressed");
+            ShowEquippedItem();
+        }
+        
+        void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                SetSelectedSlot(0);
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                SetSelectedSlot(1);
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
+                SetSelectedSlot(2);
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha4))
+            {
+                SetSelectedSlot(3);
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha5))
+            {
+                SetSelectedSlot(4);
+            }
         }
 
         public void CycleSlot(bool forward)
         {
-            // Set all slots to unselected
-            foreach (GameObject slot in slots)
-            {
-                slot.GetComponent<RawImage>().texture = slotTexture[0];
-            }
-
-            // Cycle slot
             int index = slots.IndexOf(selectedSlot);
             if (forward)
             {
@@ -82,8 +82,17 @@ namespace Ekkam {
                     index = slots.Count - 1;
                 }
             }
+            SetSelectedSlot(index);
+        }
+        
+        void SetSelectedSlot(int index)
+        {
+            foreach (GameObject slot in slots)
+            {
+                slot.GetComponentInChildren<Animator>().SetTrigger("Normal");
+            }
             selectedSlot = slots[index];
-            selectedSlot.GetComponent<RawImage>().texture = slotTexture[1];
+            selectedSlot.GetComponentInChildren<Animator>().SetTrigger("Pressed");
             ShowEquippedItem();
         }
 
@@ -92,11 +101,10 @@ namespace Ekkam {
             // Add item to first empty slot
             foreach (GameObject slot in slots)
             {
-                if (slot.transform.childCount == 0)
+                if (slot.GetComponentInChildren<RawImage>() == null)
                 {
-                    // create new raw image with item sprite inside slot as child
                     GameObject itemObj = new GameObject("Item");
-                    itemObj.transform.SetParent(slot.transform);
+                    itemObj.transform.SetParent(slot.transform.GetChild(0).transform);
                     itemObj.AddComponent<RawImage>();
                     itemObj.GetComponent<RawImage>().texture = item.itemTexture;
 
@@ -110,33 +118,10 @@ namespace Ekkam {
             }
             ShowEquippedItem();
         }
-
-        // public void UseItem()
-        // {
-        //     // Use item in selected slot
-        //     if (selectedSlot.transform.childCount > 0)
-        //     {
-        //         Item item = items[slots.IndexOf(selectedSlot)];
-        //         switch (item.tag)
-        //         {
-        //             case "Sword":
-        //                 player.SwingSword();
-        //                 break;
-        //             case "Bow":
-        //                 player.ShootArrow();
-        //                 break;
-        //             case "Staff":
-        //                 player.ShootSpellBall();
-        //                 break;
-        //             default:
-        //                 break;
-        //         }
-        //     }
-        // }
         
         public Item GetSelectedItem()
         {
-            if (selectedSlot.transform.childCount > 0)
+            if (selectedSlot.GetComponentInChildren<RawImage>() != null)
             {
                 return items[slots.IndexOf(selectedSlot)];
             }
@@ -151,18 +136,11 @@ namespace Ekkam {
                 item.gameObject.SetActive(false);
             }
 
-            // uiManager.HideLighterUI();
-
             // show item in selected slot
-            if (selectedSlot.transform.childCount > 0)
+            if (selectedSlot.GetComponentInChildren<RawImage>() != null)
             {
                 Item item = items[slots.IndexOf(selectedSlot)];
                 item.gameObject.SetActive(true);
-                // uiManager.ShowUsePrompt(item.useText);
-                // if (item.tag == "Lighter")
-                // {
-                //     uiManager.ShowLighterUI();
-                // }
                 if (item.tag == "Sword" || item.tag == "Staff")
                 {
                     player.anim.SetBool("isHoldingSword", true);

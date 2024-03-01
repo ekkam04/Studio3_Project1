@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using UnityEngine.Animations;
 
 namespace Ekkam {
     public class Interactable : MonoBehaviour
@@ -9,11 +11,24 @@ namespace Ekkam {
         Inventory inventory;
         public string interactText;
         public int timesInteracted = 0;
+        UIManager uiManager;
+        public GameObject pickUpPrompt;
 
         void Start()
         {
             player = FindObjectOfType<Player>();
             inventory = FindObjectOfType<Inventory>();
+            uiManager = FindObjectOfType<UIManager>();
+            var mainCamera = Camera.main;
+            
+            pickUpPrompt = Instantiate(uiManager.pickUpPrompt, transform.position, Quaternion.identity, transform);
+            pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().text = interactText;
+            pickUpPrompt.GetComponentInChildren<RotationConstraint>().AddSource(new ConstraintSource
+            {
+                sourceTransform = mainCamera.transform,
+                weight = 1
+            });
+            pickUpPrompt.SetActive(false);
         }
 
         void Update()
@@ -29,11 +44,16 @@ namespace Ekkam {
         {
             if (Vector3.Distance(player.transform.position, transform.position) < player.interactDistance)
             {
-                print("Press E to interact with " + gameObject.name);
+                pickUpPrompt.SetActive(true);
                 if (Input.GetKeyDown(KeyCode.E))
                 {
                     Interact();
+                    pickUpPrompt.SetActive(false);
                 }
+            }
+            else
+            {
+                pickUpPrompt.SetActive(false);
             }
         }
 

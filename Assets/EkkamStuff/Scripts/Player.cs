@@ -69,14 +69,14 @@ namespace Ekkam
             anim = GetComponent<Animator>();
             inventory = FindObjectOfType<Inventory>();
 
-            cameraObj = GameObject.FindObjectOfType<Camera>().transform;
+            // cameraObj = GameObject.FindObjectOfType<Camera>().transform;
             cameraOffset = cameraObj.position - transform.position;
 
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
             initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
 
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            // Cursor.lockState = CursorLockMode.Locked;
+            // Cursor.visible = false;
         }
 
         void Update()
@@ -127,7 +127,7 @@ namespace Ekkam
                 }
             }
 
-            freeWillSlider.value = freeWill;
+            freeWillSlider.value = Mathf.Lerp(freeWillSlider.value, freeWill, Time.deltaTime * 5);
         }
 
         void FixedUpdate()

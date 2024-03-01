@@ -19,7 +19,7 @@ namespace Ekkam {
         public ObjectiveType objectiveType;
         public GameObject objectiveTarget;
         public GameObject[] objectiveMultiTargets;
-        public TMP_Text objectiveUIText;
+        public GameObject objectiveUIItem;
         public bool autoAssignNextObjective;
         public enum ObjectiveStatus
         {
