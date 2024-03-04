@@ -132,6 +132,39 @@
                     "action": "InventoryCycle",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "HorizontalArrows",
+                    "id": "501a8b1f-57d3-4ead-ab02-2891bc442d80",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "InventoryCycle",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "1cbe5bb9-13a8-460b-b6f3-4849f0cf9469",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "InventoryCycle",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "4dea08fb-69c0-4490-ab66-b7bf1d6db46a",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "InventoryCycle",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 }
             ]
         }

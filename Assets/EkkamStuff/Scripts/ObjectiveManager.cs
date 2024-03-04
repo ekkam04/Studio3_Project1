@@ -5,6 +5,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Threading.Tasks;
+using UnityEngine.Rendering;
+using Unity.VisualScripting;
+using UnityEngine.Rendering.Universal;
 
 namespace Ekkam {
     public class ObjectiveManager : MonoBehaviour
@@ -21,7 +24,11 @@ namespace Ekkam {
         public List<ObjectiveCompletionAction> objectiveCompletionActions = new List<ObjectiveCompletionAction>();
 
         [SerializeField] GameObject objectiveUI;
+        [SerializeField] GameObject objectiveItem;
         Player player;
+
+        public Volume vignetteVolume;
+        public Vignette vignette;
                
         void Start()
         {
@@ -75,6 +82,10 @@ namespace Ekkam {
                             objective.objectiveTarget.gameObject.SetActive(false);
                             CompleteObjective(objective);
                         }
+                        else
+                        {
+                            objective.objectiveTarget.gameObject.SetActive(true);
+                        }
                     }
                 }
                 else if (objective.objectiveType == Objective.ObjectiveType.Destroy) // if objective is of type Destroy ---------------------------------
@@ -92,6 +103,10 @@ namespace Ekkam {
                     if (objectiveTargetDistance < objectiveTargetRadius)
                     {
                         objective.objectiveTarget.gameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        objective.objectiveTarget.gameObject.SetActive(true);
                     }
 
                     if (numberOfDestroyedTargets == numberOfTargetsToDestroy)
@@ -163,10 +178,12 @@ namespace Ekkam {
             if (activeObjectives.Count > 1 && activeObjectives[0] == completedObjective)
             {
                 player.freeWill += 10;
+                StartCoroutine(PulseVignette(Color.red, 0.5f, 2.5f));
             }
             else if (activeObjectives.Count > 1)
             {
                 player.freeWill -= 10;
+                StartCoroutine(PulseVignette(Color.blue, 0.5f, 2.5f));
             }
         }
 
@@ -215,22 +232,54 @@ namespace Ekkam {
 
         public void AddObjectiveToUI(Objective objective)
         {
-            GameObject objectiveText = new GameObject();
-            objectiveText.transform.SetParent(objectiveUI.transform);
-            objectiveText.AddComponent<TextMeshProUGUI>();
-            objectiveText.GetComponent<TextMeshProUGUI>().text = objective.objectiveText;
-            objectiveText.GetComponent<TextMeshProUGUI>().fontSize = 36;
-            objectiveText.GetComponent<TextMeshProUGUI>().rectTransform.sizeDelta = new Vector2(500, 50);
-            objectiveText.transform.localScale = new Vector3(1, 1, 1);
-            objective.objectiveUIText = objectiveText.GetComponent<TextMeshProUGUI>();
+            // GameObject objectiveText = new GameObject();
+            // objectiveText.transform.SetParent(objectiveUI.transform);
+            // objectiveText.AddComponent<TextMeshProUGUI>();
+            // objectiveText.GetComponent<TextMeshProUGUI>().text = objective.objectiveText;
+            // objectiveText.GetComponent<TextMeshProUGUI>().fontSize = 36;
+            // objectiveText.GetComponent<TextMeshProUGUI>().rectTransform.sizeDelta = new Vector2(500, 50);
+            // objectiveText.transform.localScale = new Vector3(1, 1, 1);
+            // objective.objectiveUIText = objectiveText.GetComponent<TextMeshProUGUI>();
+            GameObject objectiveUIItem = Instantiate(objectiveItem, objectiveUI.transform);
+            objectiveUIItem.GetComponentInChildren<TextMeshProUGUI>().text = objective.objectiveText;
+            objective.objectiveUIItem = objectiveUIItem;
+            objectiveUIItem.GetComponentInChildren<Animator>().SetBool("Active", false);
         }
 
         public async void RemoveObjectiveFromUI(Objective objective)
         {
-            objective.objectiveUIText.color = Color.green;
-            await Task.Delay(1000);
-            objective.objectiveUIText.gameObject.SetActive(false);
-            objective.objectiveUIText = null;
+            // objective.objectiveUIText.color = Color.green;
+            // await Task.Delay(1000);
+            // objective.objectiveUIText.gameObject.SetActive(false);
+            // objective.objectiveUIText = null;
+            objective.objectiveUIItem.GetComponentInChildren<Animator>().SetBool("Active", true);
+            await Task.Delay(2000);
+            objective.objectiveUIItem.SetActive(false);
+        }
+
+        IEnumerator PulseVignette(Color color, float fadeInDuration, float fadeOutDuration)
+        {
+            // set intensity from 0 to 0.5 and back to 0
+            vignetteVolume.profile.TryGet(out vignette);
+            vignette.color.value = color;
+            float startTime = Time.time;
+            float endTime = startTime + fadeInDuration;
+            while (Time.time < endTime)
+            {
+                float t = (Time.time - startTime) / fadeInDuration;
+                vignette.intensity.value = Mathf.Lerp(0, 0.5f, t);
+                yield return null;
+            }
+            startTime = Time.time;
+            endTime = startTime + fadeOutDuration;
+            while (Time.time < endTime)
+            {
+                float t = (Time.time - startTime) / fadeOutDuration;
+                vignette.intensity.value = Mathf.Lerp(0.5f, 0, t);
+                yield return null;
+            }
+            vignette.intensity.value = 0;
+
         }
     }
 }
