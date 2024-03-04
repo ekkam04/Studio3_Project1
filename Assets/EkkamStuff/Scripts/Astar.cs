@@ -4,42 +4,94 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
 using System.Threading.Tasks;
+using Ekkam;
+using Unity.VisualScripting;
 
 public class Astar : MonoBehaviour
 {
     [SerializeField] PathfindingGrid grid;
+    PathfindingManager pathfindingManager;
     [SerializeField] Vector2Int startNodePosition;
-    [SerializeField] Vector2Int endNodePosition;
+    [SerializeField] static Vector2Int endNodePosition;
+
+    [SerializeField] Color startNodeColor = new Color(0, 0.5f, 0, 1);
+    [SerializeField] Color endNodeColor = new Color(0.5f, 0, 0, 1);
+    [SerializeField] Color pathNodeColor = new Color(0, 0, 0.5f, 1);
     
     public List<Node> neighbours = new List<Node>();
     public List<Node> openNodes = new List<Node>();
     public List<Node> closedNodes = new List<Node>();
+    public List<Node> pathNodes = new List<Node>();
+    private List<Node> pathNodesColored = new List<Node>();
     private Node[] allNodes;
 
+    public float recalculationDistance = 4f;
+    private float initialRecalculationDistance = 4f;
+
     public bool findPath;
+    public bool assignedInitialTarget;
+
+    Player player;
+
     void Start()
     {
-        // grid = FindObjectOfType<PathfindingGrid>();
+        pathfindingManager = FindObjectOfType<PathfindingManager>();
+        player = FindObjectOfType<Player>();
+        initialRecalculationDistance = recalculationDistance;
         
+        // startingNode.SetColor(startNodeColor);
+        UpdateStartPosition(grid.GetPositionFromWorldPoint(transform.position));
         Node startingNode = grid.GetNode(startNodePosition);
-        startingNode.SetColor(new Color(0, 0.5f, 0, 1));
         
         Node endingNode = grid.GetNode(endNodePosition);
-        endingNode.SetColor(new Color(0.5f, 0, 0, 1));
+        endingNode.SetColor(endNodeColor);
         
-        openNodes.Add(startingNode);
+        // openNodes.Add(startingNode);
         
         GetNeighbours(startingNode, startNodePosition);
     }
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space)) findPath = true;
-        if (!findPath) return;
+        // if (Input.GetKeyDown(KeyCode.Space)) findPath = true;
+        if (findPath) FindPath();
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            bool los = HasDirectLineOfSight(startNodePosition, endNodePosition);
+            print("Has direct line of sight: " + los);
+        }
+
+        if (grid.ObjectIsOnGrid(player.transform.position))
+        {
+            if (!assignedInitialTarget)
+            {
+                UpdateTargetPosition(grid.GetPositionFromWorldPoint(player.transform.position));
+                assignedInitialTarget = true;
+            }
+
+            Vector2Int playerGridPosition = grid.GetPositionFromWorldPoint(player.transform.position);
+            if (GetDistance(grid.GetNode(playerGridPosition), grid.GetNode(endNodePosition)) > recalculationDistance && !findPath)
+            {
+                recalculationDistance = initialRecalculationDistance;
+                UpdateTargetPosition(playerGridPosition);
+            }
+        }
+        else
+        {
+            assignedInitialTarget = false;
+            findPath = false;
+        }
+
+    }
+
+    void FindPath()
+    {
         if (openNodes.Count < 1)
         {
             print("No path found");
             findPath = false;
+            pathfindingManager.needToFindPath.Remove(this);
             return;
         }
         var currentNode = openNodes[0];
@@ -57,7 +109,8 @@ public class Astar : MonoBehaviour
         {
             print("Path found");
             findPath = false;
-            ColorNodesPathAfterFindingPath();
+            pathfindingManager.needToFindPath.Remove(this);
+            SetPathNodes();
             return;
         }
         
@@ -86,12 +139,121 @@ public class Astar : MonoBehaviour
         }
     }
 
-    void ColorNodesPathAfterFindingPath()
+    // Line of sight check based on Bresenham's line algorithm
+    public bool HasDirectLineOfSight(Vector2Int start, Vector2Int end)
+    {
+        int x = start.x;
+        int y = start.y;
+        int dx = Math.Abs(end.x - start.x);
+        int dy = Math.Abs(end.y - start.y);
+        int sx = start.x < end.x ? 1 : -1;
+        int sy = start.y < end.y ? 1 : -1;
+        int err = dx - dy;
+
+        while (true)
+        {
+            // Check if current grid position is blocked
+            if (grid.GetNode(new Vector2Int(x, y)).isBlocked)
+            {
+                return false; // Obstacle found
+            }
+
+            if (x == end.x && y == end.y)
+            {
+                break; // End point reached
+            }
+
+            int e2 = 2 * err;
+            if (e2 > -dy)
+            {
+                err -= dy;
+                x += sx;
+            }
+            if (e2 < dx)
+            {
+                err += dx;
+                y += sy;
+            }
+        }
+
+        return true; // No obstacles found
+    }
+
+    public void UpdateStartPosition(Vector2Int newStartPosition)
+    {
+        #if PATHFINDING_DEBUG
+            grid.GetNode(startNodePosition).ResetColor();
+        #endif
+
+        #if PATHFINDING_DEBUG
+            foreach (var node in pathNodesColored)
+            {
+                node.ResetColor();
+            }
+            pathNodesColored.Clear();
+        #endif
+        pathNodes.Clear();
+
+        startNodePosition = newStartPosition;
+        openNodes.Clear();
+        closedNodes.Clear();
+
+        #if PATHFINDING_DEBUG
+            grid.GetNode(startNodePosition).SetColor(startNodeColor);
+        #endif
+
+        Node startingNode = grid.GetNode(startNodePosition);
+        openNodes.Add(startingNode);
+    }
+
+    public void UpdateTargetPosition(Vector2Int newTargetPosition)
+    {
+        #if PATHFINDING_DEBUG
+            grid.GetNode(endNodePosition).ResetColor();
+        #endif
+
+        endNodePosition = newTargetPosition;
+        openNodes.Clear();
+        closedNodes.Clear();
+
+        #if PATHFINDING_DEBUG
+            grid.GetNode(endNodePosition).SetColor(endNodeColor);
+        #endif
+
+        UpdateStartPosition(grid.GetPositionFromWorldPoint(transform.position));
+
+        if (grid.GetNode(endNodePosition).isBlocked)
+        {
+            print("End node is blocked");
+            recalculationDistance = 0f;
+            return;
+        }
+
+        if (HasDirectLineOfSight(startNodePosition, endNodePosition))
+        {
+            print("Direct line of sight, no need to find path");
+            findPath = false;
+            if (!pathfindingManager.needToFindPath.Contains(this)) pathfindingManager.needToFindPath.Remove(this);
+        }
+        else
+        {
+            print("No direct line of sight, finding path");
+            if (!pathfindingManager.needToFindPath.Contains(this)) pathfindingManager.needToFindPath.Add(this);
+        }
+    }
+
+    void SetPathNodes()
     {
         var currentNode = grid.GetNode(endNodePosition);
         while (currentNode != grid.GetNode(startNodePosition))
         {
-            if (currentNode != grid.GetNode(endNodePosition)) currentNode.SetPathColor(new Color(0, 0, 0.5f, 1));
+            if (currentNode != grid.GetNode(endNodePosition)) {
+                pathNodes.Add(currentNode);
+                #if PATHFINDING_DEBUG
+                    currentNode.SetPathColor(pathNodeColor);
+                    pathNodesColored.Add(currentNode);
+                #endif
+            }
             currentNode = currentNode.Parent;
         }
     }

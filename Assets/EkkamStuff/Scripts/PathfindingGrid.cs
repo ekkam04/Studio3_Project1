@@ -59,8 +59,9 @@ public class PathfindingGrid : MonoBehaviour
         // var allNodes = FindObjectsOfType<Node>();
         foreach (var node in nodes)
         {
-            // checkbox for isBlocked
-            bool isBlocked = Physics.CheckBox(node.transform.position, new Vector3(0.5f, 0.5f, 0.5f), Quaternion.identity);
+            int layerToIgnore = 6; // Player layer
+            LayerMask mask = ~(1 << layerToIgnore);
+            bool isBlocked = Physics.CheckBox(node.transform.position, new Vector3(0.5f, 0.5f, 0.5f), Quaternion.identity, mask);
             node.isBlocked = isBlocked;
             if (isBlocked)
             {
@@ -71,5 +72,23 @@ public class PathfindingGrid : MonoBehaviour
                 node.ResetColor();
             }
         }
+    }
+
+    public bool ObjectIsOnGrid(Vector3 worldPosition)
+    {
+        Vector2Int gridPosition = GetPositionFromWorldPoint(worldPosition);
+        if (gridPosition.x < 0 || gridPosition.x >= gridCellCountX || gridPosition.y < 0 || gridPosition.y >= gridCellCountZ)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public Vector2Int GetPositionFromWorldPoint(Vector3 worldPosition)
+    {
+        Vector3 localPosition = worldPosition - startingPosition;
+        int x = Mathf.FloorToInt(localPosition.x);
+        int z = Mathf.FloorToInt(localPosition.z);
+        return new Vector2Int(x, z);
     }
 }
