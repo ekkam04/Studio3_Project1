@@ -62,6 +62,13 @@ namespace Ekkam
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
                 rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
             }
+
+            // if (astar.pathNodes.Count > 0 && astar.HasDirectLineOfSight(astar.pathNodes[astar.pathNodes.Count - 1].gridPosition, astar.endNodePosition))
+            // {
+            //     print("Direct line of sight, no need to follow path");
+            //     astar.pathNodes.Clear();
+            //     if (!pathfindingManager.needToFindPath.Contains(astar)) pathfindingManager.needToFindPath.Remove(astar);
+            // }
         }
     }
 }

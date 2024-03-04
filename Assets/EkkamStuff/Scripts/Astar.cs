@@ -12,7 +12,7 @@ public class Astar : MonoBehaviour
     [SerializeField] PathfindingGrid grid;
     PathfindingManager pathfindingManager;
     [SerializeField] Vector2Int startNodePosition;
-    [SerializeField] static Vector2Int endNodePosition;
+    [SerializeField] public static Vector2Int endNodePosition;
 
     [SerializeField] Color startNodeColor = new Color(0, 0.5f, 0, 1);
     [SerializeField] Color endNodeColor = new Color(0.5f, 0, 0, 1);
@@ -54,13 +54,15 @@ public class Astar : MonoBehaviour
     private void Update()
     {
         // if (Input.GetKeyDown(KeyCode.Space)) findPath = true;
-        if (findPath) FindPath();
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            bool los = HasDirectLineOfSight(startNodePosition, endNodePosition);
-            print("Has direct line of sight: " + los);
+        if (findPath) {
+            FindPath();
         }
+
+        // if (Input.GetKeyDown(KeyCode.R))
+        // {
+        //     bool los = HasDirectLineOfSight(startNodePosition, endNodePosition);
+        //     print("Has direct line of sight: " + los);
+        // }
 
         if (grid.ObjectIsOnGrid(player.transform.position))
         {
