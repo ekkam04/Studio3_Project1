@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Ekkam;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -76,7 +77,8 @@ namespace Ekkam
 
         public class CheckPlayerPresence : Node
         {
-            private float recalculationDistance = 3f;
+            private float detectionRange = 15f;
+            private float recalculationDistance = 12f;
             private PathfindingGrid grid;
             private Astar astar;
             private Transform transform;
@@ -90,7 +92,11 @@ namespace Ekkam
 
             public override NodeState Evaluate()
             {
-                if (grid.ObjectIsOnGrid(Player.Instance.transform.position))
+                if (
+                    grid.ObjectIsOnGrid(Player.Instance.transform.position)
+                    && (Vector3.Distance(transform.position, Player.Instance.transform.position) < detectionRange
+                    || astar.pathNodes.Count > 0)
+                )
                 {
                     print("Player is present");
 
@@ -346,6 +352,7 @@ namespace Ekkam
 
         public class FollowPath : Node
         {
+            private float nodeReachedDistance = 1f;
             private Enemy enemy;
             private Transform transform;
             private Astar astar;
@@ -373,10 +380,16 @@ namespace Ekkam
                     );
                     transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
                     rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
-                    if (Vector3.Distance(transform.position, astar.pathNodes[astar.pathNodes.Count - 1].transform.position) < 0.7f)
+                    if (Vector3.Distance(transform.position, astar.pathNodes[astar.pathNodes.Count - 1].transform.position) < nodeReachedDistance)
                     {
                         astar.pathNodes.RemoveAt(astar.pathNodes.Count - 1);
                     }
+                    else if (astar.pathNodes[astar.pathNodes.Count - 2] != null && Vector3.Distance(transform.position, astar.pathNodes[astar.pathNodes.Count - 2].transform.position) < nodeReachedDistance)
+                    {
+                        astar.pathNodes.RemoveAt(astar.pathNodes.Count - 2);
+                        astar.pathNodes.RemoveAt(astar.pathNodes.Count - 1);
+                    }
+                        
                     return NodeState.Running;
                 }
                 else
