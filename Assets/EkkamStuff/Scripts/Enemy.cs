@@ -1,74 +1,390 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Ekkam;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Ekkam
 {
     public class Enemy : Damagable
     {
+        Node rootNode;
+
         Astar astar;
-        Rigidbody rb;
-        Player player;
+        PathfindingGrid grid;
         PathfindingManager pathfindingManager;
 
-        public float attackRange = 1.5f;
+        Rigidbody rb;
+        Enemy closestEnemy;
 
-        public float speed = 5f;
+        public float speed = 2f;
+        public float attackRange = 3f;
 
         void Start()
         {
             astar = GetComponent<Astar>();
-            rb = GetComponent<Rigidbody>();
-            player = FindObjectOfType<Player>();
+            grid = FindObjectOfType<PathfindingGrid>();
             pathfindingManager = FindObjectOfType<PathfindingManager>();
+
+            rb = GetComponent<Rigidbody>();
+
+            rootNode = new Selector(new List<Node>
+            {
+                // Check for player presence and idle if not present
+                new Sequence(new List<Node>
+                {
+                    new InvertDecorator(new CheckPlayerPresence(grid, astar, transform)),
+                    new Idle()
+                }),
+                
+                // Engage player based on conditions
+                new Selector(new List<Node>{
+                    new Sequence(new List<Node>{
+                        new CheckLineOfSight(grid, astar, transform),
+                        new InvertDecorator(new CanAttack(this)), // Check if not ready to attack
+                        new WalkTowardsPlayer(transform, rb, speed),
+                    }),
+                    new Sequence(new List<Node>{
+                        new CheckLineOfSight(grid, astar, transform),
+                        new CanAttack(this), // Confirm ready to attack
+                        new AttackPlayer()
+                    }),
+                    // Indirect engagement when line of sight is lost
+                    new Sequence(new List<Node>{
+                        new InvertDecorator(new CheckLineOfSight(grid, astar, transform)),
+                        new Selector(new List<Node>{
+                            new Sequence(new List<Node>{
+                                new CheckClosestEnemyDistance(this),
+                                new CopyEnemyPath(this)
+                            }),
+                            new Sequence(new List<Node>{
+                                new AddToPathfindingQueue(pathfindingManager, astar),
+                                new CheckPathFound(astar),
+                                new FollowPath(this)
+                            })
+                        })
+                    })
+                })
+            });
         }
 
         void Update()
         {
-            FollowPath();
+            rootNode.Evaluate();
         }
 
-        void FollowPath()
+        public class CheckPlayerPresence : Node
         {
-            if (astar.pathNodes.Count > 0)
+            private float recalculationDistance = 3f;
+            private PathfindingGrid grid;
+            private Astar astar;
+            private Transform transform;
+
+            public CheckPlayerPresence(PathfindingGrid grid, Astar astar, Transform transform)
             {
-                Vector3 targetPosition = new Vector3(
-                    astar.pathNodes[astar.pathNodes.Count - 1].transform.position.x,
-                    transform.position.y,
-                    astar.pathNodes[astar.pathNodes.Count - 1].transform.position.z
-                );
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
-                rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
-                if (Vector3.Distance(transform.position, astar.pathNodes[astar.pathNodes.Count - 1].transform.position) < 0.7f)
-                {
-                    astar.pathNodes.RemoveAt(astar.pathNodes.Count - 1);
-                }
-                
-                print(Vector3.Distance(transform.position, player.transform.position));
-                if (Vector3.Distance(transform.position, player.transform.position) < attackRange)
-                {
-                    astar.pathNodes.Clear();
-                }
-            }
-            else if (
-                astar.pathNodes.Count == 0
-                && !astar.findPath
-                && Vector3.Distance(transform.position, player.transform.position) > attackRange + 0.5f
-                && !pathfindingManager.needToFindPath.Contains(astar)
-            )
-            {
-                Vector3 targetPosition = new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z);
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
-                rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
+                this.grid = grid;
+                this.astar = astar;
+                this.transform = transform;
             }
 
-            // if (astar.pathNodes.Count > 0 && astar.HasDirectLineOfSight(astar.pathNodes[astar.pathNodes.Count - 1].gridPosition, astar.endNodePosition))
-            // {
-            //     print("Direct line of sight, no need to follow path");
-            //     astar.pathNodes.Clear();
-            //     if (!pathfindingManager.needToFindPath.Contains(astar)) pathfindingManager.needToFindPath.Remove(astar);
-            // }
+            public override NodeState Evaluate()
+            {
+                if (grid.ObjectIsOnGrid(Player.Instance.transform.position))
+                {
+                    print("Player is present");
+
+                    if (astar.GetDistance(
+                        grid.GetNode(grid.GetPositionFromWorldPoint(Player.Instance.transform.position)),
+                        grid.GetNode(astar.endNodePosition)
+                    ) > recalculationDistance)
+                    {
+                        astar.UpdateTargetPosition(grid.GetPositionFromWorldPoint(Player.Instance.transform.position));
+                    }
+
+                    return NodeState.Success;
+                }
+                else
+                {
+                    print("Player is not present");
+                    return NodeState.Failure;
+                }
+            }
+        }
+
+        public class Idle : Node
+        {
+            public override NodeState Evaluate()
+            {
+                print("Idle");
+                return NodeState.Success;
+            }
+        }
+
+        public class CheckLineOfSight : Node
+        {
+            private PathfindingGrid grid;
+            private Astar astar;
+            private Transform transform;
+
+            public CheckLineOfSight(PathfindingGrid grid, Astar astar, Transform transform)
+            {
+                this.grid = grid;
+                this.astar = astar;
+                this.transform = transform;
+            }
+
+            public override NodeState Evaluate()
+            {
+                if (grid.HasDirectLineOfSight(
+                    grid.GetPositionFromWorldPoint(transform.position),
+                    astar.endNodePosition
+                ))
+                {
+                    print("Line of sight");
+                    return NodeState.Success;
+                }
+                else
+                {
+                    print("No line of sight");
+                    return NodeState.Failure;
+                }
+            }
+        }
+
+        public class WalkTowardsPlayer : Node
+        {
+            private Transform transform;
+            private Rigidbody rb;
+            private float speed;
+
+            public WalkTowardsPlayer(Transform transform, Rigidbody rb, float speed)
+            {
+                this.transform = transform;
+                this.rb = rb;
+                this.speed = speed;
+            }
+
+            public override NodeState Evaluate()
+            {
+                print("Walking towards player");
+                Vector3 targetPosition = new Vector3(Player.Instance.transform.position.x, transform.position.y, Player.Instance.transform.position.z);
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
+                rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
+                return NodeState.Success;
+            }
+        }
+
+        public class CanAttack : Node
+        {
+            private Enemy enemy;
+
+            public CanAttack(Enemy enemy)
+            {
+                this.enemy = enemy;
+            }
+
+            public override NodeState Evaluate()
+            {
+                if (Vector3.Distance(Player.Instance.transform.position, enemy.transform.position) <= enemy.attackRange)
+                {
+                    print("Ready to attack");
+                    return NodeState.Success;
+                }
+                else
+                {
+                    return NodeState.Failure;
+                }
+            }
+        }
+
+        public class AttackPlayer : Node
+        {
+            public override NodeState Evaluate()
+            {
+                print("Attacking player");
+                return NodeState.Success;
+            }
+        }
+
+        public class CheckClosestEnemyDistance : Node
+        {
+            private float closestRange = 2f;
+            private Enemy enemy;
+
+            public CheckClosestEnemyDistance(Enemy enemy)
+            {
+                this.enemy = enemy;
+            }
+
+            public override NodeState Evaluate()
+            {
+                var enemies = FindObjectsOfType<Enemy>();
+                var closestEnemy = enemy.closestEnemy;
+                float closestDistance = Mathf.Infinity;
+                foreach (var enemy in enemies)
+                {
+                    if (enemy != this.enemy)
+                    {
+                        float distance = Vector3.Distance(this.enemy.transform.position, enemy.transform.position);
+                        if (distance < closestDistance)
+                        {
+                            closestDistance = distance;
+                            closestEnemy = enemy;
+                        }
+                    }
+                }
+                if (closestDistance < closestRange)
+                {
+                    print("Closest enemy found");
+                    enemy.closestEnemy = closestEnemy;
+                    return NodeState.Success;
+                }
+                else
+                {
+                    print("No closest enemy found");
+                    enemy.closestEnemy = null;
+                    return NodeState.Failure;
+                }
+            }
+        }
+
+        public class CopyEnemyPath : Node
+        {
+            private Enemy enemy;
+            private PathfindingManager pathfindingManager;
+
+            public CopyEnemyPath(Enemy enemy)
+            {
+                this.enemy = enemy;
+                this.pathfindingManager = enemy.pathfindingManager;
+            }
+
+            public override NodeState Evaluate()
+            {
+                if (enemy.closestEnemy != null && enemy.closestEnemy.astar.pathNodes.Count > 0 && enemy.astar.pathNodes.Count == 0)
+                {
+                    print("Copying closest enemy path");
+
+                    foreach (var node in enemy.closestEnemy.astar.pathNodes)
+                    {
+                        enemy.astar.pathNodes.Add(node);
+                    }
+
+                    if (pathfindingManager.waitingAstars.Contains(enemy.astar))
+                    {
+                        pathfindingManager.waitingAstars.Remove(enemy.astar);
+                    }
+
+                    enemy.astar.findPath = false;
+                    enemy.astar.state = Astar.PathfindingState.Idle;
+                    return NodeState.Success;
+                }
+                else
+                {
+                    print("No path to copy");
+                    return NodeState.Failure;
+                }
+            }
+        }
+
+        public class AddToPathfindingQueue : Node
+        {
+            private PathfindingManager pathfindingManager;
+            private Astar astar;
+
+            public AddToPathfindingQueue(PathfindingManager pathfindingManager, Astar astar)
+            {
+                this.pathfindingManager = pathfindingManager;
+                this.astar = astar;
+            }
+
+            public override NodeState Evaluate()
+            {
+                if (pathfindingManager.waitingAstars.Contains(astar) || astar.pathNodes.Count > 0)
+                {
+                    print("Already in queue");
+                    return NodeState.Running;
+                }
+                else
+                {
+                    print("Adding to queue");
+                    pathfindingManager.waitingAstars.Add(astar);
+                    return NodeState.Success;
+                }
+            }
+        }
+
+        public class CheckPathFound : Node
+        {
+            private Astar astar;
+
+            public CheckPathFound(Astar astar)
+            {
+                this.astar = astar;
+            }
+
+            public override NodeState Evaluate()
+            {
+                if (astar.state == Astar.PathfindingState.Success)
+                {
+                    print("Path found");
+                    return NodeState.Success;
+                }
+                else if (astar.state == Astar.PathfindingState.Failure)
+                {
+                    print("Path not found");
+                    return NodeState.Failure;
+                }
+                else
+                {
+                    print("Pathfinding in progress");
+                    return NodeState.Running;
+                }
+            }
+        }
+
+        public class FollowPath : Node
+        {
+            private Enemy enemy;
+            private Transform transform;
+            private Astar astar;
+            private Rigidbody rb;
+            private float speed;
+
+            public FollowPath(Enemy enemy)
+            {
+                this.enemy = enemy;
+                this.transform = enemy.transform;
+                this.astar = enemy.astar;
+                this.rb = enemy.rb;
+                this.speed = enemy.speed;
+            }
+
+            public override NodeState Evaluate()
+            {
+                if (enemy.astar.pathNodes.Count > 0)
+                {
+                    print("Following path");
+                    Vector3 targetPosition = new Vector3(
+                        astar.pathNodes[astar.pathNodes.Count - 1].transform.position.x,
+                        transform.position.y,
+                        astar.pathNodes[astar.pathNodes.Count - 1].transform.position.z
+                    );
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
+                    rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
+                    if (Vector3.Distance(transform.position, astar.pathNodes[astar.pathNodes.Count - 1].transform.position) < 0.7f)
+                    {
+                        astar.pathNodes.RemoveAt(astar.pathNodes.Count - 1);
+                    }
+                    return NodeState.Running;
+                }
+                else
+                {
+                    print("Path ended");
+                    return NodeState.Success;
+                }
+            }
         }
     }
 }

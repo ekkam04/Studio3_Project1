@@ -63,6 +63,21 @@ namespace Ekkam
         [SerializeField] public GameObject spellBall;
         [SerializeField] public GameObject swordHitbox;
 
+        public static Player Instance { get; private set; }
+
+        private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            // DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
         void Start()
         {
             rb = GetComponent<Rigidbody>();

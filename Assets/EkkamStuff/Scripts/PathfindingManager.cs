@@ -2,21 +2,41 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PathfindingManager : MonoBehaviour
+namespace Ekkam
 {
-    public List<Astar> needToFindPath = new List<Astar>();
-
-    void Update()
+    public class PathfindingManager : MonoBehaviour
     {
-        for (int i = 0; i < needToFindPath.Count; i++)
+        public List<Astar> waitingAstars = new List<Astar>();
+
+        void Update()
         {
-            if (i == 0)
+            var allAstars = FindObjectsOfType<Astar>();
+            if (waitingAstars.Count > 0)
             {
-                needToFindPath[i].findPath = true;
-            }
-            else
-            {
-                needToFindPath[i].findPath = false;
+                foreach (var astar in allAstars)
+                {
+                    if (astar.state == Astar.PathfindingState.Running)
+                    {
+                        print("Astar is running");
+                        return;
+                    }
+                    else if (astar.state == Astar.PathfindingState.Success)
+                    {
+                        print("Astar is successful");
+                        astar.state = Astar.PathfindingState.Idle;
+                        waitingAstars.Remove(astar);
+                    }
+                    else if (astar.state == Astar.PathfindingState.Failure)
+                    {
+                        print("Astar failed");
+                        astar.state = Astar.PathfindingState.Idle;
+                        waitingAstars.Remove(astar);
+                    }
+                }
+                if (waitingAstars.Count > 0) {
+                    waitingAstars[0].findPath = true;
+                    waitingAstars[0].state = Astar.PathfindingState.Running;
+                }
             }
         }
     }
