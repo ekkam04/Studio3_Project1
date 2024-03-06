@@ -58,6 +58,8 @@ namespace Ekkam
         private float bowResetCooldown = 1.25f;
         private float bowAttackCooldown = 1.25f;
 
+        private bool targetLock;
+
         [SerializeField] public GameObject itemHolderRight;
         [SerializeField] public GameObject itemHolderLeft;
         [SerializeField] public GameObject arrow;
@@ -104,7 +106,7 @@ namespace Ekkam
 
             moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
              
-            if(moveDirection != Vector3.zero)
+            if(moveDirection != Vector3.zero && !targetLock)
             {
                 transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
                 anim.SetBool("isMoving", true);
@@ -119,8 +121,30 @@ namespace Ekkam
 
             // left click for use (temporary, will be changed to new input system)
             if (Input.GetKeyDown(KeyCode.Mouse0))
-            { 
+            {
                 UseItem();
+            }
+            
+            targetLock = Input.GetKey(KeyCode.F);
+            
+            // if targetlock is true, rotate player to face nearest enemy
+            if (targetLock)
+            { 
+                var enemies = GameObject.FindObjectsOfType<Enemy>();
+                var nearestEnemy = enemies[0];
+                var nearestDistance = Mathf.Infinity;
+                foreach (var enemy in enemies)
+                {
+                    var distance = Vector3.Distance(enemy.transform.position, transform.position);
+                    if (distance < nearestDistance)
+                    {
+                        nearestDistance = distance;
+                        nearestEnemy = enemy;
+                    }
+                }
+                var viewDirection = nearestEnemy.transform.position - transform.position;
+                viewDirection.y = 0;
+                transform.forward = Vector3.Slerp(transform.forward, viewDirection.normalized, Time.deltaTime * rotationSpeed);
             }
             
             swordTimer += Time.deltaTime;
@@ -250,11 +274,17 @@ namespace Ekkam
                     hasLanded = true;
                     anim.SetBool("isJumping", false);
                 }
+                
+                if (hit1.collider.CompareTag("Movable"))
+                {
+                    transform.parent = hit1.transform;
+                }
             }
             else
             {
                 isGrounded = false;
                 rb.drag = 0;
+                transform.parent = null;
             }
         }
         

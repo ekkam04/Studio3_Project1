@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028373, g: 0.22571398, b: 0.30692294, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2635,7 +2635,7 @@ GameObject:
   - component: {fileID: 164754008}
   m_Layer: 0
   m_Name: Ledge  (18)
-  m_TagString: Untagged
+  m_TagString: Movable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11861,7 +11861,7 @@ GameObject:
   - component: {fileID: 760398289}
   m_Layer: 0
   m_Name: Intial Floor (8)
-  m_TagString: Untagged
+  m_TagString: Movable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -13453,7 +13453,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 836253225}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12218327, y: 0.000000017077465, z: -0.0000000021023319, w: 0.9925076}
+  m_LocalRotation: {x: 0.12218325, y: -0.000000017077465, z: 0.0000000021023316, w: 0.9925076}
   m_LocalPosition: {x: 19.2, y: 19.359, z: 166.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -18447,7 +18447,7 @@ GameObject:
   - component: {fileID: 1131741137}
   m_Layer: 0
   m_Name: Ledge  (16)
-  m_TagString: Untagged
+  m_TagString: Movable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -18773,7 +18773,7 @@ GameObject:
   - component: {fileID: 1134609179}
   m_Layer: 0
   m_Name: Ledge  (15)
-  m_TagString: Untagged
+  m_TagString: Movable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -20682,7 +20682,7 @@ GameObject:
   - component: {fileID: 1271952177}
   m_Layer: 0
   m_Name: MagePlatform1
-  m_TagString: Untagged
+  m_TagString: Movable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -22505,7 +22505,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1357090410}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.12218327, y: 0.000000017077465, z: -0.0000000021023319, w: 0.9925076}
+  m_LocalRotation: {x: 0.12218325, y: -0.000000017077465, z: 0.0000000021023316, w: 0.9925076}
   m_LocalPosition: {x: 19.2, y: 19.359, z: 166.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -24359,7 +24359,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 1411732947}
-  offset: {x: 0, y: 30.5, z: 4.4}
+  offset: {x: 0, y: 0, z: 0}
 --- !u!4 &1455957990 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5256183786190117070, guid: e0d310d348bba9145a1eef693abade4e,
@@ -24810,7 +24810,7 @@ GameObject:
   - component: {fileID: 1490330067}
   m_Layer: 0
   m_Name: Ledge  (17)
-  m_TagString: Untagged
+  m_TagString: Movable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -34086,6 +34086,15 @@ MonoBehaviour:
     objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
+  - objectiveText: Pick up the bow
+    objectiveType: 1
+    objectiveCategory: 0
+    objectiveTarget: {fileID: 229235587}
+    objectiveMultiTargets:
+    - {fileID: 1053917807259490608}
+    objectiveUIItem: {fileID: 0}
+    autoAssignNextObjective: 0
+    status: 0
   activeObjectives: []
   objectiveCompletionActions:
   - objectiveIndexToComplete: 2
@@ -34108,15 +34117,15 @@ MonoBehaviour:
     completionAction: 0
     target: {fileID: 1271952176}
     targetPositionOffset: {x: 0, y: 9, z: 0}
-  - objectiveIndexToComplete: 13
+  - objectiveIndexToComplete: 14
     completionAction: 0
     target: {fileID: 1271952176}
     targetPositionOffset: {x: 0, y: 0, z: 15}
-  - objectiveIndexToComplete: 15
+  - objectiveIndexToComplete: 16
     completionAction: 0
     target: {fileID: 1271952176}
     targetPositionOffset: {x: 22, y: 0, z: 0}
-  - objectiveIndexToComplete: 17
+  - objectiveIndexToComplete: 16
     completionAction: 0
     target: {fileID: 2112415114}
     targetPositionOffset: {x: 0, y: -20, z: 0}

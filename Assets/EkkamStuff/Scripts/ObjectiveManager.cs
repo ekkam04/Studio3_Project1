@@ -134,7 +134,7 @@ namespace Ekkam {
 
         }
 
-        public void AddNextObjectives()
+        public async void AddNextObjectives()
         {
             activeObjectives.Clear();
             bool autoAssignNextObjective = true;
@@ -150,6 +150,7 @@ namespace Ekkam {
                     {
                          autoAssignNextObjective = objectives[currentObjectiveIndex].autoAssignNextObjective;
                     }
+                    await Task.Delay(1000);
                 }
                 else
                 {
@@ -231,6 +232,7 @@ namespace Ekkam {
 
         public void CheckForCompletionActions(int completionIndex)
         {
+            print("Checking for completion actions: " + completionIndex);
             foreach (ObjectiveCompletionAction action in objectiveCompletionActions)
             {
                 if (action.objectiveIndexToComplete == completionIndex)
