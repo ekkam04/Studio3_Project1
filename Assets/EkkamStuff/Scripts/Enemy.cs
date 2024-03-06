@@ -18,9 +18,20 @@ namespace Ekkam
 
         Rigidbody rb;
         Enemy closestEnemy;
+        CombatManager combatManager;
 
         public float speed = 2f;
         public float attackRange = 3f;
+        public bool canMove = true;
+        private float attackTimer;
+        public float attackCooldown = 2f;
+        public enum EnemyType
+        {
+            Melee,
+            Archer,
+            Mage
+        }
+        public EnemyType enemyType;
 
         void Start()
         {
@@ -29,30 +40,33 @@ namespace Ekkam
             pathfindingManager = FindObjectOfType<PathfindingManager>();
 
             rb = GetComponent<Rigidbody>();
+            combatManager = GetComponent<CombatManager>();
 
             rootNode = new Selector(new List<Node>
             {
                 // Check for player presence and idle if not present
                 new Sequence(new List<Node>
                 {
-                    new InvertDecorator(new CheckPlayerPresence(grid, astar, transform)),
+                    new InvertDecorator(new CheckPlayerPresence(grid, astar, transform, canMove)),
                     new Idle()
                 }),
                 
                 // Engage player based on conditions
                 new Selector(new List<Node>{
                     new Sequence(new List<Node>{
+                        new CanMove(canMove),
                         new CheckLineOfSight(grid, astar, transform),
                         new InvertDecorator(new CanAttack(this)), // Check if not ready to attack
-                        new WalkTowardsPlayer(transform, rb, speed),
+                        new WalkTowardsPlayer(transform, rb, speed, canMove),
                     }),
                     new Sequence(new List<Node>{
-                        new CheckLineOfSight(grid, astar, transform),
+                        // new CheckLineOfSight(grid, astar, transform),
                         new CanAttack(this), // Confirm ready to attack
                         new AttackPlayer()
                     }),
                     // Indirect engagement when line of sight is lost
                     new Sequence(new List<Node>{
+                        new CanMove(canMove),
                         new InvertDecorator(new CheckLineOfSight(grid, astar, transform)),
                         new Selector(new List<Node>{
                             new Sequence(new List<Node>{
@@ -77,30 +91,34 @@ namespace Ekkam
 
         public class CheckPlayerPresence : Node
         {
-            private float detectionRange = 15f;
-            private float recalculationDistance = 12f;
+            private float detectionRange = 25f;
+            private float recalculationDistance = 20f;
             private PathfindingGrid grid;
             private Astar astar;
             private Transform transform;
+            private bool canMove;
 
-            public CheckPlayerPresence(PathfindingGrid grid, Astar astar, Transform transform)
+            public CheckPlayerPresence(PathfindingGrid grid, Astar astar, Transform transform, bool canMove)
             {
                 this.grid = grid;
                 this.astar = astar;
                 this.transform = transform;
+                this.canMove = canMove;
             }
 
             public override NodeState Evaluate()
             {
                 if (
-                    grid.ObjectIsOnGrid(Player.Instance.transform.position)
+                    (grid.ObjectIsOnGrid(Player.Instance.transform.position) || !canMove)
                     && (Vector3.Distance(transform.position, Player.Instance.transform.position) < detectionRange
                     || astar.pathNodes.Count > 0)
                 )
                 {
                     print("Player is present");
 
-                    if (astar.GetDistance(
+                    if (
+                        canMove &&
+                        astar.GetDistance(
                         grid.GetNode(grid.GetPositionFromWorldPoint(Player.Instance.transform.position)),
                         grid.GetNode(astar.endNodePosition)
                     ) > recalculationDistance)
@@ -164,7 +182,7 @@ namespace Ekkam
             private Rigidbody rb;
             private float speed;
 
-            public WalkTowardsPlayer(Transform transform, Rigidbody rb, float speed)
+            public WalkTowardsPlayer(Transform transform, Rigidbody rb, float speed, bool canMove)
             {
                 this.transform = transform;
                 this.rb = rb;
@@ -178,6 +196,30 @@ namespace Ekkam
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
                 rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
                 return NodeState.Success;
+            }
+        }
+
+        public class CanMove : Node
+        {
+            private bool canMove;
+
+            public CanMove(bool canMove)
+            {
+                this.canMove = canMove;
+            }
+
+            public override NodeState Evaluate()
+            {
+                if (canMove)
+                {
+                    print("Can move");
+                    return NodeState.Success;
+                }
+                else
+                {
+                    print("Can't move");
+                    return NodeState.Failure;
+                }
             }
         }
 
@@ -215,7 +257,7 @@ namespace Ekkam
 
         public class CheckClosestEnemyDistance : Node
         {
-            private float closestRange = 2f;
+            private float closestRange = 3f;
             private Enemy enemy;
 
             public CheckClosestEnemyDistance(Enemy enemy)
