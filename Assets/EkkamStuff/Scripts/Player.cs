@@ -13,6 +13,7 @@ namespace Ekkam
         public Rigidbody rb;
         public Animator anim;
         Inventory inventory;
+        CombatManager combatManager;
         
         public bool allowMovement = true;
         public bool allowFall = true;
@@ -57,17 +58,35 @@ namespace Ekkam
         private float bowResetCooldown = 1.25f;
         private float bowAttackCooldown = 1.25f;
 
+        private bool targetLock;
+
         [SerializeField] public GameObject itemHolderRight;
         [SerializeField] public GameObject itemHolderLeft;
         [SerializeField] public GameObject arrow;
         [SerializeField] public GameObject spellBall;
         [SerializeField] public GameObject swordHitbox;
 
+        public static Player Instance { get; private set; }
+
+        private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            // DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
         void Start()
         {
             rb = GetComponent<Rigidbody>();
             anim = GetComponent<Animator>();
             inventory = FindObjectOfType<Inventory>();
+            combatManager = GetComponent<CombatManager>();
 
             // cameraObj = GameObject.FindObjectOfType<Camera>().transform;
             cameraOffset = cameraObj.position - transform.position;
@@ -75,8 +94,8 @@ namespace Ekkam
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
             initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
 
-            // Cursor.lockState = CursorLockMode.Locked;
-            // Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
 
         void Update()
@@ -87,7 +106,7 @@ namespace Ekkam
 
             moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
              
-            if(moveDirection != Vector3.zero)
+            if(moveDirection != Vector3.zero && !targetLock)
             {
                 transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
                 anim.SetBool("isMoving", true);
@@ -102,8 +121,30 @@ namespace Ekkam
 
             // left click for use (temporary, will be changed to new input system)
             if (Input.GetKeyDown(KeyCode.Mouse0))
-            { 
+            {
                 UseItem();
+            }
+            
+            targetLock = Input.GetKey(KeyCode.F);
+            
+            // if targetlock is true, rotate player to face nearest enemy
+            if (targetLock)
+            { 
+                var enemies = GameObject.FindObjectsOfType<Enemy>();
+                var nearestEnemy = enemies[0];
+                var nearestDistance = Mathf.Infinity;
+                foreach (var enemy in enemies)
+                {
+                    var distance = Vector3.Distance(enemy.transform.position, transform.position);
+                    if (distance < nearestDistance)
+                    {
+                        nearestDistance = distance;
+                        nearestEnemy = enemy;
+                    }
+                }
+                var viewDirection = nearestEnemy.transform.position - transform.position;
+                viewDirection.y = 0;
+                transform.forward = Vector3.Slerp(transform.forward, viewDirection.normalized, Time.deltaTime * rotationSpeed);
             }
             
             swordTimer += Time.deltaTime;
@@ -233,11 +274,17 @@ namespace Ekkam
                     hasLanded = true;
                     anim.SetBool("isJumping", false);
                 }
+                
+                if (hit1.collider.CompareTag("Movable"))
+                {
+                    transform.parent = hit1.transform;
+                }
             }
             else
             {
                 isGrounded = false;
                 rb.drag = 0;
+                transform.parent = null;
             }
         }
         
@@ -248,69 +295,26 @@ namespace Ekkam
             switch (item.tag)
             {
                 case "Sword":
-                    SwingSword();
+                    if (swordTimer < swordAttackCooldown || isGrounded == false) return;
+                    allowMovement = false;
+                    swordTimer = 0;
+                    combatManager.MeleeAttack();
                     break;
                 case "Bow":
-                    ShootArrow();
+                    if (bowTimer < bowAttackCooldown || isGrounded == false) return;
+                    allowMovement = false;
+                    bowTimer = 0;
+                    combatManager.ArcherAttack();
                     break;
                 case "Staff":
-                    ShootSpellBall();
+                    if (swordTimer < swordAttackCooldown || isGrounded == false) return;
+                    swordTimer = 0;
+                    allowMovement = false;
+                    combatManager.MageAttack();
                     break;
                 default:
                     break;
             }
-        }
-
-        public async void SwingSword()
-        {
-            if (swordTimer < swordAttackCooldown || isGrounded == false) return;
-            allowMovement = false;
-            swordTimer = 0;
-            anim.SetTrigger("swordAttack");
-            anim.SetLayerWeight(1, 0);
-            await Task.Delay(250);
-            swordHitbox.SetActive(true);
-            rb.AddForce(transform.forward * 3.5f, ForceMode.Impulse);
-            await Task.Delay(50);
-            swordHitbox.SetActive(false);
-        }
-        
-        public async void ShootArrow()
-        {
-            if (bowTimer < bowAttackCooldown || isGrounded == false) return;
-            allowMovement = false;
-            bowTimer = 0;
-            anim.SetTrigger("bowAttack");
-            await Task.Delay(250);
-            
-            GameObject newArrow = Instantiate(arrow, itemHolderLeft.transform.position, Quaternion.identity, itemHolderRight.transform);
-            newArrow.transform.localRotation = Quaternion.identity;
-            newArrow.transform.Rotate(0, 90, 0);
-            newArrow.transform.localPosition = new Vector3(0, 0, 0);
-            newArrow.SetActive(true);
-            await Task.Delay(550);
-            
-            newArrow.transform.SetParent(null);
-            newArrow.transform.forward = transform.forward;
-            newArrow.GetComponent<Projectile>().speed = 15;
-            await Task.Delay(100);
-            newArrow.GetComponent<Collider>().enabled = true;
-        }
-        
-        public async void ShootSpellBall()
-        {
-            if (swordTimer < swordAttackCooldown || isGrounded == false) return;
-            swordTimer = 0;
-            allowMovement = false;
-            bowTimer = 0;
-            anim.SetTrigger("swordAttack");
-            await Task.Delay(250);
-            // spawn ball in front of player
-            GameObject newSpellBall = Instantiate(spellBall, transform.position + transform.forward + new Vector3(0, 1, 0), Quaternion.identity);
-            // rotate to look away from player
-            newSpellBall.transform.forward = transform.forward;
-            newSpellBall.SetActive(true);
-            
         }
     }
 }

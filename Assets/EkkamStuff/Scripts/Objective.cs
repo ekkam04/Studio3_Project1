@@ -17,6 +17,12 @@ namespace Ekkam {
             Reach
         }
         public ObjectiveType objectiveType;
+        public enum ObjectiveCategory
+        {
+            ShouldBeCompleted,
+            ShouldNotBeCompleted
+        }
+        public ObjectiveCategory objectiveCategory;
         public GameObject objectiveTarget;
         public GameObject[] objectiveMultiTargets;
         public GameObject objectiveUIItem;

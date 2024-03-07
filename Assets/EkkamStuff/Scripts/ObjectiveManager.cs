@@ -18,6 +18,9 @@ namespace Ekkam {
         public int objectivesCompleted = 0;
         public int objectivesActive = 0;
 
+        public Color objectiveCompletedColor = Color.green;
+        public Color objectiveFailedColor = Color.red;
+
         public List<Objective> objectives = new List<Objective>();
         public List<Objective> activeObjectives = new List<Objective>();
 
@@ -47,11 +50,26 @@ namespace Ekkam {
             {
                 objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
                 AddObjectiveToUI(objectives[currentObjectiveIndex]);
+                // activeObjectives.Add(objectives[currentObjectiveIndex]);
             }
         }
 
         void Update()
         {
+            if (Input.GetKeyDown(KeyCode.K))
+            {
+                // complete current objective
+                for (int i = 0; i < objectives.Count; i++)
+                {
+                    if (objectives[i].status == Objective.ObjectiveStatus.Active)
+                    {
+                        CompleteObjective(objectives[i]);
+                        CheckForCompletionActions(objectives.IndexOf(objectives[i]));
+                        break;
+                    }
+                }
+            }
+
             foreach (Objective objective in objectives)
             {
                 if (objective.status != Objective.ObjectiveStatus.Active || objective.objectiveTarget == null) continue;
@@ -63,7 +81,6 @@ namespace Ekkam {
                 {
                     if (objectiveTargetDistance < objectiveTargetRadius)
                     {
-                        objective.objectiveTarget.gameObject.SetActive(false);
                         objectiveTargetDistance = Mathf.Infinity;
                         CompleteObjective(objective);
                     }
@@ -79,7 +96,6 @@ namespace Ekkam {
                         if (target.GetComponent<Interactable>() == null) continue;
                         if (target.GetComponent<Interactable>().timesInteracted > 0)
                         {
-                            objective.objectiveTarget.gameObject.SetActive(false);
                             CompleteObjective(objective);
                         }
                         else
@@ -111,7 +127,6 @@ namespace Ekkam {
 
                     if (numberOfDestroyedTargets == numberOfTargetsToDestroy)
                     {
-                        objective.objectiveTarget.gameObject.SetActive(false);
                         CompleteObjective(objective);
                     }
                 }
@@ -119,7 +134,7 @@ namespace Ekkam {
 
         }
 
-        public void AddNextObjectives()
+        public async void AddNextObjectives()
         {
             activeObjectives.Clear();
             bool autoAssignNextObjective = true;
@@ -130,11 +145,12 @@ namespace Ekkam {
                 {
                     objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
                     AddObjectiveToUI(objectives[currentObjectiveIndex]);
-                    activeObjectives.Add(objectives[currentObjectiveIndex]);
+                    // activeObjectives.Add(objectives[currentObjectiveIndex]);
                     if (currentObjectiveIndex < objectives.Count - 1)
                     {
                          autoAssignNextObjective = objectives[currentObjectiveIndex].autoAssignNextObjective;
                     }
+                    await Task.Delay(1000);
                 }
                 else
                 {
@@ -143,20 +159,47 @@ namespace Ekkam {
             }
         }
 
-        public void CompleteObjective(Objective objective)
+        public void CompleteObjective(Objective objective, bool completedByPlayer = true)
         {
+            if (objective.objectiveTarget != null) objective.objectiveTarget.gameObject.SetActive(false);
             objective.status = Objective.ObjectiveStatus.Completed;
-            RemoveObjectiveFromUI(objective);
+            // activeObjectives.Remove(objective);
+
+            if (completedByPlayer && objective.objectiveCategory == Objective.ObjectiveCategory.ShouldNotBeCompleted)
+            {
+                RemoveObjectiveFromUI(objective, false);
+            }
+            else
+            {
+                RemoveObjectiveFromUI(objective, true);
+            }
 
             if (GetNumberOfObjectives(Objective.ObjectiveStatus.Active) < 1 && currentObjectiveIndex < objectives.Count - 1)
             {
-                CheckForCompletionActions();
+                CheckForCompletionActions(objectives.IndexOf(objective));
                 DetermineFreeWill(objective);
                 AddNextObjectives();
             }
             else if (GetNumberOfObjectives(Objective.ObjectiveStatus.Completed) == objectives.Count)
             {
                 print("All objectives completed!");
+            }
+            // Over here I'm checking if there are any active objectives that should not be completed
+            // If there are, I'm auto completing them with success as the player did not complete them.
+            // I hope this makes sense 😭
+            else if (GetNumberOfObjectives(Objective.ObjectiveStatus.Active) > 0)
+            {
+                foreach (Objective obj in objectives)
+                {
+                    if (obj.status == Objective.ObjectiveStatus.Active)
+                    {
+                        if (obj.objectiveCategory == Objective.ObjectiveCategory.ShouldNotBeCompleted)
+                        {
+                            print("auto completing objective");
+                            CompleteObjective(obj, false);
+                        }
+                    }
+                }
             }
         }
 
@@ -187,11 +230,12 @@ namespace Ekkam {
             }
         }
 
-        public void CheckForCompletionActions()
+        public void CheckForCompletionActions(int completionIndex)
         {
+            print("Checking for completion actions: " + completionIndex);
             foreach (ObjectiveCompletionAction action in objectiveCompletionActions)
             {
-                if (action.objectiveIndexToComplete == currentObjectiveIndex)
+                if (action.objectiveIndexToComplete == completionIndex)
                 {
                     switch (action.completionAction)
                     {
@@ -215,7 +259,7 @@ namespace Ekkam {
         IEnumerator MoveTarget(GameObject targetObj, Vector3 targetPositionOffset)
         {
             var targetPosition = targetObj.transform.localPosition + targetPositionOffset;
-            float duration = 3f;
+            float duration = 5f;
             yield return new WaitForSeconds(0.5f);
             Vector3 startPosition = targetObj.transform.localPosition;
             float startTime = Time.time;
@@ -232,27 +276,24 @@ namespace Ekkam {
 
         public void AddObjectiveToUI(Objective objective)
         {
-            // GameObject objectiveText = new GameObject();
-            // objectiveText.transform.SetParent(objectiveUI.transform);
-            // objectiveText.AddComponent<TextMeshProUGUI>();
-            // objectiveText.GetComponent<TextMeshProUGUI>().text = objective.objectiveText;
-            // objectiveText.GetComponent<TextMeshProUGUI>().fontSize = 36;
-            // objectiveText.GetComponent<TextMeshProUGUI>().rectTransform.sizeDelta = new Vector2(500, 50);
-            // objectiveText.transform.localScale = new Vector3(1, 1, 1);
-            // objective.objectiveUIText = objectiveText.GetComponent<TextMeshProUGUI>();
             GameObject objectiveUIItem = Instantiate(objectiveItem, objectiveUI.transform);
             objectiveUIItem.GetComponentInChildren<TextMeshProUGUI>().text = objective.objectiveText;
+            objectiveUIItem.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
             objective.objectiveUIItem = objectiveUIItem;
             objectiveUIItem.GetComponentInChildren<Animator>().SetBool("Active", false);
         }
 
-        public async void RemoveObjectiveFromUI(Objective objective)
+        public async void RemoveObjectiveFromUI(Objective objective, bool wasSuccessful)
         {
-            // objective.objectiveUIText.color = Color.green;
-            // await Task.Delay(1000);
-            // objective.objectiveUIText.gameObject.SetActive(false);
-            // objective.objectiveUIText = null;
             objective.objectiveUIItem.GetComponentInChildren<Animator>().SetBool("Active", true);
+            if (wasSuccessful)
+            {
+                objective.objectiveUIItem.GetComponentInChildren<TextMeshProUGUI>().color = objectiveCompletedColor;
+            }
+            else
+            {
+                objective.objectiveUIItem.GetComponentInChildren<TextMeshProUGUI>().color = objectiveFailedColor;
+            }
             await Task.Delay(2000);
             objective.objectiveUIItem.SetActive(false);
         }
