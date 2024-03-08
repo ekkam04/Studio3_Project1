@@ -30,6 +30,7 @@ namespace Ekkam
         public float verticalInput = 0f;
         Vector3 moveDirection;
         public float speed = 1.0f;
+        private float initialSpeed;
         public float maxSpeed = 5.0f;
         public float groundDrag = 3f;
 
@@ -59,6 +60,7 @@ namespace Ekkam
         private float bowAttackCooldown = 1.25f;
 
         private bool targetLock;
+        private Enemy previousNearestEnemy;
 
         [SerializeField] public GameObject itemHolderRight;
         [SerializeField] public GameObject itemHolderLeft;
@@ -93,6 +95,7 @@ namespace Ekkam
 
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
             initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
+            initialSpeed = speed;
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
@@ -106,9 +109,9 @@ namespace Ekkam
 
             moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
              
-            if(moveDirection != Vector3.zero && !targetLock)
+            if(moveDirection != Vector3.zero)
             {
-                transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
+                if(!targetLock) transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
                 anim.SetBool("isMoving", true);
             }
             else
@@ -121,8 +124,13 @@ namespace Ekkam
 
             // temporary, need to use new input system but for now this will do
             if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
-            if (Input.GetKey(KeyCode.Mouse1)) targetLock = true;
-            if (targetLock) LookAtNearestEnemy();
+            if (Input.GetKey(KeyCode.Mouse1)) LookAtNearestEnemy();
+            
+            if (Input.GetKeyUp(KeyCode.Mouse1))
+            {
+                targetLock = false;
+                if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
+            }
             
             swordTimer += Time.deltaTime;
             bowTimer += Time.deltaTime;
@@ -210,7 +218,12 @@ namespace Ekkam
             // Calculate movement direction
             moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
 
-            rb.AddForce(moveDirection * speed * 10f, ForceMode.Force);
+            float moveSpeed = speed;
+            if (targetLock)
+            {
+                moveSpeed = speed / 2f;
+            }
+            rb.AddForce(moveDirection * moveSpeed * 10f, ForceMode.Force);
         }
 
         void ControlSpeed()
@@ -277,11 +290,26 @@ namespace Ekkam
                 {
                     nearestDistance = distance;
                     nearestEnemy = enemy;
+                    if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
+                    previousNearestEnemy = nearestEnemy;
                 }
             }
-            var viewDirection = nearestEnemy.transform.position - transform.position;
-            viewDirection.y = 0;
-            transform.forward = Vector3.Slerp(transform.forward, viewDirection.normalized, Time.deltaTime * rotationSpeed);
+
+            if (nearestDistance < 10f)
+            {
+                targetLock = true;
+                nearestEnemy.targetLockPrompt.SetActive(true);
+                var viewDirection = nearestEnemy.transform.position - transform.position;
+                viewDirection.y = 0;
+                transform.forward = Vector3.Slerp(transform.forward, viewDirection.normalized,
+                    Time.deltaTime * rotationSpeed);
+                print("Locked on to " + nearestEnemy.name);
+            }
+            else
+            {
+                targetLock = false;
+                if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
+            }
         }
         
         private void UseItem()

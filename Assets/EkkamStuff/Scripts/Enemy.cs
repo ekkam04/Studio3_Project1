@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Ekkam;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Animations;
 
 namespace Ekkam
 {
@@ -15,6 +16,8 @@ namespace Ekkam
         Astar astar;
         PathfindingGrid grid;
         PathfindingManager pathfindingManager;
+        UIManager uiManager;
+        public GameObject targetLockPrompt;
 
         Rigidbody rb;
         Enemy closestEnemy;
@@ -38,6 +41,16 @@ namespace Ekkam
             astar = GetComponent<Astar>();
             grid = FindObjectOfType<PathfindingGrid>();
             pathfindingManager = FindObjectOfType<PathfindingManager>();
+            uiManager = FindObjectOfType<UIManager>();
+            var mainCamera = Camera.main;
+            
+            targetLockPrompt = Instantiate(uiManager.targetLockPrompt, transform.position, Quaternion.identity, transform);
+            targetLockPrompt.GetComponentInChildren<RotationConstraint>().AddSource(new ConstraintSource
+            {
+                sourceTransform = mainCamera.transform,
+                weight = 1
+            });
+            targetLockPrompt.SetActive(false);
 
             rb = GetComponent<Rigidbody>();
             combatManager = GetComponent<CombatManager>();
@@ -92,7 +105,7 @@ namespace Ekkam
         public class CheckPlayerPresence : Node
         {
             private float detectionRange = 25f;
-            private float recalculationDistance = 20f;
+            private float recalculationDistance = 3f;
             private PathfindingGrid grid;
             private Astar astar;
             private Transform transform;

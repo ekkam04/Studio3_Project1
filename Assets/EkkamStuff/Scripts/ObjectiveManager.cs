@@ -22,7 +22,7 @@ namespace Ekkam {
         public Color objectiveFailedColor = Color.red;
 
         public List<Objective> objectives = new List<Objective>();
-        public List<Objective> activeObjectives = new List<Objective>();
+        public List<int> activeObjectiveIndices = new List<int>();
 
         public List<ObjectiveCompletionAction> objectiveCompletionActions = new List<ObjectiveCompletionAction>();
 
@@ -50,7 +50,7 @@ namespace Ekkam {
             {
                 objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
                 AddObjectiveToUI(objectives[currentObjectiveIndex]);
-                // activeObjectives.Add(objectives[currentObjectiveIndex]);
+                activeObjectiveIndices.Add(currentObjectiveIndex);
             }
         }
 
@@ -136,7 +136,7 @@ namespace Ekkam {
 
         public async void AddNextObjectives()
         {
-            activeObjectives.Clear();
+            activeObjectiveIndices.Clear();
             bool autoAssignNextObjective = true;
             while (autoAssignNextObjective)
             {
@@ -145,7 +145,7 @@ namespace Ekkam {
                 {
                     objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
                     AddObjectiveToUI(objectives[currentObjectiveIndex]);
-                    // activeObjectives.Add(objectives[currentObjectiveIndex]);
+                    activeObjectiveIndices.Add(currentObjectiveIndex);
                     if (currentObjectiveIndex < objectives.Count - 1)
                     {
                          autoAssignNextObjective = objectives[currentObjectiveIndex].autoAssignNextObjective;
@@ -163,7 +163,7 @@ namespace Ekkam {
         {
             if (objective.objectiveTarget != null) objective.objectiveTarget.gameObject.SetActive(false);
             objective.status = Objective.ObjectiveStatus.Completed;
-            // activeObjectives.Remove(objective);
+            activeObjectiveIndices.Remove(objectives.IndexOf(objective));
 
             if (completedByPlayer && objective.objectiveCategory == Objective.ObjectiveCategory.ShouldNotBeCompleted)
             {
@@ -177,7 +177,7 @@ namespace Ekkam {
             if (GetNumberOfObjectives(Objective.ObjectiveStatus.Active) < 1 && currentObjectiveIndex < objectives.Count - 1)
             {
                 CheckForCompletionActions(objectives.IndexOf(objective));
-                DetermineFreeWill(objective);
+                // DetermineFreeWill(objective);
                 AddNextObjectives();
             }
             else if (GetNumberOfObjectives(Objective.ObjectiveStatus.Completed) == objectives.Count)
@@ -218,12 +218,12 @@ namespace Ekkam {
 
         void DetermineFreeWill(Objective completedObjective)
         {
-            if (activeObjectives.Count > 1 && activeObjectives[0] == completedObjective)
+            if (activeObjectiveIndices.Count > 0 && activeObjectiveIndices[0] == objectives.IndexOf(completedObjective))
             {
                 player.freeWill += 10;
                 StartCoroutine(PulseVignette(Color.red, 0.5f, 2.5f));
             }
-            else if (activeObjectives.Count > 1)
+            else if (activeObjectiveIndices.Count > 0)
             {
                 player.freeWill -= 10;
                 StartCoroutine(PulseVignette(Color.blue, 0.5f, 2.5f));
