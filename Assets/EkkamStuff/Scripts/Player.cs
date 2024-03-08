@@ -119,33 +119,10 @@ namespace Ekkam
             ControlSpeed();
             CheckForGround();
 
-            // left click for use (temporary, will be changed to new input system)
-            if (Input.GetKeyDown(KeyCode.Mouse0))
-            {
-                UseItem();
-            }
-            
-            targetLock = Input.GetKey(KeyCode.F);
-            
-            // if targetlock is true, rotate player to face nearest enemy
-            if (targetLock)
-            { 
-                var enemies = GameObject.FindObjectsOfType<Enemy>();
-                var nearestEnemy = enemies[0];
-                var nearestDistance = Mathf.Infinity;
-                foreach (var enemy in enemies)
-                {
-                    var distance = Vector3.Distance(enemy.transform.position, transform.position);
-                    if (distance < nearestDistance)
-                    {
-                        nearestDistance = distance;
-                        nearestEnemy = enemy;
-                    }
-                }
-                var viewDirection = nearestEnemy.transform.position - transform.position;
-                viewDirection.y = 0;
-                transform.forward = Vector3.Slerp(transform.forward, viewDirection.normalized, Time.deltaTime * rotationSpeed);
-            }
+            // temporary, need to use new input system but for now this will do
+            if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
+            if (Input.GetKey(KeyCode.Mouse1)) targetLock = true;
+            if (targetLock) LookAtNearestEnemy();
             
             swordTimer += Time.deltaTime;
             bowTimer += Time.deltaTime;
@@ -286,6 +263,25 @@ namespace Ekkam
                 rb.drag = 0;
                 transform.parent = null;
             }
+        }
+
+        void LookAtNearestEnemy()
+        {
+            var enemies = GameObject.FindObjectsOfType<Enemy>();
+            var nearestEnemy = enemies[0];
+            var nearestDistance = Mathf.Infinity;
+            foreach (var enemy in enemies)
+            {
+                var distance = Vector3.Distance(enemy.transform.position, transform.position);
+                if (distance < nearestDistance)
+                {
+                    nearestDistance = distance;
+                    nearestEnemy = enemy;
+                }
+            }
+            var viewDirection = nearestEnemy.transform.position - transform.position;
+            viewDirection.y = 0;
+            transform.forward = Vector3.Slerp(transform.forward, viewDirection.normalized, Time.deltaTime * rotationSpeed);
         }
         
         private void UseItem()
