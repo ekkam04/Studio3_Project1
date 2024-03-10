@@ -850,7 +850,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   interactText: Pick up
   timesInteracted: 0
-  pickUpPrompt: {fileID: 0}
+  rotationOffset: {x: 0, y: 0, z: 0}
+  heldInOffHand: 0
 --- !u!1 &5047755225433261333
 GameObject:
   m_ObjectHideFlags: 0
@@ -1199,7 +1200,7 @@ MonoBehaviour:
   arrow: {fileID: 7970236236728476158, guid: d5d22ef06697d4358b14bc16e2fec12e, type: 3}
   spellBall: {fileID: 9000364038344786804, guid: 9c146c544f8b5453e9bcfa47d85cce55,
     type: 3}
-  swordHitbox: {fileID: 9129671424026950919}
+  meleeHitbox: {fileID: 9129671424026950919}
   itemHolderLeft: {fileID: 2113868213001536142}
   itemHolderRight: {fileID: 3443114409793580193}
 --- !u!114 &2651984194595381729

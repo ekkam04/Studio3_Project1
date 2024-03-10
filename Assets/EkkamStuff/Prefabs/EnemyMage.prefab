@@ -7981,10 +7981,30 @@ PrefabInstance:
       propertyPath: attackRange
       value: 15
       objectReference: {fileID: 0}
+    - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: followsPlayer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6241122315721747023, guid: 0c06e9a2032a6394596fb5e38d176552,
         type: 3}
       propertyPath: m_Name
       value: EnemyMage
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011743055997342176, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: meleeHitbox
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011743055997342176, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: itemHolderLeft
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011743055997342176, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: itemHolderRight
+      value: 
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
