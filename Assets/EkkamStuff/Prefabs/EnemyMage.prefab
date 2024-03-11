@@ -7978,6 +7978,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
         type: 3}
+      propertyPath: enemyType
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
       propertyPath: attackRange
       value: 15
       objectReference: {fileID: 0}
@@ -7986,6 +7991,21 @@ PrefabInstance:
       propertyPath: followsPlayer
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: knockbackForce
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: selfKnockbackForce
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: skinnedMeshRenderer
+      value: 
+      objectReference: {fileID: 1286377700342473994}
     - target: {fileID: 6241122315721747023, guid: 0c06e9a2032a6394596fb5e38d176552,
         type: 3}
       propertyPath: m_Name

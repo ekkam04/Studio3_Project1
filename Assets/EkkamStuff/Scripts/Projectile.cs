@@ -10,6 +10,12 @@ namespace Ekkam {
         public float speed = 10f;
         public int damage = 1;
         public bool destroyOnHit = true;
+        public bool freezeOnHit = false;
+        
+        public bool isMelee = false;
+        public GameObject baseParent;
+        
+        private Vector3 projectileDirection;
 
         void Start()
         {
@@ -19,6 +25,16 @@ namespace Ekkam {
         void Update()
         {
             transform.Translate(Vector3.forward * speed * Time.deltaTime);
+            
+            if (isMelee)
+            {
+                projectileDirection = baseParent.transform.forward;
+            }
+            else
+            {
+                projectileDirection = transform.forward;
+            }
+            
         }
 
         void OnTriggerEnter(Collider other)
@@ -26,7 +42,9 @@ namespace Ekkam {
             print("Hit " + other.gameObject.name);
             if (other.gameObject.GetComponent<Damagable>())
             {
-                other.gameObject.GetComponent<Damagable>().TakeDamage(damage);
+                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, projectileDirection);
+                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, projectileDirection);
+                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, projectileDirection);
             }
             if (destroyOnHit) Destroy(gameObject);
         }
@@ -36,7 +54,7 @@ namespace Ekkam {
             print("Hit " + other.gameObject.name);
             if (other.gameObject.GetComponent<Damagable>())
             {
-                other.gameObject.GetComponent<Damagable>().TakeDamage(damage);
+                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, projectileDirection);
             }
             if (destroyOnHit) Destroy(gameObject);
         }

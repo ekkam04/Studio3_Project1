@@ -98,7 +98,7 @@ SphereCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 256
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
@@ -121,3 +121,6 @@ MonoBehaviour:
   speed: 7
   damage: 1
   destroyOnHit: 1
+  freezeOnHit: 0
+  isMelee: 0
+  baseParent: {fileID: 0}

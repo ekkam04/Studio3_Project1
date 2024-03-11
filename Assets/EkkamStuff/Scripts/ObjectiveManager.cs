@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using UnityEngine.Rendering;
 using Unity.VisualScripting;
 using UnityEngine.Rendering.Universal;
+using QFSW.QC;
 
 namespace Ekkam {
     public class ObjectiveManager : MonoBehaviour
@@ -56,19 +57,19 @@ namespace Ekkam {
 
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.K))
-            {
-                // complete current objective
-                for (int i = 0; i < objectives.Count; i++)
-                {
-                    if (objectives[i].status == Objective.ObjectiveStatus.Active)
-                    {
-                        CompleteObjective(objectives[i]);
-                        CheckForCompletionActions(objectives.IndexOf(objectives[i]));
-                        break;
-                    }
-                }
-            }
+            // if (Input.GetKeyDown(KeyCode.K))
+            // {
+            //     // complete current objective
+            //     for (int i = 0; i < objectives.Count; i++)
+            //     {
+            //         if (objectives[i].status == Objective.ObjectiveStatus.Active)
+            //         {
+            //             CompleteObjective(objectives[i]);
+            //             CheckForCompletionActions(objectives.IndexOf(objectives[i]));
+            //             break;
+            //         }
+            //     }
+            // }
 
             foreach (Objective objective in objectives)
             {
@@ -173,10 +174,11 @@ namespace Ekkam {
             {
                 RemoveObjectiveFromUI(objective, true);
             }
+            
+            CheckForCompletionActions(objectives.IndexOf(objective));
 
             if (GetNumberOfObjectives(Objective.ObjectiveStatus.Active) < 1 && currentObjectiveIndex < objectives.Count - 1)
             {
-                CheckForCompletionActions(objectives.IndexOf(objective));
                 // DetermineFreeWill(objective);
                 AddNextObjectives();
             }
@@ -252,6 +254,21 @@ namespace Ekkam {
                             Destroy(action.target);
                             break;
                     }
+                }
+            }
+        }
+        
+        [Command("skip-tasks")]
+        public async void SkipTasks(int numberOfTasksToSkip)
+        {
+            for (int i = 0; i < numberOfTasksToSkip; i++)
+            {
+                print("Skipping task " + i);
+                if (objectives[i].status == Objective.ObjectiveStatus.Active)
+                {
+                    CompleteObjective(objectives[i]);
+                    CheckForCompletionActions(objectives.IndexOf(objectives[i]));
+                    await Task.Delay(200);
                 }
             }
         }

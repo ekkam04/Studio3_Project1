@@ -10,8 +10,6 @@ namespace Ekkam
 {
     public class Player : Damagable
     {
-        public Rigidbody rb;
-        public Animator anim;
         Inventory inventory;
         CombatManager combatManager;
         
@@ -20,6 +18,8 @@ namespace Ekkam
 
         public float freeWill = 50f;
         public Slider freeWillSlider;
+        
+        public Slider healthSlider;
 
         public Vector3 viewDirection;
         public Transform orientation;
@@ -154,6 +154,7 @@ namespace Ekkam
             }
 
             freeWillSlider.value = Mathf.Lerp(freeWillSlider.value, freeWill, Time.deltaTime * 5);
+            healthSlider.value = Mathf.Lerp(healthSlider.value, health, Time.deltaTime * 5);
         }
 
         void FixedUpdate()

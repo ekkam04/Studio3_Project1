@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Ekkam;
+using QFSW.QC;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -18,9 +19,7 @@ namespace Ekkam
         PathfindingManager pathfindingManager;
         UIManager uiManager;
         public GameObject targetLockPrompt;
-
-        Rigidbody rb;
-        Animator anim;
+        
         Enemy closestEnemy;
         CombatManager combatManager;
 
@@ -30,6 +29,7 @@ namespace Ekkam
         private bool canMove = true;
         private float attackTimer;
         public float attackCooldown = 2f;
+        
         public enum EnemyType
         {
             Melee,
@@ -63,7 +63,7 @@ namespace Ekkam
                 // Check for player presence and idle if not present
                 new Sequence(new List<Node>
                 {
-                    new InvertDecorator(new CheckPlayerPresence(grid, astar, transform, canMove)),
+                    new InvertDecorator(new CheckPlayerPresence(this)),
                     new Idle(this)
                 }),
                 
@@ -107,25 +107,29 @@ namespace Ekkam
 
         public class CheckPlayerPresence : Node
         {
+            Enemy enemy;
             private float detectionRange = 25f;
             private float recalculationDistance = 3f;
             private PathfindingGrid grid;
             private Astar astar;
             private Transform transform;
             private bool canMove;
+            private bool followsPlayer;
 
-            public CheckPlayerPresence(PathfindingGrid grid, Astar astar, Transform transform, bool canMove)
+            public CheckPlayerPresence(Enemy enemy)
             {
-                this.grid = grid;
-                this.astar = astar;
-                this.transform = transform;
-                this.canMove = canMove;
+                this.enemy = enemy;
+                this.grid = enemy.grid;
+                this.astar = enemy.astar;
+                this.transform = enemy.transform;
+                this.canMove = enemy.canMove;
+                this.followsPlayer = enemy.followsPlayer;
             }
 
             public override NodeState Evaluate()
             {
                 if (
-                    (grid.ObjectIsOnGrid(Player.Instance.transform.position) || !canMove)
+                    (grid.ObjectIsOnGrid(Player.Instance.transform.position) || !followsPlayer)
                     && (Vector3.Distance(transform.position, Player.Instance.transform.position) < detectionRange
                     || astar.pathNodes.Count > 0)
                 )
@@ -133,7 +137,7 @@ namespace Ekkam
                     print("Player is present");
 
                     if (
-                        canMove &&
+                        canMove && followsPlayer &&
                         astar.GetDistance(
                         grid.GetNode(grid.GetPositionFromWorldPoint(Player.Instance.transform.position)),
                         grid.GetNode(astar.endNodePosition)
@@ -286,11 +290,32 @@ namespace Ekkam
             {
                 print("Attacking player");
                 enemy.anim.SetBool("isMoving", false);
+                
+                Vector3 targetPosition = new Vector3(
+                    Player.Instance.transform.position.x,
+                    enemy.transform.position.y,
+                    Player.Instance.transform.position.z
+                );
+                enemy.transform.rotation = Quaternion.Slerp(enemy.transform.rotation, Quaternion.LookRotation(targetPosition - enemy.transform.position), 10 * Time.deltaTime);
+                
                 enemy.attackTimer += Time.deltaTime;
                 if (enemy.attackTimer >= enemy.attackCooldown)
                 {
                     enemy.attackTimer = 0;
-                    enemy.combatManager.MeleeAttack();
+                    
+                    switch (enemy.enemyType)
+                    {
+                        case Enemy.EnemyType.Melee:
+                            enemy.combatManager.MeleeAttack();
+                            break;
+                        case Enemy.EnemyType.Archer:
+                            enemy.combatManager.ArcherAttack();
+                            break;
+                        case Enemy.EnemyType.Mage:
+                            enemy.combatManager.MageAttack();
+                            break;
+                    }
+                    
                     return NodeState.Success;
                 }
                 else
@@ -486,6 +511,13 @@ namespace Ekkam
                     return NodeState.Success;
                 }
             }
+
+        }
+        
+        [Command("kill-all-enemies", MonoTargetType.All)]
+        private void KillAllEnemies()
+        {
+            Die();
         }
     }
 }
