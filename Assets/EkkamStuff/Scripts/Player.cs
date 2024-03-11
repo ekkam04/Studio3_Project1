@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 using System.Threading.Tasks;
+using QFSW.QC;
 using UnityEngine.UI;
 
 namespace Ekkam
@@ -124,9 +125,9 @@ namespace Ekkam
 
             // temporary, need to use new input system but for now this will do
             if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
-            if (Input.GetKey(KeyCode.Mouse1)) LookAtNearestEnemy();
+            if (Input.GetKey(KeyCode.Mouse1) || Input.GetKey(KeyCode.L)) LookAtNearestEnemy();
             
-            if (Input.GetKeyUp(KeyCode.Mouse1))
+            if (Input.GetKeyUp(KeyCode.Mouse1) || Input.GetKeyUp(KeyCode.L))
             {
                 targetLock = false;
                 if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);

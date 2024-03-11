@@ -13,6 +13,7 @@ using QFSW.QC;
 namespace Ekkam {
     public class ObjectiveManager : MonoBehaviour
     {
+        private GameManager gameManager;
         public int currentObjectiveIndex = 0;
         public float objectiveTargetDistance;
         
@@ -37,6 +38,7 @@ namespace Ekkam {
         void Start()
         {
             player = FindObjectOfType<Player>();
+            gameManager = FindObjectOfType<GameManager>();
 
             // hide all objective targets if type is Reach
             foreach (Objective objective in objectives)
@@ -160,11 +162,13 @@ namespace Ekkam {
             }
         }
 
-        public void CompleteObjective(Objective objective, bool completedByPlayer = true)
+        public async void CompleteObjective(Objective objective, bool completedByPlayer = true)
         {
             if (objective.objectiveTarget != null) objective.objectiveTarget.gameObject.SetActive(false);
             objective.status = Objective.ObjectiveStatus.Completed;
             activeObjectiveIndices.Remove(objectives.IndexOf(objective));
+            
+            gameManager.ShowGuideBot();
 
             if (completedByPlayer && objective.objectiveCategory == Objective.ObjectiveCategory.ShouldNotBeCompleted)
             {
@@ -203,6 +207,9 @@ namespace Ekkam {
                     }
                 }
             }
+
+            await Task.Delay(2000);
+            gameManager.HideGuideBot();
         }
 
         int GetNumberOfObjectives(Objective.ObjectiveStatus status)
