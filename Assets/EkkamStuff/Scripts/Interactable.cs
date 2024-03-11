@@ -9,10 +9,20 @@ namespace Ekkam {
     {
         Player player;
         Inventory inventory;
+        UIManager uiManager;
+        GameObject pickUpPrompt;
+        
+        public enum InteractionType
+        {
+            Press,
+            Damage
+        }
+        public InteractionType interactionType;
+
         public string interactText;
         public int timesInteracted = 0;
-        UIManager uiManager;
-        public GameObject pickUpPrompt;
+        public Vector3 rotationOffset;
+        public bool heldInOffHand;
 
         void Start()
         {
@@ -34,9 +44,13 @@ namespace Ekkam {
         void Update()
         {
             // check if player has the item in their inventory
-            if (inventory.HasItem(GetComponent<Item>()) == false)
+            if (interactionType == InteractionType.Press && inventory.HasItem(GetComponent<Item>()) == false)
             {
                 CheckForInteract();
+            }
+            else if (interactionType == InteractionType.Damage)
+            {
+                
             }
         }
 
@@ -64,25 +78,37 @@ namespace Ekkam {
             if (GetComponent<Item>())
             {
                 inventory.AddItem(GetComponent<Item>());
-                if (tag == "Sword")
-                {
-                    transform.SetParent(player.itemHolderRight.transform);
-                    transform.localPosition = Vector3.zero;
-                    transform.localRotation = Quaternion.identity;
-                }
-                else if (tag == "Bow")
+                // if (tag == "Sword")
+                // {
+                //     transform.SetParent(player.itemHolderRight.transform);
+                //     transform.localPosition = Vector3.zero;
+                //     transform.localRotation = Quaternion.identity;
+                // }
+                // else if (tag == "Bow")
+                // {
+                //     transform.SetParent(player.itemHolderLeft.transform);
+                //     transform.localPosition = Vector3.zero;
+                //     transform.localRotation = Quaternion.identity;
+                //     var rotationAmount = new Vector3(0, 90, 0);
+                //     transform.Rotate(rotationOffset);
+                // }
+                // else if (tag == "Staff")
+                // {
+                //     transform.SetParent(player.itemHolderRight.transform);
+                //     transform.localPosition = Vector3.zero;
+                //     transform.localRotation = Quaternion.identity;
+                // }
+                if (heldInOffHand)
                 {
                     transform.SetParent(player.itemHolderLeft.transform);
-                    transform.localPosition = Vector3.zero;
-                    transform.localRotation = Quaternion.identity;
-                    transform.Rotate(0, 75, 0);
                 }
-                else if (tag == "Staff")
+                else
                 {
                     transform.SetParent(player.itemHolderRight.transform);
-                    transform.localPosition = Vector3.zero;
-                    transform.localRotation = Quaternion.identity;
                 }
+                transform.localPosition = Vector3.zero;
+                transform.localRotation = Quaternion.identity;
+                transform.Rotate(rotationOffset);
             }
         }
     }

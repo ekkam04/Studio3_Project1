@@ -132,6 +132,9 @@ MonoBehaviour:
   speed: 0
   damage: 1
   destroyOnHit: 1
+  freezeOnHit: 0
+  isMelee: 0
+  baseParent: {fileID: 0}
 --- !u!65 &8242364774920934638
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -145,11 +148,11 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 256
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.14871112, y: 0.06845114, z: 1.4658166}
   m_Center: {x: 0, y: 0, z: 0.654244}

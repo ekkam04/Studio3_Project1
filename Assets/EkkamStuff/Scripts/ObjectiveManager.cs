@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 using UnityEngine.Rendering;
 using Unity.VisualScripting;
 using UnityEngine.Rendering.Universal;
+using QFSW.QC;
 
 namespace Ekkam {
     public class ObjectiveManager : MonoBehaviour
     {
+        private GameManager gameManager;
         public int currentObjectiveIndex = 0;
         public float objectiveTargetDistance;
         
@@ -22,7 +24,7 @@ namespace Ekkam {
         public Color objectiveFailedColor = Color.red;
 
         public List<Objective> objectives = new List<Objective>();
-        public List<Objective> activeObjectives = new List<Objective>();
+        public List<int> activeObjectiveIndices = new List<int>();
 
         public List<ObjectiveCompletionAction> objectiveCompletionActions = new List<ObjectiveCompletionAction>();
 
@@ -36,6 +38,7 @@ namespace Ekkam {
         void Start()
         {
             player = FindObjectOfType<Player>();
+            gameManager = FindObjectOfType<GameManager>();
 
             // hide all objective targets if type is Reach
             foreach (Objective objective in objectives)
@@ -50,25 +53,25 @@ namespace Ekkam {
             {
                 objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
                 AddObjectiveToUI(objectives[currentObjectiveIndex]);
-                // activeObjectives.Add(objectives[currentObjectiveIndex]);
+                activeObjectiveIndices.Add(currentObjectiveIndex);
             }
         }
 
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.K))
-            {
-                // complete current objective
-                for (int i = 0; i < objectives.Count; i++)
-                {
-                    if (objectives[i].status == Objective.ObjectiveStatus.Active)
-                    {
-                        CompleteObjective(objectives[i]);
-                        CheckForCompletionActions(objectives.IndexOf(objectives[i]));
-                        break;
-                    }
-                }
-            }
+            // if (Input.GetKeyDown(KeyCode.K))
+            // {
+            //     // complete current objective
+            //     for (int i = 0; i < objectives.Count; i++)
+            //     {
+            //         if (objectives[i].status == Objective.ObjectiveStatus.Active)
+            //         {
+            //             CompleteObjective(objectives[i]);
+            //             CheckForCompletionActions(objectives.IndexOf(objectives[i]));
+            //             break;
+            //         }
+            //     }
+            // }
 
             foreach (Objective objective in objectives)
             {
@@ -136,7 +139,7 @@ namespace Ekkam {
 
         public async void AddNextObjectives()
         {
-            activeObjectives.Clear();
+            activeObjectiveIndices.Clear();
             bool autoAssignNextObjective = true;
             while (autoAssignNextObjective)
             {
@@ -145,7 +148,7 @@ namespace Ekkam {
                 {
                     objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
                     AddObjectiveToUI(objectives[currentObjectiveIndex]);
-                    // activeObjectives.Add(objectives[currentObjectiveIndex]);
+                    activeObjectiveIndices.Add(currentObjectiveIndex);
                     if (currentObjectiveIndex < objectives.Count - 1)
                     {
                          autoAssignNextObjective = objectives[currentObjectiveIndex].autoAssignNextObjective;
@@ -159,11 +162,13 @@ namespace Ekkam {
             }
         }
 
-        public void CompleteObjective(Objective objective, bool completedByPlayer = true)
+        public async void CompleteObjective(Objective objective, bool completedByPlayer = true)
         {
             if (objective.objectiveTarget != null) objective.objectiveTarget.gameObject.SetActive(false);
             objective.status = Objective.ObjectiveStatus.Completed;
-            // activeObjectives.Remove(objective);
+            activeObjectiveIndices.Remove(objectives.IndexOf(objective));
+            
+            gameManager.ShowGuideBot();
 
             if (completedByPlayer && objective.objectiveCategory == Objective.ObjectiveCategory.ShouldNotBeCompleted)
             {
@@ -173,11 +178,12 @@ namespace Ekkam {
             {
                 RemoveObjectiveFromUI(objective, true);
             }
+            
+            CheckForCompletionActions(objectives.IndexOf(objective));
 
             if (GetNumberOfObjectives(Objective.ObjectiveStatus.Active) < 1 && currentObjectiveIndex < objectives.Count - 1)
             {
-                CheckForCompletionActions(objectives.IndexOf(objective));
-                DetermineFreeWill(objective);
+                // DetermineFreeWill(objective);
                 AddNextObjectives();
             }
             else if (GetNumberOfObjectives(Objective.ObjectiveStatus.Completed) == objectives.Count)
@@ -201,6 +207,9 @@ namespace Ekkam {
                     }
                 }
             }
+
+            await Task.Delay(2000);
+            gameManager.HideGuideBot();
         }
 
         int GetNumberOfObjectives(Objective.ObjectiveStatus status)
@@ -218,12 +227,12 @@ namespace Ekkam {
 
         void DetermineFreeWill(Objective completedObjective)
         {
-            if (activeObjectives.Count > 1 && activeObjectives[0] == completedObjective)
+            if (activeObjectiveIndices.Count > 0 && activeObjectiveIndices[0] == objectives.IndexOf(completedObjective))
             {
                 player.freeWill += 10;
                 StartCoroutine(PulseVignette(Color.red, 0.5f, 2.5f));
             }
-            else if (activeObjectives.Count > 1)
+            else if (activeObjectiveIndices.Count > 0)
             {
                 player.freeWill -= 10;
                 StartCoroutine(PulseVignette(Color.blue, 0.5f, 2.5f));
@@ -252,6 +261,21 @@ namespace Ekkam {
                             Destroy(action.target);
                             break;
                     }
+                }
+            }
+        }
+        
+        [Command("skip-tasks")]
+        public async void SkipTasks(int numberOfTasksToSkip)
+        {
+            for (int i = 0; i < numberOfTasksToSkip; i++)
+            {
+                print("Skipping task " + i);
+                if (objectives[i].status == Objective.ObjectiveStatus.Active)
+                {
+                    CompleteObjective(objectives[i]);
+                    CheckForCompletionActions(objectives.IndexOf(objectives[i]));
+                    await Task.Delay(200);
                 }
             }
         }
