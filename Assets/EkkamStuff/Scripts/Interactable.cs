@@ -11,6 +11,13 @@ namespace Ekkam {
         Inventory inventory;
         UIManager uiManager;
         GameObject pickUpPrompt;
+        
+        public enum InteractionType
+        {
+            Press,
+            Damage
+        }
+        public InteractionType interactionType;
 
         public string interactText;
         public int timesInteracted = 0;
@@ -37,9 +44,13 @@ namespace Ekkam {
         void Update()
         {
             // check if player has the item in their inventory
-            if (inventory.HasItem(GetComponent<Item>()) == false)
+            if (interactionType == InteractionType.Press && inventory.HasItem(GetComponent<Item>()) == false)
             {
                 CheckForInteract();
+            }
+            else if (interactionType == InteractionType.Damage)
+            {
+                
             }
         }
 
