@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Ekkam;
+using QFSW.QC;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Animations;
 
 namespace Ekkam
 {
@@ -15,16 +17,19 @@ namespace Ekkam
         Astar astar;
         PathfindingGrid grid;
         PathfindingManager pathfindingManager;
-
-        Rigidbody rb;
+        UIManager uiManager;
+        public GameObject targetLockPrompt;
+        
         Enemy closestEnemy;
         CombatManager combatManager;
 
         public float speed = 2f;
         public float attackRange = 3f;
-        public bool canMove = true;
+        public bool followsPlayer = true;
+        private bool canMove = true;
         private float attackTimer;
         public float attackCooldown = 2f;
+        
         public enum EnemyType
         {
             Melee,
@@ -38,8 +43,19 @@ namespace Ekkam
             astar = GetComponent<Astar>();
             grid = FindObjectOfType<PathfindingGrid>();
             pathfindingManager = FindObjectOfType<PathfindingManager>();
+            uiManager = FindObjectOfType<UIManager>();
+            var mainCamera = Camera.main;
+            
+            targetLockPrompt = Instantiate(uiManager.targetLockPrompt, transform.position, Quaternion.identity, transform);
+            targetLockPrompt.GetComponentInChildren<RotationConstraint>().AddSource(new ConstraintSource
+            {
+                sourceTransform = mainCamera.transform,
+                weight = 1
+            });
+            targetLockPrompt.SetActive(false);
 
             rb = GetComponent<Rigidbody>();
+            anim = GetComponent<Animator>();
             combatManager = GetComponent<CombatManager>();
 
             rootNode = new Selector(new List<Node>
@@ -47,26 +63,26 @@ namespace Ekkam
                 // Check for player presence and idle if not present
                 new Sequence(new List<Node>
                 {
-                    new InvertDecorator(new CheckPlayerPresence(grid, astar, transform, canMove)),
-                    new Idle()
+                    new InvertDecorator(new CheckPlayerPresence(this)),
+                    new Idle(this)
                 }),
                 
                 // Engage player based on conditions
                 new Selector(new List<Node>{
                     new Sequence(new List<Node>{
-                        new CanMove(canMove),
+                        new CanMove(this),
                         new CheckLineOfSight(grid, astar, transform),
                         new InvertDecorator(new CanAttack(this)), // Check if not ready to attack
-                        new WalkTowardsPlayer(transform, rb, speed, canMove),
+                        new WalkTowardsPlayer(this),
                     }),
                     new Sequence(new List<Node>{
                         // new CheckLineOfSight(grid, astar, transform),
                         new CanAttack(this), // Confirm ready to attack
-                        new AttackPlayer()
+                        new AttackPlayer(this)
                     }),
                     // Indirect engagement when line of sight is lost
                     new Sequence(new List<Node>{
-                        new CanMove(canMove),
+                        new CanMove(this),
                         new InvertDecorator(new CheckLineOfSight(grid, astar, transform)),
                         new Selector(new List<Node>{
                             new Sequence(new List<Node>{
@@ -91,25 +107,29 @@ namespace Ekkam
 
         public class CheckPlayerPresence : Node
         {
+            Enemy enemy;
             private float detectionRange = 25f;
-            private float recalculationDistance = 20f;
+            private float recalculationDistance = 3f;
             private PathfindingGrid grid;
             private Astar astar;
             private Transform transform;
             private bool canMove;
+            private bool followsPlayer;
 
-            public CheckPlayerPresence(PathfindingGrid grid, Astar astar, Transform transform, bool canMove)
+            public CheckPlayerPresence(Enemy enemy)
             {
-                this.grid = grid;
-                this.astar = astar;
-                this.transform = transform;
-                this.canMove = canMove;
+                this.enemy = enemy;
+                this.grid = enemy.grid;
+                this.astar = enemy.astar;
+                this.transform = enemy.transform;
+                this.canMove = enemy.canMove;
+                this.followsPlayer = enemy.followsPlayer;
             }
 
             public override NodeState Evaluate()
             {
                 if (
-                    (grid.ObjectIsOnGrid(Player.Instance.transform.position) || !canMove)
+                    (grid.ObjectIsOnGrid(Player.Instance.transform.position) || !followsPlayer)
                     && (Vector3.Distance(transform.position, Player.Instance.transform.position) < detectionRange
                     || astar.pathNodes.Count > 0)
                 )
@@ -117,7 +137,7 @@ namespace Ekkam
                     print("Player is present");
 
                     if (
-                        canMove &&
+                        canMove && followsPlayer &&
                         astar.GetDistance(
                         grid.GetNode(grid.GetPositionFromWorldPoint(Player.Instance.transform.position)),
                         grid.GetNode(astar.endNodePosition)
@@ -138,9 +158,16 @@ namespace Ekkam
 
         public class Idle : Node
         {
+            Enemy enemy;
+            
+            public Idle(Enemy enemy)
+            {
+                this.enemy = enemy;
+            }
             public override NodeState Evaluate()
             {
                 print("Idle");
+                enemy.anim.SetBool("isMoving", false);
                 return NodeState.Success;
             }
         }
@@ -178,20 +205,23 @@ namespace Ekkam
 
         public class WalkTowardsPlayer : Node
         {
+            private Enemy enemy;
             private Transform transform;
             private Rigidbody rb;
             private float speed;
 
-            public WalkTowardsPlayer(Transform transform, Rigidbody rb, float speed, bool canMove)
+            public WalkTowardsPlayer(Enemy enemy)
             {
-                this.transform = transform;
-                this.rb = rb;
-                this.speed = speed;
+                this.enemy = enemy;
+                this.transform = enemy.transform;
+                this.rb = enemy.rb;
+                this.speed = enemy.speed;
             }
 
             public override NodeState Evaluate()
             {
                 print("Walking towards player");
+                enemy.anim.SetBool("isMoving", true);
                 Vector3 targetPosition = new Vector3(Player.Instance.transform.position.x, transform.position.y, Player.Instance.transform.position.z);
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
                 rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
@@ -201,16 +231,16 @@ namespace Ekkam
 
         public class CanMove : Node
         {
-            private bool canMove;
+            private Enemy enemy;
 
-            public CanMove(bool canMove)
+            public CanMove(Enemy enemy)
             {
-                this.canMove = canMove;
+                this.enemy = enemy;
             }
 
             public override NodeState Evaluate()
             {
-                if (canMove)
+                if (enemy.canMove && enemy.followsPlayer)
                 {
                     print("Can move");
                     return NodeState.Success;
@@ -237,10 +267,12 @@ namespace Ekkam
                 if (Vector3.Distance(Player.Instance.transform.position, enemy.transform.position) <= enemy.attackRange)
                 {
                     print("Ready to attack");
+                    enemy.canMove = false;
                     return NodeState.Success;
                 }
                 else
                 {
+                    enemy.canMove = true;
                     return NodeState.Failure;
                 }
             }
@@ -248,10 +280,48 @@ namespace Ekkam
 
         public class AttackPlayer : Node
         {
+            Enemy enemy;
+            
+            public AttackPlayer(Enemy enemy)
+            {
+                this.enemy = enemy;
+            }
             public override NodeState Evaluate()
             {
                 print("Attacking player");
-                return NodeState.Success;
+                enemy.anim.SetBool("isMoving", false);
+                
+                Vector3 targetPosition = new Vector3(
+                    Player.Instance.transform.position.x,
+                    enemy.transform.position.y,
+                    Player.Instance.transform.position.z
+                );
+                enemy.transform.rotation = Quaternion.Slerp(enemy.transform.rotation, Quaternion.LookRotation(targetPosition - enemy.transform.position), 10 * Time.deltaTime);
+                
+                enemy.attackTimer += Time.deltaTime;
+                if (enemy.attackTimer >= enemy.attackCooldown)
+                {
+                    enemy.attackTimer = 0;
+                    
+                    switch (enemy.enemyType)
+                    {
+                        case Enemy.EnemyType.Melee:
+                            enemy.combatManager.MeleeAttack();
+                            break;
+                        case Enemy.EnemyType.Archer:
+                            enemy.combatManager.ArcherAttack();
+                            break;
+                        case Enemy.EnemyType.Mage:
+                            enemy.combatManager.MageAttack();
+                            break;
+                    }
+                    
+                    return NodeState.Success;
+                }
+                else
+                {
+                    return NodeState.Running;
+                }
             }
         }
 
@@ -415,6 +485,7 @@ namespace Ekkam
                 if (enemy.astar.pathNodes.Count > 0)
                 {
                     print("Following path");
+                    enemy.anim.SetBool("isMoving", true);
                     Vector3 targetPosition = new Vector3(
                         astar.pathNodes[astar.pathNodes.Count - 1].transform.position.x,
                         transform.position.y,
@@ -440,6 +511,13 @@ namespace Ekkam
                     return NodeState.Success;
                 }
             }
+
+        }
+        
+        [Command("kill-all-enemies", MonoTargetType.All)]
+        private void KillAllEnemies()
+        {
+            Die();
         }
     }
 }
