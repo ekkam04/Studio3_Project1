@@ -8,6 +8,7 @@ namespace Ekkam {
     {
         Collider col;
         public float speed = 10f;
+        public float fallOffSpeed = 0f;
         public int damage = 1;
         public bool destroyOnHit = true;
         public bool freezeOnHit = false;
@@ -25,6 +26,7 @@ namespace Ekkam {
         void Update()
         {
             transform.Translate(Vector3.forward * speed * Time.deltaTime);
+            transform.Translate(Vector3.down * fallOffSpeed * Time.deltaTime);
             
             if (isMelee)
             {
@@ -40,11 +42,19 @@ namespace Ekkam {
         void OnTriggerEnter(Collider other)
         {
             print("Hit " + other.gameObject.name);
+            if (freezeOnHit)
+            {
+                speed = 0;
+                // set parent to other without changing position and scale
+                // transform.parent = other.transform;
+            }
             if (other.gameObject.GetComponent<Damagable>())
             {
-                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, projectileDirection);
-                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, projectileDirection);
-                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, projectileDirection);
+                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, this.gameObject, projectileDirection);
+            }
+            else if (other.gameObject.GetComponent<Interactable>() != null && other.gameObject.GetComponent<Interactable>().interactionType == Interactable.InteractionType.Damage)
+            {   
+                other.gameObject.GetComponent<Interactable>().Interact();
             }
             if (destroyOnHit) Destroy(gameObject);
         }
@@ -54,9 +64,21 @@ namespace Ekkam {
             print("Hit " + other.gameObject.name);
             if (other.gameObject.GetComponent<Damagable>())
             {
-                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, projectileDirection);
+                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, this.gameObject, projectileDirection);
             }
             if (destroyOnHit) Destroy(gameObject);
+            if (freezeOnHit) speed = 0;
+        }
+
+        void Collide(Collision other)
+        {
+            print("Hit " + other.gameObject.name);
+            if (other.gameObject.GetComponent<Damagable>())
+            {
+                other.gameObject.GetComponent<Damagable>().TakeDamage(damage, this.gameObject, projectileDirection);
+            }
+            if (destroyOnHit) Destroy(gameObject);
+            if (freezeOnHit) speed = 0;
         }
     }
 }

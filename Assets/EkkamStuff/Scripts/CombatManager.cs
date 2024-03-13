@@ -50,6 +50,9 @@ namespace Ekkam
             
             public async void ArcherAttack()
             {
+                var mainCamera = Camera.main;
+                transform.forward = new Vector3(mainCamera.transform.forward.x, 0, mainCamera.transform.forward.z);
+                
                 anim.SetTrigger("bowAttack");
                 await Task.Delay(250);
                 
@@ -63,7 +66,7 @@ namespace Ekkam
                 await Task.Delay(550);
                 
                 newArrow.transform.SetParent(null);
-                newArrow.transform.forward = transform.forward;
+                newArrow.transform.forward = mainCamera.transform.forward + new Vector3(0, 0.2f, 0);
                 newArrow.GetComponent<Projectile>().speed = 15;
                 await Task.Delay(100);
                 newArrow.GetComponent<Collider>().enabled = true;
