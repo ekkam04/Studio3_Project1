@@ -1,233 +1,179 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph;
 using UnityEngine;
-using System.Threading.Tasks;
-using Unity.VisualScripting;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Burst;
 
 namespace Ekkam
 {
-    public class MTAstar : MonoBehaviour
+    public struct MTAstar : IJobParallelFor
     {
-        [SerializeField] MTPathfindingGrid grid;
-        PathfindingManager pathfindingManager;
-        [SerializeField] Vector2Int startNodePosition;
-        [SerializeField] public Vector2Int endNodePosition;
-
-        [SerializeField] Color startNodeColor = new Color(0, 0.5f, 0, 1);
-        [SerializeField] Color endNodeColor = new Color(0.5f, 0, 0, 1);
-        [SerializeField] Color pathNodeColor = new Color(0, 0, 0.5f, 1);
-
-        public enum PathfindingState { Idle, Waiting, Running, Success, Failure }
-        public PathfindingState state;
+        // public MTPathfindingGrid grid;
+        public NativeArray<MTPathNode> nodes;
+        public int gridCellCountX;
+        public int gridCellCountZ;
         
-        public List<MTPathNode> neighbours = new List<MTPathNode>();
-        public List<MTPathNode> openNodes = new List<MTPathNode>();
-        public List<MTPathNode> closedNodes = new List<MTPathNode>();
-        public List<MTPathNode> pathNodes = new List<MTPathNode>();
-        private List<MTPathNode> pathNodesColored = new List<MTPathNode>();
-        private MTPathNode[] allNodes;
+        public Vector2Int startNodePosition;
+        public Vector2Int endNodePosition;
 
-        public bool findPath;
-        public bool assignedInitialTarget;
+        public NativeList<Vector2Int> openList;
+        public NativeList<Vector2Int> closedList;
+        public NativeArray<Vector2Int> pathNodePositions;
 
-        void Start()
+        [ReadOnly] public NativeHashMap<Vector2Int, Vector2Int> cameFrom;
+        [ReadOnly] public NativeHashMap<Vector2Int, int> gScore;
+        [ReadOnly] public NativeHashMap<Vector2Int, int> fScore;
+        
+        public static MTAstar CreateAstar(NativeArray<MTPathNode> nodes, int gridCellCountX, int gridCellCountZ, Vector2Int startNodePosition, Vector2Int endNodePosition, NativeArray<Vector2Int> pathNodePositions)
         {
-            pathfindingManager = FindObjectOfType<PathfindingManager>();
-            UpdateStartPosition(grid.GetPositionFromWorldPoint(transform.position));
-            MTPathNode startingNode = grid.GetNode(startNodePosition);
-            
-            MTPathNode endingNode = grid.GetNode(endNodePosition);
-            
-            // openNodes.Add(startingNode);
-            
-            GetNeighbours(startingNode, startNodePosition);
+            var astar = new MTAstar
+            {
+                nodes = nodes,
+                gridCellCountX = gridCellCountX,
+                gridCellCountZ = gridCellCountZ,
+                startNodePosition = startNodePosition,
+                endNodePosition = endNodePosition,
+                pathNodePositions = pathNodePositions,
+                openList = new NativeList<Vector2Int>(0, Allocator.TempJob),
+                closedList = new NativeList<Vector2Int>(0, Allocator.TempJob),
+                cameFrom = new NativeHashMap<Vector2Int, Vector2Int>(0, Allocator.TempJob),
+                gScore = new NativeHashMap<Vector2Int, int>(0, Allocator.TempJob),
+                fScore = new NativeHashMap<Vector2Int, int>(0, Allocator.TempJob),
+            };
+            return astar;
+        }
+        
+        public void Execute(int index)
+        {
+            FindPath(startNodePosition, endNodePosition, index);
         }
 
-        private void Update()
+        public void FindPath(Vector2Int start, Vector2Int goal, int index)
         {
-            if (findPath) FindPath();
+            openList.Clear();
+            closedList.Clear();
+            cameFrom.Clear();
+            gScore.Clear();
+            fScore.Clear();
 
-            //UpdateTargetPosition(grid.GetPositionFromWorldPoint(Player.Instance.transform.position));
-        }
+            openList.Add(start);
+            gScore[start] = 0;
+            fScore[start] = GetDistance(start, goal);
 
-        void FindPath()
-        {
-            if (pathNodes.Count > 0)
+            while (openList.Length > 0)
             {
-                print("Path already found");
-                findPath = false;
-                state = PathfindingState.Success;
-                return;
-            }
-
-            if (openNodes.Count < 1)
-            {
-                print("No path found");
-                findPath = false;
-                state = PathfindingState.Failure;
-                return;
-            }
-            var currentNode = openNodes[0];
-            foreach (var node in openNodes)
-            {
-                if (node.FCost < currentNode.FCost)
+                Vector2Int current = GetLowestFScoreNode(openList, fScore);
+                if (current == goal)
                 {
-                    currentNode = node;
+                    Debug.Log("Path found");
+                    ReconstructPath(cameFrom, current, index);
+                    return;
+                }
+                Debug.Log("Finding path");
+
+                // openList.Remove(current);
+                openList.RemoveAtSwapBack(openList.IndexOf(current));
+                closedList.Add(current);
+
+                foreach (Vector2Int neighbor in GetNeighbourPositions(current))
+                {
+                    if (closedList.Contains(neighbor) || GetNode(neighbor).isBlocked)
+                        continue;
+
+                    int newMovementCostToNeighbour = gScore[current] + GetDistance(current, neighbor);
+                    if (!openList.Contains(neighbor))
+                        openList.Add(neighbor);
+                    else if (newMovementCostToNeighbour >= gScore[neighbor])
+                        continue;
+
+                    cameFrom[neighbor] = current;
+                    gScore[neighbor] = newMovementCostToNeighbour;
+                    fScore[neighbor] = gScore[neighbor] + GetDistance(neighbor, goal);
                 }
             }
-            openNodes.Remove(currentNode);
-            closedNodes.Add(currentNode);
-            
-            if (currentNode.Equals(grid.GetNode(endNodePosition)))
-            {
-                print("Path found");
-                findPath = false;
-                SetPathNodes();
-                state = PathfindingState.Success;
-                return;
-            }
-            
-            var currentNeighbours = GetNeighbours(currentNode, currentNode.gridPosition);
-            foreach (var neighbour in currentNeighbours)
-            {
-                var neighborGridPosition = neighbour.gridPosition;
-                // print("neighbour: " + neighborGridPosition);
-                // check if it is in blocked positions or closed nodes
-                if (neighbour.isBlocked || closedNodes.Contains(neighbour))
-                {
-                    continue;
-                }
-                // check if new path to neighbour is shorter or neighbour is not in openNodes
-                var newMovementCostToNeighbour = currentNode.GCost + GetDistance(currentNode, neighbour);
-                if (newMovementCostToNeighbour < neighbour.GCost || !openNodes.Contains(neighbour))
-                {
-                    // neighbour.GCost = newMovementCostToNeighbour;
-                    // neighbour.HCost = GetDistance(neighbour, grid.GetNode(endNodePosition));
-                    // neighbour.parentPosition = currentNode;
-                    if (!openNodes.Contains(neighbour))
-                    {
-                        openNodes.Add(neighbour);
-                    }
-                }
-            }
-            state = PathfindingState.Running;
         }
 
-        public void UpdateStartPosition(Vector2Int newStartPosition)
+        private Vector2Int GetLowestFScoreNode(NativeList<Vector2Int> openList, NativeHashMap<Vector2Int, int> fScore)
         {
-            #if PATHFINDING_DEBUG
-                grid.GetNode(startNodePosition).ResetColor();
-            #endif
-
-            #if PATHFINDING_DEBUG
-                foreach (var node in pathNodesColored)
-                {
-                    node.ResetColor();
-                }
-                pathNodesColored.Clear();
-            #endif
-            pathNodes.Clear();
-
-            startNodePosition = newStartPosition;
-            openNodes.Clear();
-            closedNodes.Clear();
-
-            #if PATHFINDING_DEBUG
-                grid.GetNode(startNodePosition).SetColor(startNodeColor);
-            #endif
-
-            MTPathNode startingNode = grid.GetNode(startNodePosition);
-            openNodes.Add(startingNode);
-        }
-
-        public void UpdateTargetPosition(Vector2Int newTargetPosition)
-        {
-            #if PATHFINDING_DEBUG
-                grid.GetNode(endNodePosition).ResetColor();
-            #endif
-
-            endNodePosition = newTargetPosition;
-            openNodes.Clear();
-            closedNodes.Clear();
-
-            #if PATHFINDING_DEBUG
-                grid.GetNode(endNodePosition).SetColor(endNodeColor);
-            #endif
-
-            UpdateStartPosition(grid.GetPositionFromWorldPoint(transform.position));
-
-            if (grid.GetNode(endNodePosition).isBlocked)
+            Vector2Int lowest = openList[0];
+            foreach (Vector2Int pos in openList)
             {
-                print("End node is blocked");
-                // recalculationDistance = 0f;
-                return;
+                if (fScore[pos] < fScore[lowest])
+                {
+                    lowest = pos;
+                }
             }
-
-            // pathfindingManager.waitingAstars.Add(this);
+            return lowest;
         }
 
-        void SetPathNodes()
+        private void ReconstructPath(NativeHashMap<Vector2Int, Vector2Int> cameFrom, Vector2Int current, int index)
         {
-            // var currentNode = grid.GetNode(endNodePosition);
-            // while (currentNode != grid.GetNode(startNodePosition))
+            // while (cameFrom.ContainsKey(current))
             // {
-            //     if (currentNode != grid.GetNode(endNodePosition)) {
-            //         pathNodes.Add(currentNode);
-            //         #if PATHFINDING_DEBUG
-            //             currentNode.SetPathColor(pathNodeColor);
-            //             pathNodesColored.Add(currentNode);
-            //         #endif
-            //     }
-            //     currentNode = currentNode.Parent;
+            //     current = cameFrom[current];
+            //     totalPath.Add(current);
             // }
+            // totalPath.Reverse();
+            
+            while (cameFrom.ContainsKey(current))
+            {
+                pathNodePositions[index] = current;
+                current = cameFrom[current];
+            }
+            
+            foreach (Vector2Int pos in pathNodePositions)
+            {
+                Debug.Log(pos);
+            }
+        }
+
+        private int GetDistance(Vector2Int a, Vector2Int b)
+        {
+            return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
         }
         
-        List<MTPathNode> GetNeighbours(MTPathNode node, Vector2Int nodePosition)
+        public List<Vector2Int> GetNeighbourPositions(Vector2Int nodePosition)
         {
-            // clear native array node.Neighbours
-            // node.Neighbors.Clear();
+            List<Vector2Int> neighbours = new List<Vector2Int>();
             
-            Vector2Int rightNodePosition = new Vector2Int(nodePosition.x + 1, nodePosition.y);
-            if (rightNodePosition.x < grid.gridCellCountX)
+            Vector2Int[] directions = new Vector2Int[]
             {
-                MTPathNode rightNode = grid.GetNode(rightNodePosition);
-                // rightNode.SetColor(new Color(0f, 0.25f, 0f , 1));
-                // node.neighbours.Add(rightNode);
-            }
-            Vector2Int leftNodePosition = new Vector2Int(nodePosition.x - 1, nodePosition.y);
-            if (leftNodePosition.x >= 0)
+                new Vector2Int(0, 1),   // Up
+                new Vector2Int(1, 0),   // Right
+                new Vector2Int(0, -1),  // Down
+                new Vector2Int(-1, 0)   // Left
+            };
+
+            foreach (Vector2Int direction in directions)
             {
-                MTPathNode leftNode = grid.GetNode(leftNodePosition);
-                // leftNode.SetColor(new Color(0f, 0.25f, 0f , 1));
-                // node.neighbours.Add(leftNode);
-            }
-            Vector2Int upNodePosition = new Vector2Int(nodePosition.x, nodePosition.y + 1);
-            if (upNodePosition.y < grid.gridCellCountZ)
-            {
-                MTPathNode upNode = grid.GetNode(upNodePosition);
-                // upNode.SetColor(new Color(0f, 0.25f, 0f , 1));
-                // node.neighbours.Add(upNode);
-            }
-            Vector2Int downNodePosition = new Vector2Int(nodePosition.x, nodePosition.y - 1);
-            if (downNodePosition.y >= 0)
-            {
-                MTPathNode downNode = grid.GetNode(downNodePosition);
-                // downNode.SetColor(new Color(0f, 0.25f, 0f , 1));
-                // node.neighbours.Add(downNode);
+                Vector2Int neighbourPos = nodePosition + direction;
+                // Check if the neighbour is within grid bounds before adding
+                if (IsPositionInsideGrid(neighbourPos))
+                {
+                    neighbours.Add(neighbourPos);
+                }
             }
 
-            // return node.neighbours;
-            return null;
+            return neighbours;
+        }
+
+        private bool IsPositionInsideGrid(Vector2Int position)
+        {
+            return position.x >= 0 && position.x < gridCellCountX && position.y >= 0 && position.y < gridCellCountZ;
         }
         
-        public int GetDistance(MTPathNode nodeA, MTPathNode nodeB)
+        public MTPathNode GetNode(Vector2Int gridPosition)
         {
-            int distanceX = Mathf.Abs(nodeA.gridPosition.x - nodeB.gridPosition.x);
-            int distanceY = Mathf.Abs(nodeA.gridPosition.y - nodeB.gridPosition.y);
-            // return manhattan distance
-            return distanceX + distanceY;
+            int index = gridPosition.x + gridPosition.y * gridCellCountX;
+            if (index >= 0 && index < nodes.Length)
+            {
+                return nodes[index];
+            }
+            else
+            {
+                Debug.LogError("Grid position out of bounds: " + gridPosition);
+                return default(MTPathNode);
+            }
         }
     }
 }

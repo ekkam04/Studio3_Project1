@@ -13,7 +13,7 @@ namespace Ekkam
         public Vector2Int parentPosition;
         
         public Vector2Int nodePosition;
-        public NativeArray<Vector2Int> neighbours;
+        // public NativeArray<Vector2Int> neighbours;
 
         public int GCost
         {

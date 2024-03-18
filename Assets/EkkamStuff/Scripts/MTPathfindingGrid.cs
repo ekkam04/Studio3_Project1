@@ -1,21 +1,34 @@
 using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 
 namespace Ekkam
 {
-    public class MTPathfindingGrid : MonoBehaviour
+    public struct MTPathfindingGrid
     {
-        public int gridCellCountX = 3;
-        public int gridCellCountZ = 3;
+        public int gridCellCountX;
+        public int gridCellCountZ;
         public Vector3 startingPosition;
         
         public NativeArray<MTPathNode> nodes;
 
-        void Awake()
+        // void Awake()
+        // {
+        //     // startingPosition = transform.position;
+        //     InitializeGrid();
+        // }
+        
+        public static MTPathfindingGrid CreateGrid(int gridCellCountX, int gridCellCountZ, Vector3 startingPosition)
         {
-            startingPosition = transform.position;
-            InitializeGrid();
+            var grid = new MTPathfindingGrid
+            {
+                gridCellCountX = gridCellCountX,
+                gridCellCountZ = gridCellCountZ,
+                startingPosition = startingPosition
+            };
+            grid.InitializeGrid();
+            return grid;
         }
 
         void InitializeGrid()
@@ -33,6 +46,7 @@ namespace Ekkam
                     nodes[x + y * gridCellCountX] = node;
                 }
             }
+            Debug.Log("Grid initialized");
         }
 
         bool CheckIfBlocked(Vector2Int gridPosition)
@@ -56,6 +70,36 @@ namespace Ekkam
                 Debug.LogError("Grid position out of bounds: " + gridPosition);
                 return default(MTPathNode);
             }
+        }
+        
+        public List<Vector2Int> GetNeighbourPositions(Vector2Int nodePosition)
+        {
+            List<Vector2Int> neighbours = new List<Vector2Int>();
+            
+            Vector2Int[] directions = new Vector2Int[]
+            {
+                new Vector2Int(0, 1),   // Up
+                new Vector2Int(1, 0),   // Right
+                new Vector2Int(0, -1),  // Down
+                new Vector2Int(-1, 0)   // Left
+            };
+
+            foreach (Vector2Int direction in directions)
+            {
+                Vector2Int neighbourPos = nodePosition + direction;
+                // Check if the neighbour is within grid bounds before adding
+                if (IsPositionInsideGrid(neighbourPos))
+                {
+                    neighbours.Add(neighbourPos);
+                }
+            }
+
+            return neighbours;
+        }
+
+        private bool IsPositionInsideGrid(Vector2Int position)
+        {
+            return position.x >= 0 && position.x < gridCellCountX && position.y >= 0 && position.y < gridCellCountZ;
         }
         
         // Line of sight check based on Bresenham's line algorithm
@@ -96,6 +140,11 @@ namespace Ekkam
             }
             
             return true; // No obstacles found
+        }
+        
+        public int GetDistance(Vector2Int a, Vector2Int b)
+        {
+            return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
         }
         
         public bool ObjectIsOnGrid(Vector3 worldPosition)
