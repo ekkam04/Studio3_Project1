@@ -1,8 +1,9 @@
+using Unity.Collections;
 using UnityEngine;
 
 namespace Ekkam
 {
-    public class PathfindingJob : MonoBehaviour
+    public struct PathfindingJob
     {
         
     }

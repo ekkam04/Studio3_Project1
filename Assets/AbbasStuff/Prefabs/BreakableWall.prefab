@@ -120,7 +120,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
+  selfKnockbackForce: 1
   col: {fileID: 8935246824967572430}
+  rb: {fileID: 0}
+  anim: {fileID: 0}
+  skinnedMeshRenderer: {fileID: 0}
+  tagsToIgnore:
+  - Melee
 --- !u!54 &4716646301633390699
 Rigidbody:
   m_ObjectHideFlags: 0

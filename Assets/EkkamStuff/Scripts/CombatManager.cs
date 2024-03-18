@@ -66,7 +66,8 @@ namespace Ekkam
                 await Task.Delay(550);
                 
                 newArrow.transform.SetParent(null);
-                newArrow.transform.forward = mainCamera.transform.forward + new Vector3(0, 0.2f, 0);
+                newArrow.transform.localPosition += new Vector3(0, 0.25f, 0);
+                newArrow.transform.forward = mainCamera.transform.forward + new Vector3(0, 0.05f, 0);
                 newArrow.GetComponent<Projectile>().speed = 15;
                 await Task.Delay(100);
                 newArrow.GetComponent<Collider>().enabled = true;
