@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Ekkam
@@ -122,6 +123,19 @@ namespace Ekkam
             }
 
             return true; // No obstacles found
+        }
+        
+        public int2[] GetBlockedPositions()
+        {
+            List<int2> blockedPositions = new List<int2>();
+            foreach (var node in nodes)
+            {
+                if (node.isBlocked)
+                {
+                    blockedPositions.Add(new int2(node.gridPosition.x, node.gridPosition.y));
+                }
+            }
+            return blockedPositions.ToArray();
         }
         
         public int GetDistance(Vector2Int a, Vector2Int b)

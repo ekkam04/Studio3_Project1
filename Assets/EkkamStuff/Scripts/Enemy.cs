@@ -4,8 +4,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Ekkam;
 using QFSW.QC;
+using Unity.Mathematics;
 using Unity.Collections;
-using Unity.Jobs;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -18,12 +18,11 @@ namespace Ekkam
 
         Astar astar;
         PathfindingGrid grid;
-        // public MTPathfindingGrid mtGrid = new MTPathfindingGrid();
         PathfindingManager pathfindingManager;
         UIManager uiManager;
         public GameObject targetLockPrompt;
         
-        public List<Vector2Int> pathNodePositions;
+        public bool findingPath = false;
         
         Enemy closestEnemy;
         CombatManager combatManager;
@@ -47,7 +46,6 @@ namespace Ekkam
         {
             astar = GetComponent<Astar>();
             grid = FindObjectOfType<PathfindingGrid>();
-            // mtGrid = MTPathfindingGrid.CreateGrid(10, 10, transform.position);
             pathfindingManager = FindObjectOfType<PathfindingManager>();
             uiManager = FindObjectOfType<UIManager>();
             var mainCamera = Camera.main;
@@ -77,7 +75,7 @@ namespace Ekkam
                 new Selector(new List<Node>{
                     new Sequence(new List<Node>{
                         new CanMove(this),
-                        new CheckLineOfSight(grid, transform),
+                        new CheckLineOfSight(grid, astar, transform),
                         new InvertDecorator(new CanAttack(this)), // Check if not ready to attack
                         new WalkTowardsPlayer(this),
                     }),
@@ -89,22 +87,42 @@ namespace Ekkam
                     // Indirect engagement when line of sight is lost
                     new Sequence(new List<Node>{
                         new CanMove(this),
-                        new InvertDecorator(new CheckLineOfSight(grid, transform)),
+                        new InvertDecorator(new CheckLineOfSight(grid, astar, transform)),
                         new Selector(new List<Node>{
+                            // new Sequence(new List<Node>{
+                            //     new CheckClosestEnemyDistance(this),
+                            //     new CopyEnemyPath(this)
+                            // }),
                             new Sequence(new List<Node>{
-                                new CheckClosestEnemyDistance(this),
-                                new CopyEnemyPath(this)
-                            }),
-                            new Sequence(new List<Node>{
-                                // new AddToPathfindingQueue(pathfindingManager, astar),
-                                new FindPathWithMultithreading(this),
-                                new CheckPathFound(this),
+                                new AddToPathfindingQueue(this, pathfindingManager, astar),
+                                // new CheckPathFound(astar),
                                 new FollowPath(this)
                             })
                         })
                     })
                 })
             });
+            
+            // int2 startPos = new int2(grid.GetPositionFromWorldPoint(transform.position).x, grid.GetPositionFromWorldPoint(transform.position).y);
+            // int2 endPos = new int2(grid.GetPositionFromWorldPoint(Player.Instance.transform.position).x, grid.GetPositionFromWorldPoint(Player.Instance.transform.position).y);
+            //
+            // pathfindingManager.RequestPath(
+            //     startPos,
+            //     endPos,
+            //     new int2(grid.gridCellCountX, grid.gridCellCountZ),
+            //     OnPathfindingComplete
+            // );
+        }
+        
+        void OnPathfindingComplete(NativeList<int2> path)
+        {
+            Debug.Log("Pathfinding complete");
+            findingPath = false;
+            foreach (var pos in path)
+            {
+                astar.pathNodes.Add(grid.GetNode(new Vector2Int(pos.x, pos.y)));
+                // Debug.Log("Path for enemy: " + pos);
+            }
         }
 
         void Update()
@@ -138,20 +156,19 @@ namespace Ekkam
                 if (
                     (grid.ObjectIsOnGrid(Player.Instance.transform.position) || !followsPlayer)
                     && (Vector3.Distance(transform.position, Player.Instance.transform.position) < detectionRange
-                    || enemy.pathNodePositions.Count > 0)
+                    || astar.pathNodes.Count > 0)
                 )
                 {
                     print("Player is present");
 
                     if (
                         canMove && followsPlayer &&
-                        enemy.grid.GetDistance(
-                            enemy.grid.GetPositionFromWorldPoint(Player.Instance.transform.position),
-                            enemy.grid.GetPositionFromWorldPoint(transform.position)
+                        astar.GetDistance(
+                        grid.GetNode(grid.GetPositionFromWorldPoint(Player.Instance.transform.position)),
+                        grid.GetNode(astar.endNodePosition)
                     ) > recalculationDistance)
                     {
-                        // TO DO: update target position in multi-threading astar
-                        // astar.UpdateTargetPosition(enemy.mtGrid.GetPositionFromWorldPoint(Player.Instance.transform.position));
+                        astar.UpdateTargetPosition(grid.GetPositionFromWorldPoint(Player.Instance.transform.position));
                     }
 
                     return NodeState.Success;
@@ -183,11 +200,13 @@ namespace Ekkam
         public class CheckLineOfSight : Node
         {
             private PathfindingGrid grid;
+            private Astar astar;
             private Transform transform;
 
-            public CheckLineOfSight(PathfindingGrid grid, Transform transform)
+            public CheckLineOfSight(PathfindingGrid grid, Astar astar, Transform transform)
             {
                 this.grid = grid;
+                this.astar = astar;
                 this.transform = transform;
             }
 
@@ -195,7 +214,7 @@ namespace Ekkam
             {
                 if (grid.HasDirectLineOfSight(
                     grid.GetPositionFromWorldPoint(transform.position),
-                    grid.GetPositionFromWorldPoint(Player.Instance.transform.position)
+                    astar.endNodePosition
                 ))
                 {
                     print("Line of sight");
@@ -377,31 +396,29 @@ namespace Ekkam
         {
             private Enemy enemy;
             private PathfindingManager pathfindingManager;
-
+        
             public CopyEnemyPath(Enemy enemy)
             {
                 this.enemy = enemy;
                 this.pathfindingManager = enemy.pathfindingManager;
             }
-
+        
             public override NodeState Evaluate()
             {
-                if (enemy.closestEnemy != null && enemy.closestEnemy.pathNodePositions.Count > 0 && enemy.pathNodePositions.Count == 0)
+                if (enemy.closestEnemy != null && enemy.closestEnemy.astar.pathNodes.Count > 0 && enemy.astar.pathNodes.Count == 0)
                 {
                     print("Copying closest enemy path");
-
-                    foreach (var node in enemy.closestEnemy.pathNodePositions)
+        
+                    foreach (var node in enemy.closestEnemy.astar.pathNodes)
                     {
-                        enemy.pathNodePositions.Add(node);
+                        enemy.astar.pathNodes.Add(node);
                     }
-
-                    if (pathfindingManager.waitingAstars.Contains(enemy.astar))
+        
+                    if (enemy.findingPath)
                     {
-                        pathfindingManager.waitingAstars.Remove(enemy.astar);
+                        enemy.findingPath = false;
                     }
-
-                    enemy.astar.findPath = false;
-                    enemy.astar.state = Astar.PathfindingState.Idle;
+                    
                     return NodeState.Success;
                 }
                 else
@@ -414,107 +431,63 @@ namespace Ekkam
 
         public class AddToPathfindingQueue : Node
         {
+            private Enemy enemy;
             private PathfindingManager pathfindingManager;
             private Astar astar;
-
-            public AddToPathfindingQueue(PathfindingManager pathfindingManager, Astar astar)
+        
+            public AddToPathfindingQueue(Enemy enemy, PathfindingManager pathfindingManager, Astar astar)
             {
+                this.enemy = enemy;
                 this.pathfindingManager = pathfindingManager;
                 this.astar = astar;
             }
-
+        
             public override NodeState Evaluate()
             {
-                if (pathfindingManager.waitingAstars.Contains(astar) || astar.pathNodes.Count > 0)
+                // if (pathfindingManager.waitingAstars.Contains(astar) || astar.pathNodes.Count > 0)
+                // {
+                //     print("Already in queue");
+                //     return NodeState.Running;
+                // }
+                // else
+                // {
+                //     print("Adding to queue");
+                //     pathfindingManager.waitingAstars.Add(astar);
+                //     return NodeState.Success;
+                // }
+                // pathfindingManager.RequestPath(
+                //     astar.startNodePosition,
+                //     enemy.grid.GetPositionFromWorldPoint(Player.Instance.transform.position),
+                //     astar.UpdatePath()
+                // );
+
+                if (!enemy.findingPath && astar.pathNodes.Count < 1)
                 {
-                    print("Already in queue");
-                    return NodeState.Running;
+                    int2 startPos = new int2(enemy.grid.GetPositionFromWorldPoint(enemy.transform.position).x, enemy.grid.GetPositionFromWorldPoint(enemy.transform.position).y);
+                    int2 endPos = new int2(enemy.grid.GetPositionFromWorldPoint(Player.Instance.transform.position).x, enemy.grid.GetPositionFromWorldPoint(Player.Instance.transform.position).y);
+                    pathfindingManager.RequestPath(
+                        startPos,
+                        endPos,
+                        new int2(enemy.grid.gridCellCountX, enemy.grid.gridCellCountZ),
+                        enemy.grid.GetBlockedPositions(),
+                        enemy.OnPathfindingComplete
+                    );
+                    return NodeState.Success;
                 }
                 else
                 {
-                    print("Adding to queue");
-                    pathfindingManager.waitingAstars.Add(astar);
-                    return NodeState.Success;
+                    return NodeState.Running;
                 }
-            }
-        }
-
-        public class FindPathWithMultithreading : Node
-        {
-            private Enemy enemy;
-            
-            public FindPathWithMultithreading(Enemy enemy)
-            {
-                this.enemy = enemy;
-            }
-            
-            public override NodeState Evaluate()
-            {
-                NativeArray<Vector2Int> pathNodePositions = new NativeArray<Vector2Int>(0, Allocator.TempJob);
-                
-                NativeArray<MTPathNode> nodes = new NativeArray<MTPathNode>(enemy.grid.nodes.Length, Allocator.TempJob);
-                for (int i = 0; i < enemy.grid.nodes.Length; i++)
-                {
-                    // copy nodes to multithreading struct
-                    nodes[i] = new MTPathNode
-                    {
-                        gridPosition = enemy.grid.nodes[i].gridPosition,
-                        isBlocked = enemy.grid.nodes[i].isBlocked,
-                        GCost = enemy.grid.nodes[i].GCost,
-                        HCost = enemy.grid.nodes[i].HCost,
-                        nodePosition = enemy.grid.nodes[i].gridPosition,
-                    };
-                    
-                    // assign neighbour positions
-                    NativeArray<Vector2Int> neighbours = new NativeArray<Vector2Int>(enemy.grid.nodes[i].neighbours.Count, Allocator.TempJob);
-                    for (int j = 0; j < enemy.grid.nodes[i].neighbours.Count; j++)
-                    {
-                        neighbours[j] = new Vector2Int(
-                            enemy.grid.nodes[i].neighbours[j].gridPosition.x,
-                            enemy.grid.nodes[i].neighbours[j].gridPosition.y
-                        );
-                    }
-                }
-                
-                // MTAstar pathfindingParallelJob = new MTAstar
-                // {
-                //     nodes = nodes,
-                //     pathNodePositions = new NativeArray<Vector2Int>(0, Allocator.TempJob),
-                //     openList = new NativeList<Vector2Int>(Allocator.TempJob),
-                //     closedList = new NativeList<Vector2Int>(Allocator.TempJob),
-                //     cameFrom = new NativeHashMap<Vector2Int, Vector2Int>(0, Allocator.TempJob),
-                //     gScore = new NativeHashMap<Vector2Int, int>(0, Allocator.TempJob),
-                //     fScore = new NativeHashMap<Vector2Int, int>(0, Allocator.TempJob),
-                //     
-                //     startNodePosition = enemy.grid.GetPositionFromWorldPoint(enemy.transform.position),
-                //     endNodePosition = enemy.grid.GetPositionFromWorldPoint(Player.Instance.transform.position)
-                // };
-                MTAstar pathfindingParallelJob = MTAstar.CreateAstar(
-                    nodes,
-                    enemy.grid.gridCellCountX,
-                    enemy.grid.gridCellCountZ,
-                    enemy.grid.GetPositionFromWorldPoint(enemy.transform.position),
-                    enemy.grid.GetPositionFromWorldPoint(Player.Instance.transform.position),
-                    pathNodePositions
-                );
-                
-                var enemies = FindObjectsOfType<Enemy>();
-                JobHandle jobHandle = pathfindingParallelJob.Schedule(enemies.Length, 1);
-                jobHandle.Complete();
-                
-                return NodeState.Running;
             }
         }
 
         public class CheckPathFound : Node
         {
-            private Enemy enemy;
             private Astar astar;
 
-            public CheckPathFound(Enemy enemy)
+            public CheckPathFound(Astar astar)
             {
-                this.enemy = enemy;
-                this.astar = enemy.astar;
+                this.astar = astar;
             }
 
             public override NodeState Evaluate()
@@ -522,12 +495,6 @@ namespace Ekkam
                 if (astar.state == Astar.PathfindingState.Success)
                 {
                     print("Path found");
-                    enemy.pathNodePositions = new List<Vector2Int>();
-                    foreach (var node in astar.pathNodes)
-                    {
-                        enemy.pathNodePositions.Add(node.gridPosition);
-                    }
-                    
                     return NodeState.Success;
                 }
                 else if (astar.state == Astar.PathfindingState.Failure)
@@ -545,9 +512,10 @@ namespace Ekkam
 
         public class FollowPath : Node
         {
-            private float nodeReachedDistance = 1f;
+            private float nodeReachedDistance = 0.75f;
             private Enemy enemy;
             private Transform transform;
+            private Astar astar;
             private Rigidbody rb;
             private float speed;
 
@@ -555,47 +523,35 @@ namespace Ekkam
             {
                 this.enemy = enemy;
                 this.transform = enemy.transform;
+                this.astar = enemy.astar;
                 this.rb = enemy.rb;
                 this.speed = enemy.speed;
             }
 
             public override NodeState Evaluate()
             {
-                if (enemy.pathNodePositions.Count > 0)
+                if (enemy.astar.pathNodes.Count > 0)
                 {
                     print("Following path");
                     enemy.anim.SetBool("isMoving", true);
                     Vector3 targetPosition = new Vector3(
-                        enemy.pathNodePositions[enemy.pathNodePositions.Count - 1].x,
+                        astar.pathNodes[astar.pathNodes.Count - 1].transform.position.x,
                         transform.position.y,
-                        enemy.pathNodePositions[enemy.pathNodePositions.Count - 1].y
+                        astar.pathNodes[astar.pathNodes.Count - 1].transform.position.z
                     );
                     transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
                     rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
-                    if (Vector3.Distance(
-                            transform.position, 
-                            new Vector3(
-                                enemy.pathNodePositions[enemy.pathNodePositions.Count - 1].x,
-                                enemy.transform.position.y,
-                                enemy.pathNodePositions[enemy.pathNodePositions.Count - 1].y
-                            )
-                    ) < nodeReachedDistance)
+                    if (Vector3.Distance(transform.position, astar.pathNodes[astar.pathNodes.Count - 1].transform.position) < nodeReachedDistance)
                     {
-                        enemy.pathNodePositions.RemoveAt(enemy.pathNodePositions.Count - 1);
+                        astar.pathNodes.RemoveAt(astar.pathNodes.Count - 1);
                     }
-                    else if (enemy.pathNodePositions[enemy.pathNodePositions.Count - 2] != null &&
-                             Vector3.Distance(
-                                 transform.position,
-                                 new Vector3(
-                                     enemy.pathNodePositions[enemy.pathNodePositions.Count - 1].x,
-                                     enemy.transform.position.y,
-                                     enemy.pathNodePositions[enemy.pathNodePositions.Count - 1].y
-                                 )
-                             ) < nodeReachedDistance)
+                    else if (astar.pathNodes[astar.pathNodes.Count - 2] != null && Vector3.Distance(transform.position, astar.pathNodes[astar.pathNodes.Count - 2].transform.position) < nodeReachedDistance)
                     {
-                        enemy.pathNodePositions.RemoveAt(enemy.pathNodePositions.Count - 2);
-                        enemy.pathNodePositions.RemoveAt(enemy.pathNodePositions.Count - 1);
+                        astar.pathNodes.RemoveAt(astar.pathNodes.Count - 2);
+                        astar.pathNodes.RemoveAt(astar.pathNodes.Count - 1);
                     }
+                    
+                    // Debug.Log("Distance to next node: " + Vector3.Distance(transform.position, astar.pathNodes[astar.pathNodes.Count - 1].transform.position));
                         
                     return NodeState.Running;
                 }

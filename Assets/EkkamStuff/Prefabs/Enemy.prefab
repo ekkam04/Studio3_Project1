@@ -2002,6 +2002,7 @@ MonoBehaviour:
   rb: {fileID: 0}
   anim: {fileID: 0}
   skinnedMeshRenderer: {fileID: 6575460995464151839}
+  tagsToIgnore: []
   targetLockPrompt: {fileID: 0}
   speed: 2
   attackRange: 3
@@ -2867,6 +2868,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 0
+  fallOffSpeed: 0
   damage: 1
   destroyOnHit: 0
   freezeOnHit: 0
