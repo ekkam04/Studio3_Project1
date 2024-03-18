@@ -5425,13 +5425,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fb8402d2eff7994886a23c6e31147f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  slotTexture:
-  - {fileID: 2800000, guid: ddd854ea85be90449b948bf9bcd538bf, type: 3}
-  - {fileID: 2800000, guid: 9bc7dcfa0a384fd4da30dce76ddbccd7, type: 3}
-  SlotsHolder: {fileID: 1943396900}
-  slotCount: 5
-  slotSize: 125
-  slotTransparency: 0.5
   slots: []
   items: []
   selectedSlot: {fileID: 0}
@@ -17931,111 +17924,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1056113585}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1057915515
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1057915519}
-  - component: {fileID: 1057915518}
-  - component: {fileID: 1057915517}
-  - component: {fileID: 1057915516}
-  m_Layer: 0
-  m_Name: Sphere (2)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!135 &1057915516
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1057915515}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!23 &1057915517
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1057915515}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 42f64e70bed8a5b4b9abec4e92ab659d, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &1057915518
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1057915515}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &1057915519
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1057915515}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 20.09, y: 16.35, z: 240.3}
-  m_LocalScale: {x: 3.1598563, y: 3.1598563, z: 3.1598563}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1065680361
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19279,8 +19167,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 047ee73a55f8b3941b728a8fea19dbcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  interactionType: 0
   interactText: Pick up
   timesInteracted: 0
+  rotationOffset: {x: 0, y: 0, z: 0}
+  heldInOffHand: 0
 --- !u!114 &1133635819
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22423,13 +22314,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 100
+  selfKnockbackForce: 1
   col: {fileID: 1411732942}
   rb: {fileID: 1411732943}
   anim: {fileID: 0}
+  skinnedMeshRenderer: {fileID: 0}
   allowMovement: 1
   allowFall: 1
   freeWill: 50
   freeWillSlider: {fileID: 0}
+  healthSlider: {fileID: 0}
   viewDirection: {x: 0, y: 0, z: 0}
   orientation: {fileID: 1868711204}
   cameraObj: {fileID: 1357090412}
@@ -22451,6 +22345,9 @@ MonoBehaviour:
   downwardsGravityMultiplier: 1.5
   interactDistance: 3
   itemHolderRight: {fileID: 682791832}
+  itemHolderLeft: {fileID: 0}
+  arrow: {fileID: 0}
+  spellBall: {fileID: 0}
   swordHitbox: {fileID: 1431690726}
 --- !u!95 &1411732946
 Animator:
@@ -22826,6 +22723,9 @@ MonoBehaviour:
   speed: 0
   damage: 1
   destroyOnHit: 0
+  freezeOnHit: 0
+  isMelee: 0
+  baseParent: {fileID: 0}
 --- !u!4 &1433445776 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2633660739226566052, guid: 58887c9ce33cfd44892aca5743843162,
@@ -28974,8 +28874,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 047ee73a55f8b3941b728a8fea19dbcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  interactionType: 0
   interactText: Pick up
   timesInteracted: 0
+  rotationOffset: {x: 0, y: 0, z: 0}
+  heldInOffHand: 0
 --- !u!114 &1851369028
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31201,8 +31104,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 047ee73a55f8b3941b728a8fea19dbcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  interactionType: 0
   interactText: Pick up
   timesInteracted: 0
+  rotationOffset: {x: 0, y: 0, z: 0}
+  heldInOffHand: 0
 --- !u!114 &1975615838
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32616,90 +32522,104 @@ MonoBehaviour:
   objectiveTargetDistance: 0
   objectivesCompleted: 0
   objectivesActive: 0
+  objectiveCompletedColor: {r: 0, g: 1, b: 0, a: 1}
+  objectiveFailedColor: {r: 1, g: 0, b: 0, a: 1}
   objectives:
   - objectiveText: Walk to the first waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 213641267}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Walk to the second waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 855699187}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 1
     status: 0
   - objectiveText: Walk to the third waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Reach the next waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1630602572}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Reach the next waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1070051176}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Reach the next waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 976009036}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Go to the sword
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1725223405}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 1
     status: 0
   - objectiveText: Pick up the sword
     objectiveType: 1
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1133635814}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Go to the first set of crates
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 701376409}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 1
     status: 0
   - objectiveText: Destroy the first set of crates
     objectiveType: 2
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets:
     - {fileID: 779663292}
     - {fileID: 808407372}
     - {fileID: 1254784751}
     - {fileID: 942001581}
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 1
     status: 0
   - objectiveText: Go to the second set of crates
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1208806580}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 1
     status: 0
   - objectiveText: Destroy the second set of crates
     objectiveType: 2
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets:
     - {fileID: 1025291179}
@@ -32712,66 +32632,74 @@ MonoBehaviour:
     - {fileID: 2111071345}
     - {fileID: 2101267014}
     - {fileID: 1534727658}
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Way to the new area
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 123409184}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Now idk bruh
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Reach the waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Reach the waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Reach the waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Reach the waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Reach the waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
   - objectiveText: Reach the waypoint
     objectiveType: 3
+    objectiveCategory: 0
     objectiveTarget: {fileID: 1464522401}
     objectiveMultiTargets: []
-    objectiveUIText: {fileID: 0}
+    objectiveUIItem: {fileID: 0}
     autoAssignNextObjective: 0
     status: 0
-  activeObjectives: []
+  activeObjectiveIndices: 
   objectiveCompletionActions:
   - objectiveIndexToComplete: 2
     completionAction: 0
@@ -32786,6 +32714,9 @@ MonoBehaviour:
     target: {fileID: 353645560}
     targetPositionOffset: {x: 0, y: -20, z: 0}
   objectiveUI: {fileID: 608142563}
+  objectiveItem: {fileID: 0}
+  vignetteVolume: {fileID: 0}
+  vignette: {fileID: 0}
 --- !u!4 &2096253714
 Transform:
   m_ObjectHideFlags: 0
@@ -33467,6 +33398,74 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1001 &1800324258922286760
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5577884754655610912, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_Name
+      value: Sphere (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6854156905525591969, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 20.09
+      objectReference: {fileID: 0}
+    - target: {fileID: 6854156905525591969, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 16.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 6854156905525591969, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 240.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6854156905525591969, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6854156905525591969, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6854156905525591969, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6854156905525591969, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6854156905525591969, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6854156905525591969, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6854156905525591969, guid: beb75525539c614489dfad4a1e505ac1,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: beb75525539c614489dfad4a1e505ac1, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -33484,7 +33483,7 @@ SceneRoots:
   - {fileID: 1133635817}
   - {fileID: 1975615841}
   - {fileID: 1214730111}
-  - {fileID: 1057915519}
+  - {fileID: 1800324258922286760}
   - {fileID: 1188862347}
   - {fileID: 1255223155}
   - {fileID: 754674857}
