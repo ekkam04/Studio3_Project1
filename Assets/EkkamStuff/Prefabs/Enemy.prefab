@@ -1933,7 +1933,6 @@ GameObject:
   - component: {fileID: 313378669125534507}
   - component: {fileID: 2976624835355934119}
   - component: {fileID: 8011743055997342176}
-  - component: {fileID: 1921031213509338896}
   - component: {fileID: 4247960809956907237}
   - component: {fileID: 5028877082172282689}
   m_Layer: 8
@@ -2003,7 +2002,13 @@ MonoBehaviour:
   anim: {fileID: 0}
   skinnedMeshRenderer: {fileID: 6575460995464151839}
   tagsToIgnore: []
+  grid: {fileID: 0}
   targetLockPrompt: {fileID: 0}
+  startNodePosition: {x: 0, y: 0}
+  endNodePosition: {x: 0, y: 0}
+  pathNodes: []
+  lastUnblockedNode: {fileID: 0}
+  findingPath: 0
   speed: 2
   attackRange: 3
   followsPlayer: 1
@@ -2030,31 +2035,6 @@ MonoBehaviour:
   layersToIgnore:
     serializedVersion: 2
     m_Bits: 256
---- !u!114 &1921031213509338896
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6241122315721747023}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8e4a5eb236f3948f581c1548f017fb0c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  grid: {fileID: 0}
-  startNodePosition: {x: 25, y: 5}
-  endNodePosition: {x: 0, y: 0}
-  startNodeColor: {r: 0, g: 0.5, b: 0, a: 1}
-  endNodeColor: {r: 0.5, g: 0, b: 0, a: 1}
-  pathNodeColor: {r: 0, g: 0, b: 0.5, a: 1}
-  state: 0
-  neighbours: []
-  openNodes: []
-  closedNodes: []
-  pathNodes: []
-  findPath: 0
-  assignedInitialTarget: 0
 --- !u!136 &4247960809956907237
 CapsuleCollider:
   m_ObjectHideFlags: 0

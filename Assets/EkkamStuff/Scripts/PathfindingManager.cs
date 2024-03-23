@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
@@ -76,7 +77,7 @@ namespace Ekkam
 
         JobHandle jobHandle = findPathJob.Schedule();
         pathfindingJobHandles.Add(jobHandle);
-
+        
         StartCoroutine(WaitForPathfinding(jobHandle, pathResult, callback));
     }
 
@@ -85,7 +86,6 @@ namespace Ekkam
         yield return new WaitUntil(() => jobHandle.IsCompleted);
         jobHandle.Complete();
         
-        // remove all 0,0 positions from the path
         int pathLength = 0;
         for (int i = 0; i < pathResult.Length; i++)
         {
@@ -96,16 +96,6 @@ namespace Ekkam
             }
         }
         pathResult = pathResult.GetSubArray(0, pathLength);
-        
-        // reverse all positions in the path
-        // for (int i = 0; i < pathResult.Length / 2; i++)
-        // {
-        //     int2 temp = pathResult[i];
-        //     pathResult[i] = pathResult[pathResult.Length - i - 1];
-        //     pathResult[pathResult.Length - i - 1] = temp;
-        // }
-        // ^ Actually didn't need to reverse the path
-        // I just reserved the path-following for the enemies
         
         Debug.Log("Pathfinding complete, sending path with length: " + pathResult.Length);
         

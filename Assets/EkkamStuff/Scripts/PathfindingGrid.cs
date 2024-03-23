@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
@@ -18,9 +19,17 @@ namespace Ekkam
 
         private float timer;
         
+        public delegate void OnGridInitialized();
+        public static event OnGridInitialized onGridInitialized;
+        
         // x + z * 3 for coordinates to index
         
-        void Awake()
+        void Start()
+        {
+            CreateGrid();
+        }
+        
+        async void CreateGrid()
         {
             startingPosition = transform.position;
             gridCellCount = gridCellCountX * gridCellCountZ;
@@ -38,12 +47,21 @@ namespace Ekkam
                     node.GCost = x;
                     node.HCost = y;
                 }
+                // await Task.Delay(1);
             }
             UpdateBlockedNodes();
+            if (onGridInitialized != null)
+            {
+                onGridInitialized();
+            }
         }
 
         public PathfindingNode GetNode(Vector2Int gridPosition)
         {
+            if (gridPosition.x < 0 || gridPosition.x >= gridCellCountX || gridPosition.y < 0 || gridPosition.y >= gridCellCountZ)
+            {
+                return null;
+            }
             return nodes[gridPosition.x + gridPosition.y * gridCellCountX];
         }
         

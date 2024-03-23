@@ -6,15 +6,25 @@ namespace Ekkam
     public class Patrol : MonoBehaviour
     {
         public List<Transform> patrolPoints;
+        public GameObject patrolPointHolder;
         
         private int currentPatrolPointIndex;
         public bool reversePatrol;
         Vector3 targetPoint;
+
+        void Start()
+        {
+            foreach (Transform child in patrolPointHolder.transform)
+            {
+                patrolPoints.Add(child);
+            }
+        }
         
         void Update()
         {
             if (patrolPoints.Count > 0)
             {
+                targetPoint = patrolPoints[currentPatrolPointIndex].position;
                 if (Vector3.Distance(transform.position, patrolPoints[currentPatrolPointIndex].position) < 0.5f)
                 {
                     if (reversePatrol)
