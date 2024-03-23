@@ -4,6 +4,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Ekkam;
 using QFSW.QC;
+using Unity.Mathematics;
+using Unity.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -19,6 +21,8 @@ namespace Ekkam
         PathfindingManager pathfindingManager;
         UIManager uiManager;
         public GameObject targetLockPrompt;
+        
+        public bool findingPath = false;
         
         Enemy closestEnemy;
         CombatManager combatManager;
@@ -85,19 +89,40 @@ namespace Ekkam
                         new CanMove(this),
                         new InvertDecorator(new CheckLineOfSight(grid, astar, transform)),
                         new Selector(new List<Node>{
+                            // new Sequence(new List<Node>{
+                            //     new CheckClosestEnemyDistance(this),
+                            //     new CopyEnemyPath(this)
+                            // }),
                             new Sequence(new List<Node>{
-                                new CheckClosestEnemyDistance(this),
-                                new CopyEnemyPath(this)
-                            }),
-                            new Sequence(new List<Node>{
-                                new AddToPathfindingQueue(pathfindingManager, astar),
-                                new CheckPathFound(astar),
+                                new AddToPathfindingQueue(this, pathfindingManager, astar),
+                                // new CheckPathFound(astar),
                                 new FollowPath(this)
                             })
                         })
                     })
                 })
             });
+            
+            // int2 startPos = new int2(grid.GetPositionFromWorldPoint(transform.position).x, grid.GetPositionFromWorldPoint(transform.position).y);
+            // int2 endPos = new int2(grid.GetPositionFromWorldPoint(Player.Instance.transform.position).x, grid.GetPositionFromWorldPoint(Player.Instance.transform.position).y);
+            //
+            // pathfindingManager.RequestPath(
+            //     startPos,
+            //     endPos,
+            //     new int2(grid.gridCellCountX, grid.gridCellCountZ),
+            //     OnPathfindingComplete
+            // );
+        }
+        
+        void OnPathfindingComplete(NativeList<int2> path)
+        {
+            Debug.Log("Pathfinding complete");
+            findingPath = false;
+            foreach (var pos in path)
+            {
+                astar.pathNodes.Add(grid.GetNode(new Vector2Int(pos.x, pos.y)));
+                // Debug.Log("Path for enemy: " + pos);
+            }
         }
 
         void Update()
@@ -371,31 +396,29 @@ namespace Ekkam
         {
             private Enemy enemy;
             private PathfindingManager pathfindingManager;
-
+        
             public CopyEnemyPath(Enemy enemy)
             {
                 this.enemy = enemy;
                 this.pathfindingManager = enemy.pathfindingManager;
             }
-
+        
             public override NodeState Evaluate()
             {
                 if (enemy.closestEnemy != null && enemy.closestEnemy.astar.pathNodes.Count > 0 && enemy.astar.pathNodes.Count == 0)
                 {
                     print("Copying closest enemy path");
-
+        
                     foreach (var node in enemy.closestEnemy.astar.pathNodes)
                     {
                         enemy.astar.pathNodes.Add(node);
                     }
-
-                    if (pathfindingManager.waitingAstars.Contains(enemy.astar))
+        
+                    if (enemy.findingPath)
                     {
-                        pathfindingManager.waitingAstars.Remove(enemy.astar);
+                        enemy.findingPath = false;
                     }
-
-                    enemy.astar.findPath = false;
-                    enemy.astar.state = Astar.PathfindingState.Idle;
+                    
                     return NodeState.Success;
                 }
                 else
@@ -408,27 +431,52 @@ namespace Ekkam
 
         public class AddToPathfindingQueue : Node
         {
+            private Enemy enemy;
             private PathfindingManager pathfindingManager;
             private Astar astar;
-
-            public AddToPathfindingQueue(PathfindingManager pathfindingManager, Astar astar)
+        
+            public AddToPathfindingQueue(Enemy enemy, PathfindingManager pathfindingManager, Astar astar)
             {
+                this.enemy = enemy;
                 this.pathfindingManager = pathfindingManager;
                 this.astar = astar;
             }
-
+        
             public override NodeState Evaluate()
             {
-                if (pathfindingManager.waitingAstars.Contains(astar) || astar.pathNodes.Count > 0)
+                // if (pathfindingManager.waitingAstars.Contains(astar) || astar.pathNodes.Count > 0)
+                // {
+                //     print("Already in queue");
+                //     return NodeState.Running;
+                // }
+                // else
+                // {
+                //     print("Adding to queue");
+                //     pathfindingManager.waitingAstars.Add(astar);
+                //     return NodeState.Success;
+                // }
+                // pathfindingManager.RequestPath(
+                //     astar.startNodePosition,
+                //     enemy.grid.GetPositionFromWorldPoint(Player.Instance.transform.position),
+                //     astar.UpdatePath()
+                // );
+
+                if (!enemy.findingPath && astar.pathNodes.Count < 1)
                 {
-                    print("Already in queue");
-                    return NodeState.Running;
+                    int2 startPos = new int2(enemy.grid.GetPositionFromWorldPoint(enemy.transform.position).x, enemy.grid.GetPositionFromWorldPoint(enemy.transform.position).y);
+                    int2 endPos = new int2(enemy.grid.GetPositionFromWorldPoint(Player.Instance.transform.position).x, enemy.grid.GetPositionFromWorldPoint(Player.Instance.transform.position).y);
+                    pathfindingManager.RequestPath(
+                        startPos,
+                        endPos,
+                        new int2(enemy.grid.gridCellCountX, enemy.grid.gridCellCountZ),
+                        enemy.grid.GetBlockedPositions(),
+                        enemy.OnPathfindingComplete
+                    );
+                    return NodeState.Success;
                 }
                 else
                 {
-                    print("Adding to queue");
-                    pathfindingManager.waitingAstars.Add(astar);
-                    return NodeState.Success;
+                    return NodeState.Running;
                 }
             }
         }
@@ -464,7 +512,7 @@ namespace Ekkam
 
         public class FollowPath : Node
         {
-            private float nodeReachedDistance = 1f;
+            private float nodeReachedDistance = 0.75f;
             private Enemy enemy;
             private Transform transform;
             private Astar astar;
@@ -502,6 +550,8 @@ namespace Ekkam
                         astar.pathNodes.RemoveAt(astar.pathNodes.Count - 2);
                         astar.pathNodes.RemoveAt(astar.pathNodes.Count - 1);
                     }
+                    
+                    // Debug.Log("Distance to next node: " + Vector3.Distance(transform.position, astar.pathNodes[astar.pathNodes.Count - 1].transform.position));
                         
                     return NodeState.Running;
                 }

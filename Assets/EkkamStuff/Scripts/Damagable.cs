@@ -15,6 +15,7 @@ namespace Ekkam
         public Rigidbody rb;
         public Animator anim;
         public SkinnedMeshRenderer skinnedMeshRenderer;
+        public string[] tagsToIgnore;
 
         void Start()
         {
@@ -22,9 +23,18 @@ namespace Ekkam
             rb = GetComponent<Rigidbody>();
         }
 
-        public void TakeDamage(int damage, Vector3 damageDealerForward)
+        public void TakeDamage(int damage, GameObject damageDealer, Vector3 damageDealerForward)
         {
+            if (tagsToIgnore.Length > 0)
+            {
+                foreach (var tag in tagsToIgnore)
+                {
+                    if (damageDealer.gameObject.CompareTag(tag)) return;
+                }
+            }
             health -= damage;
+            OnDamageTaken();
+            
             if (health <= 0)
             {
                 Die();
@@ -35,6 +45,11 @@ namespace Ekkam
                 if (skinnedMeshRenderer != null) StartCoroutine(PulseColor(Color.red, 0.2f, 0.5f));
                 if (anim != null) anim.SetTrigger("hit");
             }
+        }
+        
+        public virtual void OnDamageTaken()
+        {
+            // this function is meant to be overridden
         }
 
         public void Die()

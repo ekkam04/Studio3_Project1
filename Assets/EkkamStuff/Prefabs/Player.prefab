@@ -1039,10 +1039,12 @@ MonoBehaviour:
   rb: {fileID: 5729310267075334706}
   anim: {fileID: 3199993596962982761}
   skinnedMeshRenderer: {fileID: 3919409394708876976}
+  tagsToIgnore: []
   allowMovement: 1
   allowFall: 1
   freeWill: 30
   freeWillSlider: {fileID: 0}
+  healthSlider: {fileID: 0}
   viewDirection: {x: 0, y: 0, z: 0}
   orientation: {fileID: 6260393747853861011}
   cameraObj: {fileID: 0}
@@ -1470,7 +1472,7 @@ GameObject:
   - component: {fileID: 1678894058511859437}
   m_Layer: 6
   m_Name: SwordHitbox
-  m_TagString: Untagged
+  m_TagString: Melee
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1574,6 +1576,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 0
+  fallOffSpeed: 0
   damage: 1
   destroyOnHit: 0
   freezeOnHit: 0
