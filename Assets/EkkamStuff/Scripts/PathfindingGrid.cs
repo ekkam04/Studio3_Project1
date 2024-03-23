@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace Ekkam
@@ -17,9 +19,17 @@ namespace Ekkam
 
         private float timer;
         
+        public delegate void OnGridInitialized();
+        public static event OnGridInitialized onGridInitialized;
+        
         // x + z * 3 for coordinates to index
         
-        void Awake()
+        void Start()
+        {
+            CreateGrid();
+        }
+        
+        async void CreateGrid()
         {
             startingPosition = transform.position;
             gridCellCount = gridCellCountX * gridCellCountZ;
@@ -37,12 +47,21 @@ namespace Ekkam
                     node.GCost = x;
                     node.HCost = y;
                 }
+                // await Task.Delay(1);
             }
             UpdateBlockedNodes();
+            if (onGridInitialized != null)
+            {
+                onGridInitialized();
+            }
         }
 
         public PathfindingNode GetNode(Vector2Int gridPosition)
         {
+            if (gridPosition.x < 0 || gridPosition.x >= gridCellCountX || gridPosition.y < 0 || gridPosition.y >= gridCellCountZ)
+            {
+                return null;
+            }
             return nodes[gridPosition.x + gridPosition.y * gridCellCountX];
         }
         
@@ -122,6 +141,24 @@ namespace Ekkam
             }
 
             return true; // No obstacles found
+        }
+        
+        public int2[] GetBlockedPositions()
+        {
+            List<int2> blockedPositions = new List<int2>();
+            foreach (var node in nodes)
+            {
+                if (node.isBlocked)
+                {
+                    blockedPositions.Add(new int2(node.gridPosition.x, node.gridPosition.y));
+                }
+            }
+            return blockedPositions.ToArray();
+        }
+        
+        public int GetDistance(Vector2Int a, Vector2Int b)
+        {
+            return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
         }
     }
 }

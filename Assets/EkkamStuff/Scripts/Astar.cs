@@ -10,7 +10,7 @@ namespace Ekkam
 {
     public class Astar : MonoBehaviour
     {
-        [SerializeField] PathfindingGrid grid;
+        [SerializeField] public PathfindingGrid grid;
         PathfindingManager pathfindingManager;
         [SerializeField] Vector2Int startNodePosition;
         [SerializeField] public Vector2Int endNodePosition;
@@ -35,125 +35,89 @@ namespace Ekkam
         void Start()
         {
             pathfindingManager = FindObjectOfType<PathfindingManager>();
-            UpdateStartPosition(grid.GetPositionFromWorldPoint(transform.position));
-            PathfindingNode startingNode = grid.GetNode(startNodePosition);
+            PathfindingGrid.onGridInitialized += Initialize;
+        }
+
+        void Initialize()
+        {
+            print("Astar initialized");
+            // UpdateStartPosition(grid.GetPositionFromWorldPoint(transform.position));
+            // PathfindingNode startingNode = grid.GetNode(startNodePosition);
             
             PathfindingNode endingNode = grid.GetNode(endNodePosition);
             endingNode.SetColor(endNodeColor);
             
-            // openNodes.Add(startingNode);
-            
-            GetNeighbours(startingNode, startNodePosition);
+            // GetNeighbours(startingNode, startNodePosition);
         }
 
         private void Update()
         {
-            if (findPath) FindPath();
+            // if (findPath) FindPath();
 
             //UpdateTargetPosition(grid.GetPositionFromWorldPoint(Player.Instance.transform.position));
         }
 
-        void FindPath()
-        {
-            if (pathNodes.Count > 0)
-            {
-                print("Path already found");
-                findPath = false;
-                state = PathfindingState.Success;
-                return;
-            }
-
-            if (openNodes.Count < 1)
-            {
-                print("No path found");
-                findPath = false;
-                state = PathfindingState.Failure;
-                return;
-            }
-            var currentNode = openNodes[0];
-            foreach (var node in openNodes)
-            {
-                if (node.FCost < currentNode.FCost)
-                {
-                    currentNode = node;
-                }
-            }
-            openNodes.Remove(currentNode);
-            closedNodes.Add(currentNode);
-            
-            if (currentNode == grid.GetNode(endNodePosition))
-            {
-                print("Path found");
-                findPath = false;
-                SetPathNodes();
-                state = PathfindingState.Success;
-                return;
-            }
-            
-            var currentNeighbours = GetNeighbours(currentNode, currentNode.gridPosition);
-            foreach (var neighbour in currentNeighbours)
-            {
-                var neighborGridPosition = neighbour.gridPosition;
-                // print("neighbour: " + neighborGridPosition);
-                // check if it is in blocked positions or closed nodes
-                if (neighbour.isBlocked || closedNodes.Contains(neighbour))
-                {
-                    continue;
-                }
-                // check if new path to neighbour is shorter or neighbour is not in openNodes
-                var newMovementCostToNeighbour = currentNode.GCost + GetDistance(currentNode, neighbour);
-                if (newMovementCostToNeighbour < neighbour.GCost || !openNodes.Contains(neighbour))
-                {
-                    neighbour.GCost = newMovementCostToNeighbour;
-                    neighbour.HCost = GetDistance(neighbour, grid.GetNode(endNodePosition));
-                    neighbour.Parent = currentNode;
-                    if (!openNodes.Contains(neighbour))
-                    {
-                        openNodes.Add(neighbour);
-                    }
-                }
-            }
-            state = PathfindingState.Running;
-        }
-
-        // Line of sight check based on Bresenham's line algorithm
-        // public bool HasDirectLineOfSight(Vector2Int start, Vector2Int end)
+        // void FindPath()
         // {
-        //     int x = start.x;
-        //     int y = start.y;
-        //     int dx = Math.Abs(end.x - start.x);
-        //     int dy = Math.Abs(end.y - start.y);
-        //     int sx = start.x < end.x ? 1 : -1;
-        //     int sy = start.y < end.y ? 1 : -1;
-        //     int err = dx - dy;
-
-        //     while (true)
+        //     if (pathNodes.Count > 0)
         //     {
-        //         // Check if current grid position is blocked
-        //         if (grid.GetNode(new Vector2Int(x, y)).isBlocked)
+        //         print("Path already found");
+        //         findPath = false;
+        //         state = PathfindingState.Success;
+        //         return;
+        //     }
+        //
+        //     if (openNodes.Count < 1)
+        //     {
+        //         print("No path found");
+        //         findPath = false;
+        //         state = PathfindingState.Failure;
+        //         return;
+        //     }
+        //     var currentNode = openNodes[0];
+        //     foreach (var node in openNodes)
+        //     {
+        //         if (node.FCost < currentNode.FCost)
         //         {
-        //             return false; // Obstacle found
-        //         }
-
-        //         if (x == end.x && y == end.y)
-        //         {
-        //             break; // End point reached
-        //         }
-
-        //         int e2 = 2 * err;
-        //         if (e2 > -dy)
-        //         {
-        //             err -= dy;
-        //             x += sx;
-        //         }
-        //         if (e2 < dx)
-        //         {
-        //             err += dx;
-        //             y += sy;
+        //             currentNode = node;
         //         }
         //     }
-
-        //     return true; // No obstacles found
+        //     openNodes.Remove(currentNode);
+        //     closedNodes.Add(currentNode);
+        //     
+        //     if (currentNode == grid.GetNode(endNodePosition))
+        //     {
+        //         print("Path found");
+        //         findPath = false;
+        //         SetPathNodes();
+        //         state = PathfindingState.Success;
+        //         return;
+        //     }
+        //     
+        //     var currentNeighbours = GetNeighbours(currentNode, currentNode.gridPosition);
+        //     foreach (var neighbour in currentNeighbours)
+        //     {
+        //         var neighborGridPosition = neighbour.gridPosition;
+        //         // print("neighbour: " + neighborGridPosition);
+        //         // check if it is in blocked positions or closed nodes
+        //         if (neighbour.isBlocked || closedNodes.Contains(neighbour))
+        //         {
+        //             continue;
+        //         }
+        //         // check if new path to neighbour is shorter or neighbour is not in openNodes
+        //         var newMovementCostToNeighbour = currentNode.GCost + GetDistance(currentNode, neighbour);
+        //         if (newMovementCostToNeighbour < neighbour.GCost || !openNodes.Contains(neighbour))
+        //         {
+        //             neighbour.GCost = newMovementCostToNeighbour;
+        //             neighbour.HCost = GetDistance(neighbour, grid.GetNode(endNodePosition));
+        //             neighbour.Parent = currentNode;
+        //             if (!openNodes.Contains(neighbour))
+        //             {
+        //                 openNodes.Add(neighbour);
+        //             }
+        //         }
+        //     }
+        //     state = PathfindingState.Running;
         // }
 
         public void UpdateStartPosition(Vector2Int newStartPosition)
@@ -161,7 +125,7 @@ namespace Ekkam
             #if PATHFINDING_DEBUG
                 grid.GetNode(startNodePosition).ResetColor();
             #endif
-
+        
             #if PATHFINDING_DEBUG
                 foreach (var node in pathNodesColored)
                 {
@@ -170,95 +134,93 @@ namespace Ekkam
                 pathNodesColored.Clear();
             #endif
             pathNodes.Clear();
-
+        
             startNodePosition = newStartPosition;
             openNodes.Clear();
             closedNodes.Clear();
-
+        
             #if PATHFINDING_DEBUG
                 grid.GetNode(startNodePosition).SetColor(startNodeColor);
             #endif
-
+        
             PathfindingNode startingNode = grid.GetNode(startNodePosition);
             openNodes.Add(startingNode);
         }
-
+        
         public void UpdateTargetPosition(Vector2Int newTargetPosition)
         {
             #if PATHFINDING_DEBUG
                 grid.GetNode(endNodePosition).ResetColor();
             #endif
-
+        
             endNodePosition = newTargetPosition;
             openNodes.Clear();
             closedNodes.Clear();
-
+        
             #if PATHFINDING_DEBUG
                 grid.GetNode(endNodePosition).SetColor(endNodeColor);
             #endif
-
+        
+            // fix this
             UpdateStartPosition(grid.GetPositionFromWorldPoint(transform.position));
-
+        
             if (grid.GetNode(endNodePosition).isBlocked)
             {
                 print("End node is blocked");
-                // recalculationDistance = 0f;
                 return;
             }
-
-            // pathfindingManager.waitingAstars.Add(this);
         }
 
-        void SetPathNodes()
-        {
-            var currentNode = grid.GetNode(endNodePosition);
-            while (currentNode != grid.GetNode(startNodePosition))
-            {
-                if (currentNode != grid.GetNode(endNodePosition)) {
-                    pathNodes.Add(currentNode);
-                    #if PATHFINDING_DEBUG
-                        currentNode.SetPathColor(pathNodeColor);
-                        pathNodesColored.Add(currentNode);
-                    #endif
-                }
-                currentNode = currentNode.Parent;
-            }
-        }
-        
-        List<PathfindingNode> GetNeighbours(PathfindingNode node, Vector2Int nodePosition)
-        {
-            node.neighbours.Clear();
-            Vector2Int rightNodePosition = new Vector2Int(nodePosition.x + 1, nodePosition.y);
-            if (rightNodePosition.x < grid.gridCellCountX)
-            {
-                PathfindingNode rightNode = grid.GetNode(rightNodePosition);
-                // rightNode.SetColor(new Color(0f, 0.25f, 0f , 1));
-                node.neighbours.Add(rightNode);
-            }
-            Vector2Int leftNodePosition = new Vector2Int(nodePosition.x - 1, nodePosition.y);
-            if (leftNodePosition.x >= 0)
-            {
-                PathfindingNode leftNode = grid.GetNode(leftNodePosition);
-                // leftNode.SetColor(new Color(0f, 0.25f, 0f , 1));
-                node.neighbours.Add(leftNode);
-            }
-            Vector2Int upNodePosition = new Vector2Int(nodePosition.x, nodePosition.y + 1);
-            if (upNodePosition.y < grid.gridCellCountZ)
-            {
-                PathfindingNode upNode = grid.GetNode(upNodePosition);
-                // upNode.SetColor(new Color(0f, 0.25f, 0f , 1));
-                node.neighbours.Add(upNode);
-            }
-            Vector2Int downNodePosition = new Vector2Int(nodePosition.x, nodePosition.y - 1);
-            if (downNodePosition.y >= 0)
-            {
-                PathfindingNode downNode = grid.GetNode(downNodePosition);
-                // downNode.SetColor(new Color(0f, 0.25f, 0f , 1));
-                node.neighbours.Add(downNode);
-            }
-
-            return node.neighbours;
-        }
+        // void SetPathNodes()
+        // {
+        //     var currentNode = grid.GetNode(endNodePosition);
+        //     while (currentNode != grid.GetNode(startNodePosition))
+        //     {
+        //         if (currentNode != grid.GetNode(endNodePosition)) {
+        //             pathNodes.Add(currentNode);
+        //             #if PATHFINDING_DEBUG
+        //                 currentNode.SetPathColor(pathNodeColor);
+        //                 pathNodesColored.Add(currentNode);
+        //             #endif
+        //         }
+        //         currentNode = currentNode.Parent;
+        //     }
+        // }
+        //
+        // List<PathfindingNode> GetNeighbours(PathfindingNode node, Vector2Int nodePosition)
+        // {
+        //     node.neighbours.Clear();
+        //     Vector2Int rightNodePosition = new Vector2Int(nodePosition.x + 1, nodePosition.y);
+        //     if (rightNodePosition.x < grid.gridCellCountX)
+        //     {
+        //         PathfindingNode rightNode = grid.GetNode(rightNodePosition);
+        //         // rightNode.SetColor(new Color(0f, 0.25f, 0f , 1));
+        //         node.neighbours.Add(rightNode);
+        //     }
+        //     Vector2Int leftNodePosition = new Vector2Int(nodePosition.x - 1, nodePosition.y);
+        //     if (leftNodePosition.x >= 0)
+        //     {
+        //         PathfindingNode leftNode = grid.GetNode(leftNodePosition);
+        //         // leftNode.SetColor(new Color(0f, 0.25f, 0f , 1));
+        //         node.neighbours.Add(leftNode);
+        //     }
+        //     Vector2Int upNodePosition = new Vector2Int(nodePosition.x, nodePosition.y + 1);
+        //     if (upNodePosition.y < grid.gridCellCountZ)
+        //     {
+        //         PathfindingNode upNode = grid.GetNode(upNodePosition);
+        //         // upNode.SetColor(new Color(0f, 0.25f, 0f , 1));
+        //         node.neighbours.Add(upNode);
+        //     }
+        //     Vector2Int downNodePosition = new Vector2Int(nodePosition.x, nodePosition.y - 1);
+        //     if (downNodePosition.y >= 0)
+        //     {
+        //         PathfindingNode downNode = grid.GetNode(downNodePosition);
+        //         // downNode.SetColor(new Color(0f, 0.25f, 0f , 1));
+        //         node.neighbours.Add(downNode);
+        //     }
+        //
+        //     return node.neighbours;
+        // }
         
         public int GetDistance(PathfindingNode nodeA, PathfindingNode nodeB)
         {
