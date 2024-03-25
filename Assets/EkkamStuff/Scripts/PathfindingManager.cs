@@ -96,19 +96,27 @@ namespace Ekkam
             }
         }
         pathResult = pathResult.GetSubArray(0, pathLength);
-        
-        Debug.Log("Pathfinding complete, sending path with length: " + pathResult.Length);
-        
-        NativeList<int2> path = new NativeList<int2>(Allocator.Temp);
-        foreach (var pos in pathResult)
-        {
-            path.Add(pos);
-        }
-        
-        callback(path);
 
-        path.Dispose();
-        pathResult.Dispose();
+        using (pathResult)
+        {
+            Debug.Log("Pathfinding complete, sending path with length: " + pathResult.Length);
+        
+            NativeList<int2> path = new NativeList<int2>(Allocator.Temp);
+
+            using (path)
+            {
+                foreach (var pos in pathResult)
+                {
+                    path.Add(pos);
+                }
+        
+                callback(path);
+            }
+        }
+
+
+        //path.Dispose();
+        //pathResult.Dispose();
     }
 
     void OnDestroy()

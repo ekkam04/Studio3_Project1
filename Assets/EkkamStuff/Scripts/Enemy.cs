@@ -22,19 +22,23 @@ namespace Ekkam
         UIManager uiManager;
         public GameObject targetLockPrompt;
         
-        [Header("Astar Pathfinding")]
+        [Header("--- Astar Pathfinding ---")]
         [SerializeField] Vector2Int startNodePosition;
         [SerializeField] public Vector2Int endNodePosition;
         public List<PathfindingNode> pathNodes = new List<PathfindingNode>();
         public PathfindingNode lastUnblockedNode;
         public bool findingPath = false;
+        public enum PathfindingState { Idle, Running, Success, Failure }
+        public PathfindingState pathfindingState;
         
         Enemy closestEnemy;
         CombatManager combatManager;
 
-        [Header("Enemy Stats")]
+        [Header("--- Enemy Stats ---")]
         public float speed = 2f;
         public float attackRange = 3f;
+        public float detectionRange = 25f;
+        private float originalDetectionRange;
         public bool followsPlayer = true;
         private bool canMove = true;
         private float attackTimer;
@@ -50,10 +54,12 @@ namespace Ekkam
 
         void Start()
         {
-            // astar = GetComponent<Astar>();
             pathfindingManager = FindObjectOfType<PathfindingManager>();
             uiManager = FindObjectOfType<UIManager>();
             var mainCamera = Camera.main;
+            
+            originalDetectionRange = detectionRange;
+            grid.enemiesOnThisGrid.Add(this);
             
             targetLockPrompt = Instantiate(uiManager.targetLockPrompt, transform.position, Quaternion.identity, transform);
             targetLockPrompt.GetComponentInChildren<RotationConstraint>().AddSource(new ConstraintSource
@@ -104,7 +110,7 @@ namespace Ekkam
                             // }),
                             new Sequence(new List<Node>{
                                 new AddToPathfindingQueue(this),
-                                // new CheckPathFound(astar),
+                                new CheckPathFound(this),
                                 new FollowPath(this)
                             })
                         })
@@ -117,10 +123,19 @@ namespace Ekkam
         {
             Debug.Log("Pathfinding complete");
             findingPath = false;
-            foreach (var pos in path)
+            if (path.Length < 1)
             {
-                pathNodes.Add(grid.GetNode(new Vector2Int(pos.x, pos.y)));
-                // Debug.Log("Path for enemy: " + pos);
+                pathfindingState = PathfindingState.Failure;
+                anim.SetBool("isMoving", false);
+            }
+            else
+            {
+                foreach (var pos in path)
+                {
+                    pathNodes.Add(grid.GetNode(new Vector2Int(pos.x, pos.y)));
+                    // Debug.Log("Path for enemy: " + pos);
+                }
+                pathfindingState = PathfindingState.Success;
             }
         }
 
@@ -152,7 +167,6 @@ namespace Ekkam
         public class CheckPlayerPresence : Node
         {
             Enemy enemy;
-            private float detectionRange = 25f;
             private float recalculationDistance = 3f;
             private PathfindingGrid grid;
             private Transform transform;
@@ -172,7 +186,7 @@ namespace Ekkam
             {
                 if (
                     (grid.ObjectIsOnGrid(Player.Instance.transform.position) || !followsPlayer)
-                    && (Vector3.Distance(transform.position, Player.Instance.transform.position) < detectionRange
+                    && (Vector3.Distance(transform.position, Player.Instance.transform.position) < enemy.detectionRange
                     || enemy.pathNodes.Count > 0)
                 )
                 {
@@ -188,6 +202,7 @@ namespace Ekkam
                         enemy.endNodePosition = grid.GetPositionFromWorldPoint(Player.Instance.transform.position);
                         enemy.pathNodes.Clear();
                         enemy.startNodePosition = enemy.lastUnblockedNode.gridPosition;
+                        enemy.pathfindingState = Enemy.PathfindingState.Idle;
         
                         if (grid.GetNode(enemy.endNodePosition).isBlocked)
                         {
@@ -242,6 +257,7 @@ namespace Ekkam
                 ))
                 {
                     print("Line of sight");
+                    enemy.detectionRange = enemy.originalDetectionRange;
                     return NodeState.Success;
                 }
                 else
@@ -317,6 +333,8 @@ namespace Ekkam
                 {
                     print("Ready to attack");
                     enemy.canMove = false;
+                    enemy.pathNodes.Clear();
+                    enemy.pathfindingState = Enemy.PathfindingState.Idle;
                     return NodeState.Success;
                 }
                 else
@@ -466,6 +484,11 @@ namespace Ekkam
         
             public override NodeState Evaluate()
             {
+                if (enemy.pathfindingState == Enemy.PathfindingState.Failure)
+                {
+                    return NodeState.Failure;
+                }
+                
                 if (!enemy.findingPath && enemy.pathNodes.Count < 1)
                 {
                     int2 startPos = new int2(enemy.startNodePosition.x, enemy.startNodePosition.y);
@@ -477,6 +500,8 @@ namespace Ekkam
                         enemy.grid.GetBlockedPositions(),
                         enemy.OnPathfindingComplete
                     );
+                    enemy.findingPath = true;
+                    enemy.pathfindingState = Enemy.PathfindingState.Running;
                     return NodeState.Success;
                 }
                 else
@@ -486,34 +511,34 @@ namespace Ekkam
             }
         }
 
-        // public class CheckPathFound : Node
-        // {
-        //     private Astar astar;
-        //
-        //     public CheckPathFound(Astar astar)
-        //     {
-        //         this.astar = astar;
-        //     }
-        //
-        //     public override NodeState Evaluate()
-        //     {
-        //         if (astar.state == Astar.PathfindingState.Success)
-        //         {
-        //             print("Path found");
-        //             return NodeState.Success;
-        //         }
-        //         else if (astar.state == Astar.PathfindingState.Failure)
-        //         {
-        //             print("Path not found");
-        //             return NodeState.Failure;
-        //         }
-        //         else
-        //         {
-        //             print("Pathfinding in progress");
-        //             return NodeState.Running;
-        //         }
-        //     }
-        // }
+        public class CheckPathFound : Node
+        {
+            private Enemy enemy;
+        
+            public CheckPathFound(Enemy enemy)
+            {
+                this.enemy = enemy;
+            }
+        
+            public override NodeState Evaluate()
+            {
+                if (enemy.pathfindingState == Enemy.PathfindingState.Success)
+                {
+                    print("Path found");
+                    return NodeState.Success;
+                }
+                else if (enemy.pathfindingState == Enemy.PathfindingState.Failure)
+                {
+                    print("Path not found");
+                    return NodeState.Failure;
+                }
+                else
+                {
+                    print("Pathfinding in progress");
+                    return NodeState.Running;
+                }
+            }
+        }
 
         public class FollowPath : Node
         {

@@ -375,5 +375,25 @@ namespace Ekkam
                     break;
             }
         }
+        
+        public override void OnDamageTaken()
+        {
+            foreach (var facePlate in facePlates)
+            {
+                facePlate.SetActive(false);
+            }
+            facePlates[1].SetActive(true);
+            Invoke("RevertFacePlate", 1f);
+        }
+
+        private void RevertFacePlate()
+        {
+            foreach (var facePlate in facePlates)
+            {
+                facePlate.SetActive(false);
+            }
+
+            facePlates[0].SetActive(true);
+        }
     }
 }

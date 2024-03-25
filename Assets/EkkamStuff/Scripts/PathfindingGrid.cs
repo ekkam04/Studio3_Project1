@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using QFSW.QC;
 using TMPro;
 using Unity.Mathematics;
 using UnityEngine;
@@ -14,22 +15,38 @@ namespace Ekkam
         public int gridCellCountX = 3;
         public int gridCellCountZ = 3;
         private int gridCellCount;
-        public GameObject cube;
         public Vector3 startingPosition;
+        
+        public List<Enemy> enemiesOnThisGrid = new List<Enemy>();
+        
+        public GameObject cube;
 
         private float timer;
-        
-        public delegate void OnGridInitialized();
-        public static event OnGridInitialized onGridInitialized;
         
         // x + z * 3 for coordinates to index
         
         void Start()
         {
             CreateGrid();
+            Action.onActionComplete += UpdateBlockedNodes;
+            MovesWithPhysicsOnGrid.onMoveComplete += UpdateBlockedNodes;
         }
         
-        async void CreateGrid()
+        void OnDestroy()
+        {
+            Action.onActionComplete -= UpdateBlockedNodes;
+            MovesWithPhysicsOnGrid.onMoveComplete -= UpdateBlockedNodes;
+        }
+        
+        // void Update()
+        // {
+        //     if (Input.GetKeyDown(KeyCode.B))
+        //     {
+        //         UpdateBlockedNodes();
+        //     }
+        // }
+        
+        void CreateGrid()
         {
             startingPosition = transform.position;
             gridCellCount = gridCellCountX * gridCellCountZ;
@@ -50,10 +67,6 @@ namespace Ekkam
                 // await Task.Delay(1);
             }
             UpdateBlockedNodes();
-            if (onGridInitialized != null)
-            {
-                onGridInitialized();
-            }
         }
 
         public PathfindingNode GetNode(Vector2Int gridPosition)
@@ -65,20 +78,21 @@ namespace Ekkam
             return nodes[gridPosition.x + gridPosition.y * gridCellCountX];
         }
         
+        [Command("updateBlockedNodes")]
         void UpdateBlockedNodes()
         {
-            // var allNodes = FindObjectsOfType<Node>();
-            foreach (var node in nodes)
+            for (int i = 0; i < nodes.Length; i++)
             {
-                int layerToIgnore = 6; // Player layer
-                LayerMask mask = ~(1 << layerToIgnore);
+                var node = nodes[i];
+                int[] layersToIgnore = {6, 8}; // Player and Enemy layers
+                LayerMask mask = ~(1 << layersToIgnore[0]) & ~(1 << layersToIgnore[1]);
                 bool isBlocked = Physics.CheckBox(node.transform.position, new Vector3(0.5f, 0.5f, 0.5f), Quaternion.identity, mask);
                 node.isBlocked = isBlocked;
                 if (isBlocked)
                 {
                     node.SetColor(new Color(0f, 0f, 0f, 0));
                 }
-                else //if (node.gridPosition != startNodePosition && node.gridPosition != endNodePosition)
+                else
                 {
                     node.ResetColor();
                 }
