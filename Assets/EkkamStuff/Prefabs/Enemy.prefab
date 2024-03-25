@@ -2009,7 +2009,7 @@ MonoBehaviour:
   pathNodes: []
   lastUnblockedNode: {fileID: 0}
   findingPath: 0
-  speed: 2
+  speed: 4
   attackRange: 3
   followsPlayer: 1
   attackCooldown: 2

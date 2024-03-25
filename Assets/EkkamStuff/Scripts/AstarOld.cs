@@ -8,7 +8,7 @@ using Unity.VisualScripting;
 
 namespace Ekkam
 {
-    public class Astar : MonoBehaviour
+    public class AstarOld : MonoBehaviour
     {
         [SerializeField] public PathfindingGrid grid;
         PathfindingManager pathfindingManager;
@@ -35,7 +35,7 @@ namespace Ekkam
         void Start()
         {
             pathfindingManager = FindObjectOfType<PathfindingManager>();
-            PathfindingGrid.onGridInitialized += Initialize;
+            // PathfindingGrid.onGridInitialized += Initialize;
         }
 
         void Initialize()

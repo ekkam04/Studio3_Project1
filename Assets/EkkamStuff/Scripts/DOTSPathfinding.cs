@@ -72,10 +72,10 @@ public class DOTSPathfinding : MonoBehaviour
                 new int2(+1, 0), // Right
                 new int2(0, +1), // Up
                 new int2(0, -1), // Down
-                new int2(-1, -1), // Left Down
-                new int2(-1, +1), // Left Up
-                new int2(+1, -1), // Right Down
-                new int2(+1, +1) // Right Up
+                // new int2(-1, -1), // Left Down
+                // new int2(-1, +1), // Left Up
+                // new int2(+1, -1), // Right Down
+                // new int2(+1, +1) // Right Up
             }, Allocator.Temp);
             
             PathNode startNode = pathNodeArray[CalculateIndex(startPosition.x, startPosition.y, gridSize.x)];
@@ -237,11 +237,6 @@ public class DOTSPathfinding : MonoBehaviour
             return lowestCostPathNode.index;
         }
     }
-    
-    private void FindPath(int2 startPosition, int2 endPosition)
-    {
-        
-    }   
 
     private struct PathNode
     {
