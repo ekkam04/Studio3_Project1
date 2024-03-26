@@ -44,7 +44,7 @@ public class DOTSPathfinding : MonoBehaviour
             int2 gridSize = this.gridSize;
             NativeArray<PathNode> pathNodeArray = new NativeArray<PathNode>(gridSize.x * gridSize.y, Allocator.Temp);
 
-            Debug.Log("FindPathJob called with data: " + startPosition + " " + endPosition + " " + gridSize);
+            // Debug.Log("FindPathJob called with data: " + startPosition + " " + endPosition + " " + gridSize);
             for (int x = 0; x < gridSize.x; x++)
             {
                 for (int y = 0; y < gridSize.y; y++)
@@ -72,10 +72,10 @@ public class DOTSPathfinding : MonoBehaviour
                 new int2(+1, 0), // Right
                 new int2(0, +1), // Up
                 new int2(0, -1), // Down
-                new int2(-1, -1), // Left Down
-                new int2(-1, +1), // Left Up
-                new int2(+1, -1), // Right Down
-                new int2(+1, +1) // Right Up
+                // new int2(-1, -1), // Left Down
+                // new int2(-1, +1), // Left Up
+                // new int2(+1, -1), // Right Down
+                // new int2(+1, +1) // Right Up
             }, Allocator.Temp);
             
             PathNode startNode = pathNodeArray[CalculateIndex(startPosition.x, startPosition.y, gridSize.x)];
@@ -156,12 +156,12 @@ public class DOTSPathfinding : MonoBehaviour
             if (endNode.cameFromNodeIndex == -1)
             {
                 // Path not found
-                Debug.Log("Path not found");
+                // Debug.Log("Path not found");
             }
             else
             {
                 // Path found
-                Debug.Log("Path found");
+                // Debug.Log("Path found");
                 NativeList<int2> path = CalculatePath(pathNodeArray, endNode);
                 
                 for (int i = 0; i < path.Length; i++)
@@ -169,7 +169,7 @@ public class DOTSPathfinding : MonoBehaviour
                     // Debug.Log(path[i]);
                     pathNodePositions[i] = path[i];
                 }
-                Debug.Log("path length in job: " + pathNodePositions.Length);
+                // Debug.Log("path length in job: " + pathNodePositions.Length);
                 
                 path.Dispose();
             }
@@ -237,11 +237,6 @@ public class DOTSPathfinding : MonoBehaviour
             return lowestCostPathNode.index;
         }
     }
-    
-    private void FindPath(int2 startPosition, int2 endPosition)
-    {
-        
-    }   
 
     private struct PathNode
     {

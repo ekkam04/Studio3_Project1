@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,6 +14,8 @@ namespace Ekkam
     {
         Inventory inventory;
         CombatManager combatManager;
+
+        public GameObject[] facePlates;
         
         public bool allowMovement = true;
         public bool allowFall = true;
@@ -90,6 +93,12 @@ namespace Ekkam
             anim = GetComponent<Animator>();
             inventory = FindObjectOfType<Inventory>();
             combatManager = GetComponent<CombatManager>();
+            
+            foreach (var facePlate in facePlates)
+            {
+                facePlate.SetActive(false);
+            }
+            facePlates[0].SetActive(true);
 
             // cameraObj = GameObject.FindObjectOfType<Camera>().transform;
             cameraOffset = cameraObj.position - transform.position;
@@ -131,6 +140,30 @@ namespace Ekkam
             {
                 targetLock = false;
                 if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
+            }
+            
+            //cycle faceplates on P key
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                int currentFacePlateIndex = 0;
+                for (int i = 0; i < facePlates.Length; i++)
+                {
+                    if (facePlates[i].activeSelf)
+                    {
+                        currentFacePlateIndex = i;
+                    }
+                }
+                // disable current faceplate
+                facePlates[currentFacePlateIndex].SetActive(false);
+                // enable next faceplate
+                if (currentFacePlateIndex == facePlates.Length - 1)
+                {
+                    facePlates[0].SetActive(true);
+                }
+                else
+                {
+                    facePlates[currentFacePlateIndex + 1].SetActive(true);
+                }
             }
             
             swordTimer += Time.deltaTime;
@@ -341,6 +374,26 @@ namespace Ekkam
                 default:
                     break;
             }
+        }
+        
+        public override void OnDamageTaken()
+        {
+            foreach (var facePlate in facePlates)
+            {
+                facePlate.SetActive(false);
+            }
+            facePlates[1].SetActive(true);
+            Invoke("RevertFacePlate", 1f);
+        }
+
+        private void RevertFacePlate()
+        {
+            foreach (var facePlate in facePlates)
+            {
+                facePlate.SetActive(false);
+            }
+
+            facePlates[0].SetActive(true);
         }
     }
 }

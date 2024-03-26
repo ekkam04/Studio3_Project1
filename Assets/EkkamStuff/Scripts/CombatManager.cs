@@ -28,6 +28,7 @@ namespace Ekkam
             {
                 var meleeHitboxCollider = meleeHitbox.GetComponent<Collider>();
                 meleeHitboxCollider.excludeLayers = layersToIgnore;
+                meleeHitbox.SetActive(false);
             }
         }
 

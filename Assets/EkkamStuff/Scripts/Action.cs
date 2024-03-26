@@ -17,6 +17,9 @@ public class Action : Signalable
     public ActionToTake actionToTake;
     public Vector3 targetOffset;
     public float duration = 2f;
+    
+    public delegate void OnActionComplete();
+    public static event OnActionComplete onActionComplete;
     public override void Signal()
     {
         print(gameObject.name + " is taking action: " + actionToTake);
@@ -26,19 +29,24 @@ public class Action : Signalable
                 StartCoroutine(Move());
                 break;
             case ActionToTake.Rotate:
-                transform.rotation = Quaternion.Euler(targetOffset);
+                transform.rotation = Quaternion.Euler(targetOffset); // Maybe use Quaternion.Lerp for smooth rotation in the future
+                if (onActionComplete != null) onActionComplete();
                 break;
             case ActionToTake.Scale:
                 transform.localScale = targetOffset;
+                if (onActionComplete != null) onActionComplete();
                 break;
             case ActionToTake.Enable:
                 gameObject.SetActive(true);
+                if (onActionComplete != null) onActionComplete();
                 break;
             case ActionToTake.Disable:
                 gameObject.SetActive(false);
+                if (onActionComplete != null) onActionComplete();
                 break;
             case ActionToTake.Destroy:
                 Destroy(gameObject);
+                if (onActionComplete != null) onActionComplete();
                 break;
         }
         
@@ -53,6 +61,7 @@ public class Action : Signalable
                 timeElapsed += Time.deltaTime;
                 yield return null;
             }
+            if (onActionComplete != null) onActionComplete();
         }
     }
 }
