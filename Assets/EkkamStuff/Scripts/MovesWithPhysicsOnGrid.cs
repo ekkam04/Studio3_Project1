@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Ekkam
@@ -34,6 +35,14 @@ namespace Ekkam
             if (rb.velocity.magnitude > 1f)
             {
                 isMoving = true;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (onMoveComplete != null)
+            {
+                onMoveComplete();
             }
         }
     }

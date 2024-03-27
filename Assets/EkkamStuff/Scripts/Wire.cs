@@ -5,6 +5,7 @@ namespace Ekkam
     public class Wire : Signalable
     {
         public Signalable connectedSignalable;
+        public Signalable[] extraConnectedSignalables;
         public Wire prerequisiteWire;
         
         public bool signalSent;
@@ -24,6 +25,10 @@ namespace Ekkam
             if (connectedSignalable != null && isPowered && !signalSent)
             {
                 connectedSignalable.Signal();
+                foreach (var signalable in extraConnectedSignalables)
+                {
+                    signalable.Signal();
+                }
                 signalSent = true;
             }
         }

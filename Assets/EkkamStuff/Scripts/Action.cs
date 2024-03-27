@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Ekkam;
@@ -43,23 +44,23 @@ public class Action : Signalable
                 break;
             case ActionToTake.Rotate:
                 transform.rotation = Quaternion.Euler(targetOffset); // Maybe use Quaternion.Lerp for smooth rotation in the future
-                HandleActionComplete();
+                Invoke("HandleActionComplete", 0.1f);
                 break;
             case ActionToTake.Scale:
                 transform.localScale = targetOffset;
-                HandleActionComplete();
+                Invoke("HandleActionComplete", 0.1f);
                 break;
             case ActionToTake.Enable:
                 gameObject.SetActive(true);
-                HandleActionComplete();
+                Invoke("HandleActionComplete", 0.1f);
                 break;
             case ActionToTake.Disable:
                 gameObject.SetActive(false);
-                HandleActionComplete();
+                Invoke("HandleActionComplete", 0.1f);
                 break;
             case ActionToTake.Destroy:
                 Destroy(gameObject);
-                HandleActionComplete();
+                // ActionComplete event is handled in OnDestroy
                 break;
         }
         
@@ -78,7 +79,12 @@ public class Action : Signalable
         }
         HandleActionComplete();
     }
-    
+
+    private void OnDestroy()
+    {
+        HandleActionComplete();
+    }
+
     void HandleActionComplete()
     {
         if (onActionComplete != null) onActionComplete();

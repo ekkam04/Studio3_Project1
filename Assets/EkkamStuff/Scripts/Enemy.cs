@@ -331,6 +331,18 @@ namespace Ekkam
             {
                 if (Vector3.Distance(Player.Instance.transform.position, enemy.transform.position) <= enemy.attackRange)
                 {
+                    if (!enemy.followsPlayer)
+                    {
+                        if (Physics.Raycast(enemy.transform.position, Player.Instance.transform.position - enemy.transform.position, out RaycastHit hit, enemy.attackRange * 2f))
+                        {
+                            if (hit.collider.gameObject.layer != 6)
+                            {
+                                print("Obstacle in the way");
+                                return NodeState.Failure;
+                            }
+                        }
+                    }
+                    
                     print("Ready to attack");
                     enemy.canMove = false;
                     enemy.pathNodes.Clear();

@@ -29,13 +29,13 @@ namespace Ekkam
         {
             CreateGrid();
             Action.onActionComplete += UpdateBlockedNodes;
-            MovesWithPhysicsOnGrid.onMoveComplete += UpdateBlockedNodes;
+            MovesWithPhysicsOnGrid.onMoveComplete += ConditionallyUpdateBlockedNodes;
         }
         
         void OnDestroy()
         {
             Action.onActionComplete -= UpdateBlockedNodes;
-            MovesWithPhysicsOnGrid.onMoveComplete -= UpdateBlockedNodes;
+            MovesWithPhysicsOnGrid.onMoveComplete -= ConditionallyUpdateBlockedNodes;
         }
         
         // void Update()
@@ -78,9 +78,19 @@ namespace Ekkam
             return nodes[gridPosition.x + gridPosition.y * gridCellCountX];
         }
         
-        [Command("updateBlockedNodes")]
-        void UpdateBlockedNodes()
+        void ConditionallyUpdateBlockedNodes()
         {
+            // check if player is on this grid
+            if (ObjectIsOnGrid(Player.Instance.transform.position))
+            {
+                UpdateBlockedNodes();
+            }
+        }
+        
+        [Command("updateBlockedNodes")]
+        async void UpdateBlockedNodes()
+        {
+            await Task.Delay(100);
             for (int i = 0; i < nodes.Length; i++)
             {
                 var node = nodes[i];
