@@ -53,7 +53,7 @@ namespace Ekkam {
             uiManager = FindObjectOfType<UIManager>();
             var mainCamera = Camera.main;
             
-            pickUpPrompt = Instantiate(uiManager.pickUpPrompt, transform.position, Quaternion.identity, transform);
+            pickUpPrompt = Instantiate(uiManager.pickUpPrompt, transform.position, Quaternion.identity);
             pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().text = interactText;
             pickUpPrompt.GetComponentInChildren<RotationConstraint>().AddSource(new ConstraintSource
             {
@@ -138,10 +138,29 @@ namespace Ekkam {
                     
                     await Task.Delay(100);
                     inventory.RemoveItem(inventory.GetSelectedItem());
+                    if (signalReceiver != null) signalReceiver.Signal();
                     
                     pickUpPrompt.SetActive(false);
                     this.enabled = false;
                 }
+                else
+                {
+                    StartCoroutine(PulsePickupPromptText(Color.red, 0.1f, 0.3f));
+                }
+            }
+        }
+        
+        IEnumerator PulsePickupPromptText(Color color, float fadeInDuration, float fadeOutDuration)
+        {
+            for (float t = 0; t < fadeInDuration; t += Time.deltaTime)
+            {
+                pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().color = Color.Lerp(Color.white, color, t / fadeInDuration);
+                yield return null;
+            }
+            for (float t = 0; t < fadeOutDuration; t += Time.deltaTime)
+            {
+                pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().color = Color.Lerp(color, Color.white, t / fadeOutDuration);
+                yield return null;
             }
         }
     }
