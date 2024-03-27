@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Mono.CSharp;
 using UnityEngine;
 using TMPro;
 using UnityEngine.Animations;
@@ -22,7 +24,8 @@ namespace Ekkam {
         public enum InteractionAction
         {
             Pickup,
-            Signal
+            Signal,
+            Place
         }
         public InteractionAction interactionAction;
 
@@ -32,10 +35,16 @@ namespace Ekkam {
         
         [Header("Item Settings")]
         public Vector3 rotationOffset;
+        public Vector3 positionOffset;
         public bool heldInOffHand;
         
         [Header("Signal Settings")]
         public Signalable signalReceiver;
+        
+        [Header("Place Settings")]
+        public Vector3 placeRotationOffset;
+        public Vector3 placePositionOffset;
+        public string tagToAccept;
 
         void Start()
         {
@@ -57,8 +66,12 @@ namespace Ekkam {
         void Update()
         {
             // check if player has the item in their inventory
-            if (interactionType == InteractionType.InteractKey && inventory.HasItem(GetComponent<Item>()) == false)
+            if (interactionType == InteractionType.InteractKey)
             {
+                if (GetComponent<Item>() != null && inventory.HasItem(GetComponent<Item>()) == true)
+                {
+                    return;
+                }
                 CheckForInteract();
             }
         }
@@ -79,7 +92,7 @@ namespace Ekkam {
             }
         }
 
-        public void Interact()
+        async public void Interact()
         {
             print("Interacting with " + gameObject.name);
             timesInteracted++;
@@ -97,7 +110,9 @@ namespace Ekkam {
                     {
                         transform.SetParent(player.itemHolderRight.transform);
                     }
+                    
                     transform.localPosition = Vector3.zero;
+                    transform.localPosition += positionOffset;
                     transform.localRotation = Quaternion.identity;
                     transform.Rotate(rotationOffset);
                 }
@@ -106,6 +121,27 @@ namespace Ekkam {
             {
                 print("Signaling " + signalReceiver.name);
                 signalReceiver.Signal();
+            }
+            else if (interactionAction == InteractionAction.Place)
+            {
+                if (inventory.GetSelectedItem() != null && inventory.GetSelectedItem().tag == tagToAccept)
+                {
+                    print("Placing " + inventory.GetSelectedItem().name + " on " + gameObject.name);
+                    GameObject objectToPlace = inventory.GetSelectedItem().gameObject;
+                    objectToPlace.transform.SetParent(transform);
+                    if (objectToPlace.GetComponent<Interactable>() != null) objectToPlace.GetComponent<Interactable>().enabled = false;
+
+                    objectToPlace.transform.localPosition = Vector3.zero;
+                    objectToPlace.transform.localPosition += placePositionOffset;
+                    objectToPlace.transform.localRotation = Quaternion.identity;
+                    objectToPlace.transform.Rotate(placeRotationOffset);
+                    
+                    await Task.Delay(100);
+                    inventory.RemoveItem(inventory.GetSelectedItem());
+                    
+                    pickUpPrompt.SetActive(false);
+                    this.enabled = false;
+                }
             }
         }
     }
