@@ -8,25 +8,26 @@ namespace Ekkam {
     public class Objective
     {
         public string objectiveText;
-        // public string objectiveDescription;
         public enum ObjectiveType
         {
             Collect,
             Interact,
             Destroy,
-            Reach
+            Reach,
+            Sequence,
         }
         public ObjectiveType objectiveType;
-        public enum ObjectiveCategory
-        {
-            ShouldBeCompleted,
-            ShouldNotBeCompleted
-        }
-        public ObjectiveCategory objectiveCategory;
-        public GameObject objectiveTarget;
-        public GameObject[] objectiveMultiTargets;
+    
+        public GameObject objectiveWaypoint;
+        public GameObject[] objectiveTargets;
+    
+        public Objective[] objectiveSequence;
+        public bool sequenceNotMaintained;
+        public Objective[] objectivesThatFailThisObjective;
+    
         public GameObject objectiveUIItem;
-        public bool autoAssignNextObjective;
+        
+        public Signalable[] completionSignals;
         public enum ObjectiveStatus
         {
             Inactive,
@@ -35,7 +36,5 @@ namespace Ekkam {
             Failed
         }
         public ObjectiveStatus status;
-        // public bool isActive;
-        // public bool isCompleted;
     }
 }

@@ -59,7 +59,14 @@ namespace Ekkam
             var mainCamera = Camera.main;
             
             originalDetectionRange = detectionRange;
-            grid.enemiesOnThisGrid.Add(this);
+            if (grid != null)
+            {
+                grid.enemiesOnThisGrid.Add(this);
+                
+                startNodePosition = grid.GetPositionFromWorldPoint(transform.position);
+                lastUnblockedNode = grid.GetNode(startNodePosition);
+                endNodePosition = grid.GetPositionFromWorldPoint(Player.Instance.transform.position);
+            }
             
             targetLockPrompt = Instantiate(uiManager.targetLockPrompt, transform.position, Quaternion.identity, transform);
             targetLockPrompt.GetComponentInChildren<RotationConstraint>().AddSource(new ConstraintSource
@@ -72,10 +79,6 @@ namespace Ekkam
             rb = GetComponent<Rigidbody>();
             anim = GetComponent<Animator>();
             combatManager = GetComponent<CombatManager>();
-            
-            startNodePosition = grid.GetPositionFromWorldPoint(transform.position);
-            lastUnblockedNode = grid.GetNode(startNodePosition);
-            endNodePosition = grid.GetPositionFromWorldPoint(Player.Instance.transform.position);
 
             rootNode = new Selector(new List<Node>
             {
@@ -156,7 +159,8 @@ namespace Ekkam
             //         OnPathfindingComplete
             //     );
             // }
-            
+
+            if (!followsPlayer) return;
             var lastPos = grid.GetPositionFromWorldPoint(transform.position);
             if (!grid.GetNode(lastPos).isBlocked)
             {
@@ -185,7 +189,7 @@ namespace Ekkam
             public override NodeState Evaluate()
             {
                 if (
-                    (grid.ObjectIsOnGrid(Player.Instance.transform.position) || !followsPlayer)
+                    ((grid != null && grid.ObjectIsOnGrid(Player.Instance.transform.position)) || !followsPlayer)
                     && (Vector3.Distance(transform.position, Player.Instance.transform.position) < enemy.detectionRange
                     || enemy.pathNodes.Count > 0)
                 )
@@ -333,7 +337,14 @@ namespace Ekkam
                 {
                     if (!enemy.followsPlayer)
                     {
-                        if (Physics.Raycast(enemy.transform.position, Player.Instance.transform.position - enemy.transform.position, out RaycastHit hit, enemy.attackRange * 2f))
+                        var heightOffset = new Vector3(0, 1, 0);
+                        if (Physics.Raycast(
+                                enemy.transform.position + heightOffset,
+                                (Player.Instance.transform.position + heightOffset) - (enemy.transform.position + heightOffset),
+                                out RaycastHit hit,
+                                enemy.attackRange * 2f
+                           )
+                        )
                         {
                             if (hit.collider.gameObject.layer != 6)
                             {

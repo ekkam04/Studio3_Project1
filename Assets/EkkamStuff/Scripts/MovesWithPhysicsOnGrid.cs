@@ -38,12 +38,12 @@ namespace Ekkam
             }
         }
 
-        private void OnDestroy()
-        {
-            if (onMoveComplete != null)
-            {
-                onMoveComplete();
-            }
-        }
+        // private void OnDestroy()
+        // {
+        //     if (onMoveComplete != null)
+        //     {
+        //         onMoveComplete();
+        //     }
+        // }
     }
 }

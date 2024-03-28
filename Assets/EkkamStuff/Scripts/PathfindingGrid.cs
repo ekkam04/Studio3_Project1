@@ -91,6 +91,7 @@ namespace Ekkam
         async void UpdateBlockedNodes()
         {
             await Task.Delay(100);
+            if (nodes == null) return;
             for (int i = 0; i < nodes.Length; i++)
             {
                 var node = nodes[i];

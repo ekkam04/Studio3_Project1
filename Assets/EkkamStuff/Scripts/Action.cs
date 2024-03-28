@@ -16,7 +16,11 @@ public class Action : Signalable
         Destroy,
     }
     public ActionToTake actionToTake;
+    private Vector3 originalTargetOffset;
     public Vector3 targetOffset;
+    public Vector3[] sequentialTargetOffsets;
+    
+    public int sequenceIndex = 0;
     public float duration = 2f;
     
     public GameObject virtualCameraToTransitionTo;
@@ -24,6 +28,11 @@ public class Action : Signalable
     
     public delegate void OnActionComplete();
     public static event OnActionComplete onActionComplete;
+    
+    void Start()
+    {
+        originalTargetOffset = targetOffset;
+    }
     public override void Signal()
     {
         print(gameObject.name + " is taking action: " + actionToTake);
@@ -35,6 +44,16 @@ public class Action : Signalable
         {
             virtualCameraToTransitionTo.SetActive(true);
             yield return new WaitForSeconds(delayActionDuration);
+        }
+        
+        if (sequenceIndex > 0 && sequenceIndex <= sequentialTargetOffsets.Length)
+        {
+            targetOffset = sequentialTargetOffsets[sequenceIndex - 1];
+        }
+        else if (sequenceIndex > 0 && sequenceIndex > sequentialTargetOffsets.Length)
+        {
+            targetOffset = originalTargetOffset;
+            sequenceIndex = 0;
         }
         
         switch (actionToTake)
@@ -64,6 +83,7 @@ public class Action : Signalable
                 break;
         }
         
+        sequenceIndex++;
     }
     
     IEnumerator Move()
