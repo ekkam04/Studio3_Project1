@@ -33,6 +33,7 @@ namespace Ekkam {
             Inactive,
             Active,
             Completed,
+            KindaCompleted,
             Failed
         }
         public ObjectiveStatus status;
