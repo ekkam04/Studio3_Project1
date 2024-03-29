@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Mono.CSharp;
 using UnityEngine;
 using TMPro;
 using UnityEngine.Animations;
@@ -22,7 +24,8 @@ namespace Ekkam {
         public enum InteractionAction
         {
             Pickup,
-            Signal
+            Signal,
+            Place
         }
         public InteractionAction interactionAction;
 
@@ -32,10 +35,16 @@ namespace Ekkam {
         
         [Header("Item Settings")]
         public Vector3 rotationOffset;
+        public Vector3 positionOffset;
         public bool heldInOffHand;
         
         [Header("Signal Settings")]
         public Signalable signalReceiver;
+        
+        [Header("Place Settings")]
+        public Vector3 placeRotationOffset;
+        public Vector3 placePositionOffset;
+        public string tagToAccept;
 
         void Start()
         {
@@ -44,7 +53,7 @@ namespace Ekkam {
             uiManager = FindObjectOfType<UIManager>();
             var mainCamera = Camera.main;
             
-            pickUpPrompt = Instantiate(uiManager.pickUpPrompt, transform.position, Quaternion.identity, transform);
+            pickUpPrompt = Instantiate(uiManager.pickUpPrompt, transform.position, Quaternion.identity);
             pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().text = interactText;
             pickUpPrompt.GetComponentInChildren<RotationConstraint>().AddSource(new ConstraintSource
             {
@@ -57,8 +66,12 @@ namespace Ekkam {
         void Update()
         {
             // check if player has the item in their inventory
-            if (interactionType == InteractionType.InteractKey && inventory.HasItem(GetComponent<Item>()) == false)
+            if (interactionType == InteractionType.InteractKey)
             {
+                if (GetComponent<Item>() != null && inventory.HasItem(GetComponent<Item>()) == true)
+                {
+                    return;
+                }
                 CheckForInteract();
             }
         }
@@ -79,7 +92,7 @@ namespace Ekkam {
             }
         }
 
-        public void Interact()
+        async public void Interact()
         {
             print("Interacting with " + gameObject.name);
             timesInteracted++;
@@ -97,7 +110,9 @@ namespace Ekkam {
                     {
                         transform.SetParent(player.itemHolderRight.transform);
                     }
+                    
                     transform.localPosition = Vector3.zero;
+                    transform.localPosition += positionOffset;
                     transform.localRotation = Quaternion.identity;
                     transform.Rotate(rotationOffset);
                 }
@@ -106,6 +121,46 @@ namespace Ekkam {
             {
                 print("Signaling " + signalReceiver.name);
                 signalReceiver.Signal();
+            }
+            else if (interactionAction == InteractionAction.Place)
+            {
+                if (inventory.GetSelectedItem() != null && inventory.GetSelectedItem().tag == tagToAccept)
+                {
+                    print("Placing " + inventory.GetSelectedItem().name + " on " + gameObject.name);
+                    GameObject objectToPlace = inventory.GetSelectedItem().gameObject;
+                    objectToPlace.transform.SetParent(transform);
+                    if (objectToPlace.GetComponent<Interactable>() != null) objectToPlace.GetComponent<Interactable>().enabled = false;
+
+                    objectToPlace.transform.localPosition = Vector3.zero;
+                    objectToPlace.transform.localPosition += placePositionOffset;
+                    objectToPlace.transform.localRotation = Quaternion.identity;
+                    objectToPlace.transform.Rotate(placeRotationOffset);
+                    
+                    await Task.Delay(100);
+                    inventory.RemoveItem(inventory.GetSelectedItem());
+                    if (signalReceiver != null) signalReceiver.Signal();
+                    
+                    pickUpPrompt.SetActive(false);
+                    this.enabled = false;
+                }
+                else
+                {
+                    StartCoroutine(PulsePickupPromptText(Color.red, 0.1f, 0.3f));
+                }
+            }
+        }
+        
+        IEnumerator PulsePickupPromptText(Color color, float fadeInDuration, float fadeOutDuration)
+        {
+            for (float t = 0; t < fadeInDuration; t += Time.deltaTime)
+            {
+                pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().color = Color.Lerp(Color.white, color, t / fadeInDuration);
+                yield return null;
+            }
+            for (float t = 0; t < fadeOutDuration; t += Time.deltaTime)
+            {
+                pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().color = Color.Lerp(color, Color.white, t / fadeOutDuration);
+                yield return null;
             }
         }
     }

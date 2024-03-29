@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Ekkam
@@ -36,5 +37,13 @@ namespace Ekkam
                 isMoving = true;
             }
         }
+
+        // private void OnDestroy()
+        // {
+        //     if (onMoveComplete != null)
+        //     {
+        //         onMoveComplete();
+        //     }
+        // }
     }
 }

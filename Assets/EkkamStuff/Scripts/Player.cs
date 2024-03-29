@@ -303,6 +303,7 @@ namespace Ekkam
                 if (hit1.collider.CompareTag("Movable"))
                 {
                     transform.parent = hit1.transform;
+                    // transform.SetParent(hit1.transform, true);
                 }
             }
             else

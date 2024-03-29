@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Ekkam;
@@ -15,14 +16,46 @@ public class Action : Signalable
         Destroy,
     }
     public ActionToTake actionToTake;
+    private Vector3 originalTargetOffset;
     public Vector3 targetOffset;
+    public Vector3[] sequentialTargetOffsets;
+    
+    public int sequenceIndex = 0;
     public float duration = 2f;
+    
+    public GameObject virtualCameraToTransitionTo;
+    private float delayActionDuration = 1.5f;
     
     public delegate void OnActionComplete();
     public static event OnActionComplete onActionComplete;
+    
+    void Start()
+    {
+        originalTargetOffset = targetOffset;
+    }
     public override void Signal()
     {
         print(gameObject.name + " is taking action: " + actionToTake);
+        StartCoroutine(TakeAction());
+    }
+    IEnumerator TakeAction()
+    {
+        if (virtualCameraToTransitionTo != null)
+        {
+            virtualCameraToTransitionTo.SetActive(true);
+            yield return new WaitForSeconds(delayActionDuration);
+        }
+        
+        if (sequenceIndex > 0 && sequenceIndex <= sequentialTargetOffsets.Length)
+        {
+            targetOffset = sequentialTargetOffsets[sequenceIndex - 1];
+        }
+        else if (sequenceIndex > 0 && sequenceIndex > sequentialTargetOffsets.Length)
+        {
+            targetOffset = originalTargetOffset;
+            sequenceIndex = 0;
+        }
+        
         switch (actionToTake)
         {
             case ActionToTake.Move:
@@ -30,38 +63,52 @@ public class Action : Signalable
                 break;
             case ActionToTake.Rotate:
                 transform.rotation = Quaternion.Euler(targetOffset); // Maybe use Quaternion.Lerp for smooth rotation in the future
-                if (onActionComplete != null) onActionComplete();
+                Invoke("HandleActionComplete", 0.1f);
                 break;
             case ActionToTake.Scale:
                 transform.localScale = targetOffset;
-                if (onActionComplete != null) onActionComplete();
+                Invoke("HandleActionComplete", 0.1f);
                 break;
             case ActionToTake.Enable:
                 gameObject.SetActive(true);
-                if (onActionComplete != null) onActionComplete();
+                Invoke("HandleActionComplete", 0.1f);
                 break;
             case ActionToTake.Disable:
                 gameObject.SetActive(false);
-                if (onActionComplete != null) onActionComplete();
+                Invoke("HandleActionComplete", 0.1f);
                 break;
             case ActionToTake.Destroy:
                 Destroy(gameObject);
-                if (onActionComplete != null) onActionComplete();
+                // ActionComplete event is handled in OnDestroy
                 break;
         }
         
-        IEnumerator Move()
-        {
-            Vector3 startPosition = transform.position;
-            Vector3 targetPosition = startPosition + targetOffset;
-            float timeElapsed = 0;
-            while (timeElapsed < duration)
-            {
-                transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
-                timeElapsed += Time.deltaTime;
-                yield return null;
-            }
-            if (onActionComplete != null) onActionComplete();
-        }
+        sequenceIndex++;
     }
+    
+    IEnumerator Move()
+    {
+        Vector3 startPosition = transform.position;
+        Vector3 targetPosition = startPosition + targetOffset;
+        float timeElapsed = 0;
+        while (timeElapsed < duration)
+        {
+            transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+        HandleActionComplete();
+    }
+
+    private void OnDestroy()
+    {
+        HandleActionComplete();
+    }
+
+    void HandleActionComplete()
+    {
+        if (onActionComplete != null) onActionComplete();
+        if (virtualCameraToTransitionTo != null) virtualCameraToTransitionTo.SetActive(false);
+    }
+    
 }

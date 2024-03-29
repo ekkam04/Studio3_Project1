@@ -119,6 +119,18 @@ namespace Ekkam {
             ShowEquippedItem();
         }
         
+        public void RemoveItem(Item item)
+        {
+            // Remove item from slot
+            if (items.Contains(item))
+            {
+                int index = items.IndexOf(item);
+                items.Remove(item);
+                Destroy(slots[index].GetComponentInChildren<RawImage>().gameObject);
+            }
+            Invoke("ShowEquippedItem", 0.1f);
+        }
+        
         public Item GetSelectedItem()
         {
             if (selectedSlot.GetComponentInChildren<RawImage>() != null)
@@ -149,10 +161,20 @@ namespace Ekkam {
                 {
                     player.anim.SetBool("isHoldingSword", false);
                 }
+                
+                if (item.tag == "Battery")
+                {
+                    player.anim.SetBool("isHolding", true);
+                }
+                else
+                {
+                    player.anim.SetBool("isHolding", false);
+                }
             }
             else
             {
                 player.anim.SetBool("isHoldingSword", false);
+                player.anim.SetBool("isHolding", false);
             }
         }
 

@@ -15,16 +15,16 @@ namespace Ekkam {
     {
         private GameManager gameManager;
         public int currentObjectiveIndex = 0;
-        public float objectiveTargetDistance;
+        private float objectiveWaypointDistance = 3.5f;
         
-        public int objectivesCompleted = 0;
-        public int objectivesActive = 0;
+        // public int objectivesCompleted = 0;
+        // public int objectivesActive = 0;
 
         public Color objectiveCompletedColor = Color.green;
         public Color objectiveFailedColor = Color.red;
 
         public List<Objective> objectives = new List<Objective>();
-        public List<int> activeObjectiveIndices = new List<int>();
+        // public List<int> activeObjectiveIndices = new List<int>();
 
         public List<ObjectiveCompletionAction> objectiveCompletionActions = new List<ObjectiveCompletionAction>();
 
@@ -43,9 +43,17 @@ namespace Ekkam {
             // hide all objective targets if type is Reach
             foreach (Objective objective in objectives)
             {
-                if (objective.objectiveTarget != null)
+                if (objective.objectiveWaypoint != null)
                 {
-                    objective.objectiveTarget.gameObject.SetActive(false);
+                    objective.objectiveWaypoint.gameObject.SetActive(false);
+                }
+
+                foreach (Objective sequenceObjective in objective.objectiveSequence)
+                {
+                    if (sequenceObjective.objectiveWaypoint != null)
+                    {
+                        sequenceObjective.objectiveWaypoint.gameObject.SetActive(false);
+                    }
                 }
             }
 
@@ -53,164 +61,210 @@ namespace Ekkam {
             {
                 objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
                 AddObjectiveToUI(objectives[currentObjectiveIndex]);
-                activeObjectiveIndices.Add(currentObjectiveIndex);
+                foreach (Objective objectivesThatFailThisObjective in objectives[currentObjectiveIndex].objectivesThatFailThisObjective)
+                {
+                    objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Active;
+                    AddObjectiveToUI(objectivesThatFailThisObjective, 40f);
+                }
+                foreach (Objective sequenceObjective in objectives[currentObjectiveIndex].objectiveSequence)
+                {
+                    sequenceObjective.status = Objective.ObjectiveStatus.Active;
+                    AddObjectiveToUI(sequenceObjective, 40f);
+                }
             }
         }
 
         void Update()
         {
-            // if (Input.GetKeyDown(KeyCode.K))
-            // {
-            //     // complete current objective
-            //     for (int i = 0; i < objectives.Count; i++)
-            //     {
-            //         if (objectives[i].status == Objective.ObjectiveStatus.Active)
-            //         {
-            //             CompleteObjective(objectives[i]);
-            //             CheckForCompletionActions(objectives.IndexOf(objectives[i]));
-            //             break;
-            //         }
-            //     }
-            // }
-
             foreach (Objective objective in objectives)
             {
-                if (objective.status != Objective.ObjectiveStatus.Active || objective.objectiveTarget == null) continue;
-
-                var objectiveTargetRadius = 3.5f;
-                objectiveTargetDistance = Vector3.Distance(player.transform.position, objective.objectiveTarget.transform.position);
-
-                if (objective.objectiveType == Objective.ObjectiveType.Reach) // if objective is of type Reach ------------------------------------------
+                if (objective.status != Objective.ObjectiveStatus.Active) continue;
+                
+                foreach (Objective objectivesThatFailThisObjective in objective.objectivesThatFailThisObjective)
                 {
-                    if (objectiveTargetDistance < objectiveTargetRadius)
+                    CheckObjectiveCompletion(objectivesThatFailThisObjective);
+                    if (objectivesThatFailThisObjective.status == Objective.ObjectiveStatus.Completed)
                     {
-                        objectiveTargetDistance = Mathf.Infinity;
-                        CompleteObjective(objective);
-                    }
-                    else
-                    {
-                        objective.objectiveTarget.gameObject.SetActive(true);
+                        CompleteObjective(objective, false);
+                        return;
                     }
                 }
-                else if (objective.objectiveType == Objective.ObjectiveType.Interact) // if objective is of type Interact -------------------------------
+                
+                if (objective.objectiveType == Objective.ObjectiveType.Sequence)
                 {
-                    foreach (GameObject target in objective.objectiveMultiTargets)
+                    foreach (Objective sequenceObjective in objective.objectiveSequence)
                     {
-                        if (target.GetComponent<Interactable>() == null) continue;
-                        if (target.GetComponent<Interactable>().timesInteracted > 0)
-                        {
-                            CompleteObjective(objective);
-                        }
-                        else
-                        {
-                            objective.objectiveTarget.gameObject.SetActive(true);
-                        }
+                        if (sequenceObjective.status != Objective.ObjectiveStatus.Active) continue;
+                        CheckObjectiveCompletion(sequenceObjective, true, objective);
                     }
                 }
-                else if (objective.objectiveType == Objective.ObjectiveType.Destroy) // if objective is of type Destroy ---------------------------------
-                {
-                    int numberOfTargetsToDestroy = objective.objectiveMultiTargets.Length;
-                    int numberOfDestroyedTargets = 0;
-                    foreach (GameObject target in objective.objectiveMultiTargets)
-                    {
-                        if (target == null || target.activeSelf == false)
-                        {
-                            numberOfDestroyedTargets++;
-                        }
-                    }
-
-                    if (objectiveTargetDistance < objectiveTargetRadius)
-                    {
-                        objective.objectiveTarget.gameObject.SetActive(false);
-                    }
-                    else
-                    {
-                        objective.objectiveTarget.gameObject.SetActive(true);
-                    }
-
-                    if (numberOfDestroyedTargets == numberOfTargetsToDestroy)
-                    {
-                        CompleteObjective(objective);
-                    }
-                }
+                
+                CheckObjectiveCompletion(objective);
+                
             }
 
         }
-
-        public async void AddNextObjectives()
+        
+        void CheckObjectiveCompletion(Objective objective, bool isSequential = false, Objective parentObjective = null)
         {
-            activeObjectiveIndices.Clear();
-            bool autoAssignNextObjective = true;
-            while (autoAssignNextObjective)
+            var distance = Mathf.Infinity;
+            if (objective.objectiveWaypoint != null)
             {
-                currentObjectiveIndex++;
-                if (currentObjectiveIndex < objectives.Count)
+                distance = Vector3.Distance(player.transform.position, objective.objectiveWaypoint.transform.position);
+                if (distance < objectiveWaypointDistance)
                 {
-                    objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
-                    AddObjectiveToUI(objectives[currentObjectiveIndex]);
-                    activeObjectiveIndices.Add(currentObjectiveIndex);
-                    if (currentObjectiveIndex < objectives.Count - 1)
-                    {
-                         autoAssignNextObjective = objectives[currentObjectiveIndex].autoAssignNextObjective;
-                    }
-                    await Task.Delay(1000);
+                    objective.objectiveWaypoint.SetActive(false);
                 }
                 else
                 {
-                    autoAssignNextObjective = false;
+                    objective.objectiveWaypoint.SetActive(true);
                 }
             }
-        }
 
-        public async void CompleteObjective(Objective objective, bool completedByPlayer = true)
-        {
-            if (objective.objectiveTarget != null) objective.objectiveTarget.gameObject.SetActive(false);
-            objective.status = Objective.ObjectiveStatus.Completed;
-            activeObjectiveIndices.Remove(objectives.IndexOf(objective));
-            
-            gameManager.ShowGuideBot();
-
-            if (completedByPlayer && objective.objectiveCategory == Objective.ObjectiveCategory.ShouldNotBeCompleted)
+            if (objective.objectiveType == Objective.ObjectiveType.Reach) // if objective is of type Reach ------------------------------------------
             {
-                RemoveObjectiveFromUI(objective, false);
-            }
-            else
-            {
-                RemoveObjectiveFromUI(objective, true);
-            }
-            
-            CheckForCompletionActions(objectives.IndexOf(objective));
-
-            if (GetNumberOfObjectives(Objective.ObjectiveStatus.Active) < 1 && currentObjectiveIndex < objectives.Count - 1)
-            {
-                // DetermineFreeWill(objective);
-                AddNextObjectives();
-            }
-            else if (GetNumberOfObjectives(Objective.ObjectiveStatus.Completed) == objectives.Count)
-            {
-                print("All objectives completed!");
-            }
-            // Over here I'm checking if there are any active objectives that should not be completed
-            // If there are, I'm auto completing them with success as the player did not complete them.
-            // I hope this makes sense 😭
-            else if (GetNumberOfObjectives(Objective.ObjectiveStatus.Active) > 0)
-            {
-                foreach (Objective obj in objectives)
+                if (distance < objectiveWaypointDistance)
                 {
-                    if (obj.status == Objective.ObjectiveStatus.Active)
+                    CompleteObjective(objective, true);
+                    if (isSequential && parentObjective != null)
                     {
-                        if (obj.objectiveCategory == Objective.ObjectiveCategory.ShouldNotBeCompleted)
+                        int sequenceObjectiveIndex = Array.IndexOf(parentObjective.objectiveSequence, objective);
+                        int completedSequenceObjectives = 0;
+                        foreach (Objective sequenceObjective in parentObjective.objectiveSequence)
                         {
-                            print("auto completing objective");
-                            CompleteObjective(obj, false);
+                            if (sequenceObjective.status != Objective.ObjectiveStatus.Active)
+                            {
+                                completedSequenceObjectives++;
+                            }
                         }
+                        int remainingSequenceObjectives = parentObjective.objectiveSequence.Length - completedSequenceObjectives;
+                        
+                        print("completedSequenceObjectives: " + completedSequenceObjectives);
+                        if (remainingSequenceObjectives > 0)
+                        {
+                            if (sequenceObjectiveIndex == completedSequenceObjectives - 1)
+                            {
+                                print("Sequence maintained");
+                                parentObjective.sequenceNotMaintained = false;
+                            }
+                            else
+                            {
+                                print("Sequence not maintained");
+                                parentObjective.sequenceNotMaintained = true;
+                            }
+                        }
+                        print("Sequence maintained? " + !parentObjective.sequenceNotMaintained);
                     }
                 }
             }
+            else if (objective.objectiveType == Objective.ObjectiveType.Interact) // if objective is of type Interact -------------------------------
+            {
+                foreach (GameObject target in objective.objectiveTargets)
+                {
+                    if (target.GetComponent<Interactable>() != null && target.GetComponent<Interactable>().timesInteracted > 0)
+                    {
+                        CompleteObjective(objective, true);
+                    }
+                }
+            }
+            else if (objective.objectiveType == Objective.ObjectiveType.Destroy) // if objective is of type Destroy ---------------------------------
+            {
+                int numberOfTargetsToDestroy = objective.objectiveTargets.Length;
+                int numberOfDestroyedTargets = 0;
+                foreach (GameObject target in objective.objectiveTargets)
+                {
+                    if (target == null || target.activeSelf == false)
+                    {
+                        numberOfDestroyedTargets++;
+                    }
+                }
 
-            await Task.Delay(2000);
-            gameManager.HideGuideBot();
+                if (numberOfDestroyedTargets == numberOfTargetsToDestroy)
+                {
+                    CompleteObjective(objective, true);
+                }
+            }
+            else if (objective.objectiveType == Objective.ObjectiveType.Sequence)
+            {
+                bool sequenceCompleted = true;
+                foreach (Objective sequenceObjective in objective.objectiveSequence)
+                {
+                    if (sequenceObjective.status == Objective.ObjectiveStatus.Active)
+                    {
+                        sequenceCompleted = false;
+                        break;
+                    }
+                }
+                
+                if (sequenceCompleted)
+                {
+                    CompleteObjective(objective, !objective.sequenceNotMaintained);
+                }
+            }
         }
+
+        public void CompleteObjective(Objective objective, bool wasSuccessful)
+        {
+            print("Objective completed: " + objective.objectiveText + " - " + wasSuccessful);
+            if (wasSuccessful)
+            {
+                objective.status = Objective.ObjectiveStatus.Completed;
+            }
+            else
+            {
+                objective.status = Objective.ObjectiveStatus.Failed;
+            }
+            
+            RemoveObjectiveFromUI(objective, wasSuccessful);
+            
+            foreach (Objective objectivesThatFailThisObjective in objective.objectivesThatFailThisObjective)
+            {
+                if (objectivesThatFailThisObjective.status == Objective.ObjectiveStatus.Completed) continue;
+                objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Failed;
+                RemoveObjectiveFromUI(objectivesThatFailThisObjective, wasSuccessful);
+            }
+            
+            foreach (Signalable signal in objective.completionSignals)
+            {
+                signal.Signal();
+            }
+            
+            if (!objectives.Contains(objective)) return; // Only main objectives should progress the story
+            
+            if (currentObjectiveIndex < objectives.Count - 1)
+            {
+                currentObjectiveIndex++;
+                objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
+                AddObjectiveToUI(objectives[currentObjectiveIndex]);
+                foreach (Objective objectivesThatFailThisObjective in objectives[currentObjectiveIndex].objectivesThatFailThisObjective)
+                {
+                    objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Active;
+                    AddObjectiveToUI(objectivesThatFailThisObjective, 40f);
+                }
+                foreach (Objective sequenceObjective in objectives[currentObjectiveIndex].objectiveSequence)
+                {
+                    sequenceObjective.status = Objective.ObjectiveStatus.Active;
+                    AddObjectiveToUI(sequenceObjective, 40f);
+                }
+            }
+            else
+            {
+                print("All objectives completed");
+            }
+        }
+        
+        // public void FailObjective(Objective objective)
+        // {
+        //     objective.status = Objective.ObjectiveStatus.Failed;
+        //     RemoveObjectiveFromUI(objective, false);
+        //     
+        //     foreach (Objective objectivesThatFailThisObjective in objective.objectivesThatFailThisObjective)
+        //     {
+        //         if (objectivesThatFailThisObjective.status == Objective.ObjectiveStatus.Completed) continue;
+        //         objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Failed;
+        //         RemoveObjectiveFromUI(objectivesThatFailThisObjective, false);
+        //     }
+        // }
 
         int GetNumberOfObjectives(Objective.ObjectiveStatus status)
         {
@@ -227,82 +281,56 @@ namespace Ekkam {
 
         void DetermineFreeWill(Objective completedObjective)
         {
-            if (activeObjectiveIndices.Count > 0 && activeObjectiveIndices[0] == objectives.IndexOf(completedObjective))
-            {
-                player.freeWill += 10;
-                StartCoroutine(PulseVignette(Color.red, 0.5f, 2.5f));
-            }
-            else if (activeObjectiveIndices.Count > 0)
-            {
-                player.freeWill -= 10;
-                StartCoroutine(PulseVignette(Color.blue, 0.5f, 2.5f));
-            }
-        }
-
-        public void CheckForCompletionActions(int completionIndex)
-        {
-            print("Checking for completion actions: " + completionIndex);
-            foreach (ObjectiveCompletionAction action in objectiveCompletionActions)
-            {
-                if (action.objectiveIndexToComplete == completionIndex)
-                {
-                    switch (action.completionAction)
-                    {
-                        case ObjectiveCompletionAction.CompletionAction.Move:
-                            StartCoroutine(MoveTarget(action.target, action.targetPositionOffset));
-                            break;
-                        case ObjectiveCompletionAction.CompletionAction.Enable:
-                            action.target.SetActive(true);
-                            break;
-                        case ObjectiveCompletionAction.CompletionAction.Disable:
-                            action.target.SetActive(false);
-                            break;
-                        case ObjectiveCompletionAction.CompletionAction.Destroy:
-                            Destroy(action.target);
-                            break;
-                    }
-                }
-            }
+            
         }
         
         [Command("skip-tasks")]
         public async void SkipTasks(int numberOfTasksToSkip)
         {
-            for (int i = 0; i < numberOfTasksToSkip; i++)
+            int firstActiveObjectiveIndex = 0;
+            for (int i = 0; i < objectives.Count; i++)
+            {
+                if (objectives[i].status == Objective.ObjectiveStatus.Active)
+                {
+                    firstActiveObjectiveIndex = i;
+                    print("First active objective index: " + firstActiveObjectiveIndex);
+                    break;
+                }
+            }
+            
+            for (int i = firstActiveObjectiveIndex; i < numberOfTasksToSkip; i++)
             {
                 print("Skipping task " + i);
                 if (objectives[i].status == Objective.ObjectiveStatus.Active)
                 {
-                    CompleteObjective(objectives[i]);
-                    CheckForCompletionActions(objectives.IndexOf(objectives[i]));
+                    foreach (Objective objectivesThatFailThisObjective in objectives[i].objectivesThatFailThisObjective)
+                    {
+                        objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Failed;
+                        RemoveObjectiveFromUI(objectivesThatFailThisObjective, false);
+                    }
+                    foreach(Objective sequenceObjective in objectives[i].objectiveSequence)
+                    {
+                        if (sequenceObjective.status == Objective.ObjectiveStatus.Active)
+                        {
+                            sequenceObjective.status = Objective.ObjectiveStatus.Completed;
+                            RemoveObjectiveFromUI(sequenceObjective, true);
+                        }
+                    }
+                    CompleteObjective(objectives[i], true);
                     await Task.Delay(200);
                 }
             }
         }
 
-        IEnumerator MoveTarget(GameObject targetObj, Vector3 targetPositionOffset)
-        {
-            var targetPosition = targetObj.transform.localPosition + targetPositionOffset;
-            float duration = 5f;
-            yield return new WaitForSeconds(0.5f);
-            Vector3 startPosition = targetObj.transform.localPosition;
-            float startTime = Time.time;
-            float endTime = startTime + duration;
-
-            while (Time.time < endTime)
-            {
-                float t = (Time.time - startTime) / duration;
-                targetObj.transform.localPosition = Vector3.Lerp(startPosition, targetPosition, t);
-                yield return null;
-            }
-            targetObj.transform.localPosition = targetPosition;
-        }
-
-        public void AddObjectiveToUI(Objective objective)
+        public void AddObjectiveToUI(Objective objective, float leftOffset = 0f)
         {
             GameObject objectiveUIItem = Instantiate(objectiveItem, objectiveUI.transform);
+            
             objectiveUIItem.GetComponentInChildren<TextMeshProUGUI>().text = objective.objectiveText;
             objectiveUIItem.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
+            
+            objectiveUIItem.transform.GetChild(0).GetComponent<RectTransform>().anchoredPosition = new Vector2(leftOffset, 0);
+            
             objective.objectiveUIItem = objectiveUIItem;
             objectiveUIItem.GetComponentInChildren<Animator>().SetBool("Active", false);
         }
