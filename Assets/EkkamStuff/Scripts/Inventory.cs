@@ -153,7 +153,7 @@ namespace Ekkam {
             {
                 Item item = items[slots.IndexOf(selectedSlot)];
                 item.gameObject.SetActive(true);
-                if (item.tag == "Sword" || item.tag == "Staff")
+                if (item.tag == "Sword" || item.tag == "Staff" || item.tag == "FireExtinguisher")
                 {
                     player.anim.SetBool("isHoldingSword", true);
                 }
