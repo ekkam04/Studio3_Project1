@@ -39,10 +39,13 @@ namespace Ekkam
         public float attackRange = 3f;
         public float detectionRange = 25f;
         private float originalDetectionRange;
-        public bool followsPlayer = true;
         private bool canMove = true;
         private float attackTimer;
         public float attackCooldown = 2f;
+        
+        [Header("--- Enemy Behaviour ---")]
+        public bool followsPlayer = true;
+        public bool interactsWithPlayer = true;
         
         public enum EnemyType
         {

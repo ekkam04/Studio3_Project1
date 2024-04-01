@@ -23,6 +23,15 @@ namespace Ekkam
             rb = GetComponent<Rigidbody>();
         }
 
+        void Update()
+        {
+            // if the object falls off the map
+            if (transform.position.y < -30)
+            {
+                Die();
+            }
+        }
+
         public void TakeDamage(int damage, GameObject damageDealer, Vector3 damageDealerForward)
         {
             if (tagsToIgnore.Length > 0)

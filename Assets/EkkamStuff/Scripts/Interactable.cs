@@ -13,6 +13,7 @@ namespace Ekkam {
         Inventory inventory;
         UIManager uiManager;
         GameObject pickUpPrompt;
+        TMP_Text pickUpText;
         
         public enum InteractionType
         {
@@ -25,7 +26,8 @@ namespace Ekkam {
         {
             Pickup,
             Signal,
-            Place
+            Place,
+            Talk
         }
         public InteractionAction interactionAction;
 
@@ -53,14 +55,16 @@ namespace Ekkam {
             uiManager = FindObjectOfType<UIManager>();
             var mainCamera = Camera.main;
             
-            pickUpPrompt = Instantiate(uiManager.pickUpPrompt, transform.position, Quaternion.identity);
-            pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().text = interactText;
-            pickUpPrompt.GetComponentInChildren<RotationConstraint>().AddSource(new ConstraintSource
-            {
-                sourceTransform = mainCamera.transform,
-                weight = 1
-            });
-            pickUpPrompt.SetActive(false);
+            // pickUpPrompt = Instantiate(uiManager.pickUpPrompt, transform.position, Quaternion.identity);
+            // pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().text = interactText;
+            // pickUpPrompt.GetComponentInChildren<RotationConstraint>().AddSource(new ConstraintSource
+            // {
+            //     sourceTransform = mainCamera.transform,
+            //     weight = 1
+            // });
+            // pickUpPrompt.SetActive(false);
+            pickUpPrompt = uiManager.pickUpPrompt;
+            pickUpText = pickUpPrompt.GetComponentInChildren<TMP_Text>();
         }
 
         void Update()
@@ -78,8 +82,14 @@ namespace Ekkam {
 
         void CheckForInteract()
         {
+            if (Vector3.Distance(player.transform.position, transform.position) > player.interactDistance + 1f)
+            {
+                return;
+            }
+
             if (Vector3.Distance(player.transform.position, transform.position) < player.interactDistance)
             {
+                pickUpText.text = interactText;
                 pickUpPrompt.SetActive(true);
                 if (Input.GetKeyDown(KeyCode.E))
                 {
@@ -147,6 +157,13 @@ namespace Ekkam {
                 {
                     StartCoroutine(PulsePickupPromptText(Color.red, 0.1f, 0.3f));
                 }
+            }
+            else if (interactionAction == InteractionAction.Talk)
+            {
+                DialogManager dialogManager = GetComponent<DialogManager>();
+                dialogManager.StartDialog(0);
+                pickUpPrompt.SetActive(false);
+                this.enabled = false;
             }
         }
         

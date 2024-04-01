@@ -22,7 +22,8 @@ namespace Ekkam {
         public GameObject[] objectiveTargets;
     
         public Objective[] objectiveSequence;
-        public bool sequenceNotMaintained;
+        public bool objectiveMessedUp;
+        
         public Objective[] objectivesThatFailThisObjective;
     
         public GameObject objectiveUIItem;
