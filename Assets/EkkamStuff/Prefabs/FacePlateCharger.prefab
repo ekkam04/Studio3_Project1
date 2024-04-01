@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1990084604808749841
+--- !u!1 &7452318736479091123
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,48 +8,48 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1956308117079175142}
-  - component: {fileID: 9212292519149487677}
-  - component: {fileID: 7563414579440975643}
-  - component: {fileID: 8857847602253435192}
-  - component: {fileID: 4889812819908058013}
-  m_Layer: 3
-  m_Name: Wire
+  - component: {fileID: 5970530156381913669}
+  - component: {fileID: 8905506409114687301}
+  - component: {fileID: 4811925248041968243}
+  - component: {fileID: 8730733516693155711}
+  - component: {fileID: 4183000579139483669}
+  m_Layer: 0
+  m_Name: FacePlateCharger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1956308117079175142
+--- !u!4 &5970530156381913669
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1990084604808749841}
+  m_GameObject: {fileID: 7452318736479091123}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -1.87, y: 0.050000012, z: 8.197}
-  m_LocalScale: {x: 2.12, y: 0.040667858, z: 0.09720612}
-  m_ConstrainProportionsScale: 1
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 19.114191, y: -0.52573967, z: 232.72}
+  m_LocalScale: {x: 3.1598563, y: 3.1598563, z: 3.1598563}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!33 &9212292519149487677
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &8905506409114687301
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1990084604808749841}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &7563414579440975643
+  m_GameObject: {fileID: 7452318736479091123}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &4811925248041968243
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1990084604808749841}
+  m_GameObject: {fileID: 7452318736479091123}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -63,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9d1577166f47ed840bef85571134214a, type: 2}
+  - {fileID: 2100000, guid: 42f64e70bed8a5b4b9abec4e92ab659d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -85,13 +85,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &8857847602253435192
-BoxCollider:
+--- !u!114 &8730733516693155711
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1990084604808749841}
+  m_GameObject: {fileID: 7452318736479091123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea03f19a1db44f0c9b5c9e032ccefd01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  charge: 3
+  chargingRadius: 2
+--- !u!135 &4183000579139483669
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7452318736479091123}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -104,23 +118,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 0
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4889812819908058013
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1990084604808749841}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a8a60fc8f3d4390a00382a562ff556e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  connectedSignalable: {fileID: 0}
-  extraConnectedSignalables: []
-  prerequisiteWire: {fileID: 0}
-  signalSent: 0
-  isPowered: 0
-  poweredColor: {r: 0, g: 0.5125196, b: 1, a: 1}

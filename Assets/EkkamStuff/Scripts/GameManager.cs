@@ -39,8 +39,8 @@ public class GameManager : MonoBehaviour
         uiManager = FindObjectOfType<UIManager>();
         guideBot = FindObjectOfType<GuideBot>();
         
-        // Cursor.lockState = CursorLockMode.Locked;
-        // Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
     
     [Command("grant-item")]
