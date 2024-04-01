@@ -39,10 +39,13 @@ namespace Ekkam
         public float attackRange = 3f;
         public float detectionRange = 25f;
         private float originalDetectionRange;
-        public bool followsPlayer = true;
         private bool canMove = true;
         private float attackTimer;
         public float attackCooldown = 2f;
+        
+        [Header("--- Enemy Behaviour ---")]
+        public bool followsPlayer = true;
+        public GameObject targetObjectToWalkTo;
         
         public enum EnemyType
         {
@@ -188,6 +191,11 @@ namespace Ekkam
 
             public override NodeState Evaluate()
             {
+                if (Player.Instance.disguiseActive)
+                {
+                    return NodeState.Failure;
+                }
+                
                 if (
                     ((grid != null && grid.ObjectIsOnGrid(Player.Instance.transform.position)) || !followsPlayer)
                     && (Vector3.Distance(transform.position, Player.Instance.transform.position) < enemy.detectionRange

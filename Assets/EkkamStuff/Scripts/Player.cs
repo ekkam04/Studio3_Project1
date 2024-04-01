@@ -17,8 +17,12 @@ namespace Ekkam
 
         public GameObject[] facePlates;
         
-        public bool allowMovement = true;
+        private bool allowMovement = true;
         public bool allowFall = true;
+        
+        public bool disguiseActive = false;
+        public float disguiseBattery = 60f;
+        public Slider disguiseSlider;
 
         public float freeWill = 50f;
         public Slider freeWillSlider;
@@ -55,10 +59,11 @@ namespace Ekkam
         private float jumpStartTime;
 
         public float interactDistance = 3f;
+        
         float swordTimer;
         float swordResetCooldown = 1.25f;
         float swordAttackCooldown = 0.25f;
-
+        
         private float bowTimer;
         private float bowResetCooldown = 1.25f;
         private float bowAttackCooldown = 1.25f;
@@ -68,9 +73,6 @@ namespace Ekkam
 
         [SerializeField] public GameObject itemHolderRight;
         [SerializeField] public GameObject itemHolderLeft;
-        [SerializeField] public GameObject arrow;
-        [SerializeField] public GameObject spellBall;
-        [SerializeField] public GameObject swordHitbox;
 
         public static Player Instance { get; private set; }
 
@@ -99,6 +101,8 @@ namespace Ekkam
                 facePlate.SetActive(false);
             }
             facePlates[0].SetActive(true);
+            disguiseSlider.maxValue = disguiseBattery;
+            disguiseSlider.gameObject.SetActive(false);
 
             // cameraObj = GameObject.FindObjectOfType<Camera>().transform;
             cameraOffset = cameraObj.position - transform.position;
@@ -106,9 +110,6 @@ namespace Ekkam
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
             initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
             initialSpeed = speed;
-
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
         }
 
         void Update()
@@ -142,7 +143,23 @@ namespace Ekkam
                 if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
             }
             
-            //cycle faceplates on P key
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                ToggleDisguise();
+            }
+            
+            if (disguiseActive)
+            {
+                disguiseBattery -= Time.deltaTime;
+                disguiseSlider.value = disguiseBattery;
+                if (disguiseBattery <= 0)
+                {
+                    disguiseBattery = 0;
+                    ToggleDisguise();
+                }
+            }
+            
+            //cycle faceplates on P key (Testing)
             if (Input.GetKeyDown(KeyCode.P))
             {
                 int currentFacePlateIndex = 0;
@@ -395,6 +412,17 @@ namespace Ekkam
             }
 
             facePlates[0].SetActive(true);
+        }
+        
+        public void ToggleDisguise()
+        {
+            disguiseActive = !disguiseActive;
+            disguiseSlider.gameObject.SetActive(disguiseActive);
+            foreach (var facePlate in facePlates)
+            {
+                facePlate.SetActive(false);
+            }
+            facePlates[disguiseActive ? 3 : 0].SetActive(true);
         }
     }
 }
