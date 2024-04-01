@@ -17,7 +17,7 @@ namespace Ekkam
 
         public GameObject[] facePlates;
         
-        public bool allowMovement = true;
+        private bool allowMovement = true;
         public bool allowFall = true;
         
         public bool disguiseActive = false;

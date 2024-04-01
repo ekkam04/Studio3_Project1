@@ -21,7 +21,7 @@ namespace Ekkam
 
         public void StartDialog(int dialogIndex)
         {
-            Player.Instance.allowMovement = false;
+            Player.Instance.enabled = false;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             
@@ -63,7 +63,7 @@ namespace Ekkam
         
         public void HandleOption(DialogOption option)
         {
-            Player.Instance.allowMovement = true;
+            Player.Instance.enabled = true;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             
