@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
+using UnityEngine.Animations.Rigging;
 
 namespace Ekkam
 {
@@ -49,29 +50,29 @@ namespace Ekkam
                 meleeHitbox.SetActive(false);
             }
             
-            public async void ArcherAttack()
+            public async void ArcherAttack(Item bow, Player player)
             {
                 var mainCamera = Camera.main;
-                transform.forward = new Vector3(mainCamera.transform.forward.x, 0, mainCamera.transform.forward.z);
+                // transform.forward = new Vector3(mainCamera.transform.forward.x, 0, mainCamera.transform.forward.z);
+                player.secondHandArrowIKWeight = 1;
                 
                 anim.SetTrigger("bowAttack");
                 await Task.Delay(250);
                 
-                GameObject newArrow = Instantiate(arrow, itemHolderLeft.transform.position, Quaternion.identity, itemHolderRight.transform);
+                var arrowHolder = bow.gameObject.transform.GetChild(0);
+                GameObject newArrow = Instantiate(arrow, arrowHolder.position, Quaternion.identity, arrowHolder);
                 var arrowCollider = newArrow.GetComponent<Collider>();
                 arrowCollider.excludeLayers = layersToIgnore;
                 newArrow.transform.localRotation = Quaternion.identity;
-                newArrow.transform.Rotate(0, 90, 0);
-                newArrow.transform.localPosition = new Vector3(0, 0, 0);
                 newArrow.SetActive(true);
                 await Task.Delay(550);
                 
                 newArrow.transform.SetParent(null);
-                newArrow.transform.localPosition += new Vector3(0, 0.25f, 0);
-                newArrow.transform.forward = mainCamera.transform.forward + new Vector3(0, 0.05f, 0);
+                newArrow.transform.position = bow.transform.position;
                 newArrow.GetComponent<Projectile>().speed = 15;
                 await Task.Delay(100);
                 newArrow.GetComponent<Collider>().enabled = true;
+                player.secondHandArrowIKWeight = 0;
             }
             
             public async void MageAttack()

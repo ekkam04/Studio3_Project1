@@ -407,7 +407,7 @@ namespace Ekkam
                             enemy.combatManager.MeleeAttack();
                             break;
                         case Enemy.EnemyType.Archer:
-                            enemy.combatManager.ArcherAttack();
+                            // enemy.combatManager.ArcherAttack();
                             break;
                         case Enemy.EnemyType.Mage:
                             enemy.combatManager.MageAttack();
