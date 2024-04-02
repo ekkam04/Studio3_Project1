@@ -147,15 +147,29 @@ namespace Ekkam {
             {
                 item.gameObject.SetActive(false);
             }
+            
+            // hide all item animations
+            player.anim.SetBool("isHoldingSword", false);
+            player.anim.SetBool("isHoldingBow", false);
+            player.anim.SetBool("isHolding", false);
+            player.bowRig.weight = 0;
+            player.SwitchCameraStyle(Player.CameraStyle.Exploration);
 
             // show item in selected slot
             if (selectedSlot.GetComponentInChildren<RawImage>() != null)
             {
                 Item item = items[slots.IndexOf(selectedSlot)];
                 item.gameObject.SetActive(true);
-                if (item.tag == "Sword" || item.tag == "Staff")
+                if (item.tag == "Sword" || item.tag == "Staff" || item.tag == "FireExtinguisher")
                 {
                     player.anim.SetBool("isHoldingSword", true);
+                    player.SwitchCameraStyle(Player.CameraStyle.Combat);
+                }
+                else if (item.tag == "Bow")
+                {
+                    player.anim.SetBool("isHoldingBow", true);
+                    player.bowRig.weight = 1;
+                    player.SwitchCameraStyle(Player.CameraStyle.Combat);
                 }
                 else
                 {
@@ -170,11 +184,6 @@ namespace Ekkam {
                 {
                     player.anim.SetBool("isHolding", false);
                 }
-            }
-            else
-            {
-                player.anim.SetBool("isHoldingSword", false);
-                player.anim.SetBool("isHolding", false);
             }
         }
 

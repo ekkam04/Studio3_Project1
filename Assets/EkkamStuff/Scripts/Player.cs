@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using TMPro;
 using System.Threading.Tasks;
 using QFSW.QC;
+using UnityEngine.Animations.Rigging;
 using UnityEngine.UI;
 
 namespace Ekkam
@@ -14,6 +15,16 @@ namespace Ekkam
     {
         Inventory inventory;
         CombatManager combatManager;
+        
+        public enum CameraStyle
+        {
+            Exploration,
+            Combat
+        }
+        public CameraStyle cameraStyle;
+        public Rig bowRig;
+        public TwoBoneIKConstraint secondHandArrowIK;
+        public float secondHandArrowIKWeight;
 
         public GameObject[] facePlates;
         
@@ -31,9 +42,15 @@ namespace Ekkam
 
         public Vector3 viewDirection;
         public Transform orientation;
-        public Transform cameraObj;
+        
+        private Transform cameraObj;
+        public GameObject explorationCamera;
+        public GameObject combatCamera;
+        
+        public Transform combatLookAt;
         private Vector3 cameraOffset;
         public float rotationSpeed = 5f;
+        
         public float horizontalInput = 0f;
         public float verticalInput = 0f;
         Vector3 moveDirection;
@@ -104,7 +121,8 @@ namespace Ekkam
             disguiseSlider.maxValue = disguiseBattery;
             disguiseSlider.gameObject.SetActive(false);
 
-            // cameraObj = GameObject.FindObjectOfType<Camera>().transform;
+            cameraObj = explorationCamera.transform;
+            cameraStyle = CameraStyle.Exploration;
             cameraOffset = cameraObj.position - transform.position;
 
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
@@ -118,17 +136,30 @@ namespace Ekkam
             viewDirection = transform.position - new Vector3(cameraObj.position.x, transform.position.y, cameraObj.position.z);
             orientation.forward = viewDirection.normalized;
 
-            moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-             
-            if(moveDirection != Vector3.zero)
+            if (cameraStyle == CameraStyle.Exploration)
             {
-                if(!targetLock) transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
-                anim.SetBool("isMoving", true);
+                moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
+                 
+                if(moveDirection != Vector3.zero)
+                {
+                    if(!targetLock) transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
+                    // anim.SetBool("isMoving", true);
+                }
+                // else
+                // {
+                //     anim.SetBool("isMoving", false);
+                // }
             }
-            else
+            else if (cameraStyle == CameraStyle.Combat)
             {
-                anim.SetBool("isMoving", false);
+                moveDirection = combatLookAt.position - new Vector3(cameraObj.position.x, combatLookAt.position.y, cameraObj.position.z);
+                orientation.forward = moveDirection.normalized;
+                
+                transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
             }
+            
+            // set isMoving parameter in animator to true if player is moving
+            anim.SetBool("isMoving", verticalInput != 0 || horizontalInput != 0);
             
             ControlSpeed();
             CheckForGround();
@@ -206,6 +237,8 @@ namespace Ekkam
 
             freeWillSlider.value = Mathf.Lerp(freeWillSlider.value, freeWill, Time.deltaTime * 5);
             healthSlider.value = Mathf.Lerp(healthSlider.value, health, Time.deltaTime * 5);
+            
+            secondHandArrowIK.weight = Mathf.Lerp(secondHandArrowIK.weight, secondHandArrowIKWeight, Time.deltaTime * 5);
         }
 
         void FixedUpdate()
@@ -306,7 +339,7 @@ namespace Ekkam
         void CheckForGround()
         {
             RaycastHit hit1;
-            if (Physics.BoxCast(transform.position + new Vector3(0, 0.5f, 0), new Vector3(0.5f, 0.5f, 0.5f), Vector3.down, out hit1, Quaternion.identity, groundDistance + 0.1f))
+            if (Physics.BoxCast(transform.position + new Vector3(0, 0.5f, 0), new Vector3(0.2f, 0.5f, 0.2f), Vector3.down, out hit1, Quaternion.identity, groundDistance + 0.1f))
             {
                 isGrounded = true;
                 rb.drag = groundDrag;
@@ -381,7 +414,7 @@ namespace Ekkam
                     if (bowTimer < bowAttackCooldown || isGrounded == false) return;
                     allowMovement = false;
                     bowTimer = 0;
-                    combatManager.ArcherAttack();
+                    combatManager.ArcherAttack(item, this);
                     break;
                 case "Staff":
                     if (swordTimer < swordAttackCooldown || isGrounded == false) return;
@@ -423,6 +456,26 @@ namespace Ekkam
                 facePlate.SetActive(false);
             }
             facePlates[disguiseActive ? 3 : 0].SetActive(true);
+        }
+        
+        public void SwitchCameraStyle(CameraStyle style)
+        {
+            cameraStyle = style;
+            switch (style)
+            {
+                case CameraStyle.Exploration:
+                    cameraObj = explorationCamera.transform;
+                    explorationCamera.SetActive(true);
+                    combatCamera.SetActive(false);
+                    break;
+                case CameraStyle.Combat:
+                    cameraObj = combatCamera.transform;
+                    combatCamera.SetActive(true);
+                    explorationCamera.SetActive(false);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
