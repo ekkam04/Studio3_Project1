@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using TMPro;
 using System.Threading.Tasks;
 using QFSW.QC;
+using UnityEngine.Animations.Rigging;
 using UnityEngine.UI;
 
 namespace Ekkam
@@ -14,11 +15,25 @@ namespace Ekkam
     {
         Inventory inventory;
         CombatManager combatManager;
+        
+        public enum CameraStyle
+        {
+            Exploration,
+            Combat
+        }
+        public CameraStyle cameraStyle;
+        public Rig bowRig;
+        public TwoBoneIKConstraint secondHandArrowIK;
+        public float secondHandArrowIKWeight;
 
         public GameObject[] facePlates;
         
-        public bool allowMovement = true;
+        private bool allowMovement = true;
         public bool allowFall = true;
+        
+        public bool disguiseActive = false;
+        public float disguiseBattery = 60f;
+        public Slider disguiseSlider;
 
         public float freeWill = 50f;
         public Slider freeWillSlider;
@@ -27,9 +42,15 @@ namespace Ekkam
 
         public Vector3 viewDirection;
         public Transform orientation;
-        public Transform cameraObj;
+        
+        private Transform cameraObj;
+        public GameObject explorationCamera;
+        public GameObject combatCamera;
+        
+        public Transform combatLookAt;
         private Vector3 cameraOffset;
         public float rotationSpeed = 5f;
+        
         public float horizontalInput = 0f;
         public float verticalInput = 0f;
         Vector3 moveDirection;
@@ -55,10 +76,11 @@ namespace Ekkam
         private float jumpStartTime;
 
         public float interactDistance = 3f;
+        
         float swordTimer;
         float swordResetCooldown = 1.25f;
         float swordAttackCooldown = 0.25f;
-
+        
         private float bowTimer;
         private float bowResetCooldown = 1.25f;
         private float bowAttackCooldown = 1.25f;
@@ -68,9 +90,6 @@ namespace Ekkam
 
         [SerializeField] public GameObject itemHolderRight;
         [SerializeField] public GameObject itemHolderLeft;
-        [SerializeField] public GameObject arrow;
-        [SerializeField] public GameObject spellBall;
-        [SerializeField] public GameObject swordHitbox;
 
         public static Player Instance { get; private set; }
 
@@ -99,16 +118,16 @@ namespace Ekkam
                 facePlate.SetActive(false);
             }
             facePlates[0].SetActive(true);
+            disguiseSlider.maxValue = disguiseBattery;
+            disguiseSlider.gameObject.SetActive(false);
 
-            // cameraObj = GameObject.FindObjectOfType<Camera>().transform;
+            cameraObj = explorationCamera.transform;
+            cameraStyle = CameraStyle.Exploration;
             cameraOffset = cameraObj.position - transform.position;
 
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
             initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
             initialSpeed = speed;
-
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
         }
 
         void Update()
@@ -117,17 +136,30 @@ namespace Ekkam
             viewDirection = transform.position - new Vector3(cameraObj.position.x, transform.position.y, cameraObj.position.z);
             orientation.forward = viewDirection.normalized;
 
-            moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-             
-            if(moveDirection != Vector3.zero)
+            if (cameraStyle == CameraStyle.Exploration)
             {
-                if(!targetLock) transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
-                anim.SetBool("isMoving", true);
+                moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
+                 
+                if(moveDirection != Vector3.zero)
+                {
+                    if(!targetLock) transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
+                    // anim.SetBool("isMoving", true);
+                }
+                // else
+                // {
+                //     anim.SetBool("isMoving", false);
+                // }
             }
-            else
+            else if (cameraStyle == CameraStyle.Combat)
             {
-                anim.SetBool("isMoving", false);
+                moveDirection = combatLookAt.position - new Vector3(cameraObj.position.x, combatLookAt.position.y, cameraObj.position.z);
+                orientation.forward = moveDirection.normalized;
+                
+                transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
             }
+            
+            // set isMoving parameter in animator to true if player is moving
+            anim.SetBool("isMoving", verticalInput != 0 || horizontalInput != 0);
             
             ControlSpeed();
             CheckForGround();
@@ -142,7 +174,23 @@ namespace Ekkam
                 if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
             }
             
-            //cycle faceplates on P key
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                ToggleDisguise();
+            }
+            
+            if (disguiseActive)
+            {
+                disguiseBattery -= Time.deltaTime;
+                disguiseSlider.value = disguiseBattery;
+                if (disguiseBattery <= 0)
+                {
+                    disguiseBattery = 0;
+                    ToggleDisguise();
+                }
+            }
+            
+            //cycle faceplates on P key (Testing)
             if (Input.GetKeyDown(KeyCode.P))
             {
                 int currentFacePlateIndex = 0;
@@ -189,6 +237,8 @@ namespace Ekkam
 
             freeWillSlider.value = Mathf.Lerp(freeWillSlider.value, freeWill, Time.deltaTime * 5);
             healthSlider.value = Mathf.Lerp(healthSlider.value, health, Time.deltaTime * 5);
+            
+            secondHandArrowIK.weight = Mathf.Lerp(secondHandArrowIK.weight, secondHandArrowIKWeight, Time.deltaTime * 5);
         }
 
         void FixedUpdate()
@@ -289,7 +339,7 @@ namespace Ekkam
         void CheckForGround()
         {
             RaycastHit hit1;
-            if (Physics.BoxCast(transform.position + new Vector3(0, 0.5f, 0), new Vector3(0.5f, 0.5f, 0.5f), Vector3.down, out hit1, Quaternion.identity, groundDistance + 0.1f))
+            if (Physics.BoxCast(transform.position + new Vector3(0, 0.5f, 0), new Vector3(0.2f, 0.5f, 0.2f), Vector3.down, out hit1, Quaternion.identity, groundDistance + 0.1f))
             {
                 isGrounded = true;
                 rb.drag = groundDrag;
@@ -364,7 +414,7 @@ namespace Ekkam
                     if (bowTimer < bowAttackCooldown || isGrounded == false) return;
                     allowMovement = false;
                     bowTimer = 0;
-                    combatManager.ArcherAttack();
+                    combatManager.ArcherAttack(item, this);
                     break;
                 case "Staff":
                     if (swordTimer < swordAttackCooldown || isGrounded == false) return;
@@ -395,6 +445,37 @@ namespace Ekkam
             }
 
             facePlates[0].SetActive(true);
+        }
+        
+        public void ToggleDisguise()
+        {
+            disguiseActive = !disguiseActive;
+            disguiseSlider.gameObject.SetActive(disguiseActive);
+            foreach (var facePlate in facePlates)
+            {
+                facePlate.SetActive(false);
+            }
+            facePlates[disguiseActive ? 3 : 0].SetActive(true);
+        }
+        
+        public void SwitchCameraStyle(CameraStyle style)
+        {
+            cameraStyle = style;
+            switch (style)
+            {
+                case CameraStyle.Exploration:
+                    cameraObj = explorationCamera.transform;
+                    explorationCamera.SetActive(true);
+                    combatCamera.SetActive(false);
+                    break;
+                case CameraStyle.Combat:
+                    cameraObj = combatCamera.transform;
+                    combatCamera.SetActive(true);
+                    explorationCamera.SetActive(false);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

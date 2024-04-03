@@ -64,6 +64,7 @@ namespace Ekkam {
                 foreach (Objective objectivesThatFailThisObjective in objectives[currentObjectiveIndex].objectivesThatFailThisObjective)
                 {
                     objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Active;
+                    objectivesThatFailThisObjective.objectiveMessedUp = true;
                     AddObjectiveToUI(objectivesThatFailThisObjective, 40f);
                 }
                 foreach (Objective sequenceObjective in objectives[currentObjectiveIndex].objectiveSequence)
@@ -72,6 +73,8 @@ namespace Ekkam {
                     AddObjectiveToUI(sequenceObjective, 40f);
                 }
             }
+            
+            SkipTasks(currentObjectiveIndex);
         }
 
         void Update()
@@ -83,11 +86,12 @@ namespace Ekkam {
                 foreach (Objective objectivesThatFailThisObjective in objective.objectivesThatFailThisObjective)
                 {
                     CheckObjectiveCompletion(objectivesThatFailThisObjective);
-                    if (objectivesThatFailThisObjective.status == Objective.ObjectiveStatus.Completed)
-                    {
-                        CompleteObjective(objective, false);
-                        return;
-                    }
+                    // if (objectivesThatFailThisObjective.status != Objective.ObjectiveStatus.Active)
+                    // {
+                    //     // CompleteObjective(objective, false);
+                    //     objective.objectiveMessedUp = true;
+                    //     // return;
+                    // }
                 }
                 
                 if (objective.objectiveType == Objective.ObjectiveType.Sequence)
@@ -125,7 +129,7 @@ namespace Ekkam {
             {
                 if (distance < objectiveWaypointDistance)
                 {
-                    CompleteObjective(objective, true);
+                    CompleteObjective(objective, !objective.objectiveMessedUp);
                     if (isSequential && parentObjective != null)
                     {
                         int sequenceObjectiveIndex = Array.IndexOf(parentObjective.objectiveSequence, objective);
@@ -145,15 +149,15 @@ namespace Ekkam {
                             if (sequenceObjectiveIndex == completedSequenceObjectives - 1)
                             {
                                 print("Sequence maintained");
-                                parentObjective.sequenceNotMaintained = false;
+                                parentObjective.objectiveMessedUp = false;
                             }
                             else
                             {
                                 print("Sequence not maintained");
-                                parentObjective.sequenceNotMaintained = true;
+                                parentObjective.objectiveMessedUp = true;
                             }
                         }
-                        print("Sequence maintained? " + !parentObjective.sequenceNotMaintained);
+                        print("Sequence maintained? " + !parentObjective.objectiveMessedUp);
                     }
                 }
             }
@@ -163,7 +167,7 @@ namespace Ekkam {
                 {
                     if (target.GetComponent<Interactable>() != null && target.GetComponent<Interactable>().timesInteracted > 0)
                     {
-                        CompleteObjective(objective, true);
+                        CompleteObjective(objective, !objective.objectiveMessedUp);
                     }
                 }
             }
@@ -181,7 +185,7 @@ namespace Ekkam {
 
                 if (numberOfDestroyedTargets == numberOfTargetsToDestroy)
                 {
-                    CompleteObjective(objective, true);
+                    CompleteObjective(objective, !objective.objectiveMessedUp);
                 }
             }
             else if (objective.objectiveType == Objective.ObjectiveType.Sequence)
@@ -198,7 +202,7 @@ namespace Ekkam {
                 
                 if (sequenceCompleted)
                 {
-                    CompleteObjective(objective, !objective.sequenceNotMaintained);
+                    CompleteObjective(objective, !objective.objectiveMessedUp);
                 }
             }
         }
@@ -239,6 +243,7 @@ namespace Ekkam {
                 foreach (Objective objectivesThatFailThisObjective in objectives[currentObjectiveIndex].objectivesThatFailThisObjective)
                 {
                     objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Active;
+                    objectivesThatFailThisObjective.objectiveMessedUp = true;
                     AddObjectiveToUI(objectivesThatFailThisObjective, 40f);
                 }
                 foreach (Objective sequenceObjective in objectives[currentObjectiveIndex].objectiveSequence)
