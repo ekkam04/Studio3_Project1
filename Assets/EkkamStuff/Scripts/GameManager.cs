@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
     public Transform[] droneCrashPath;
     public Action room1FireExtinguisherHolder;
     public Interactable room1RepairPanel;
-    public Action room1Door;
+    public Interactable room1HealingStation;
 
     private void Awake()
     {
@@ -143,7 +143,7 @@ public class GameManager : MonoBehaviour
         droneBroken.SetActive(true);
         droneCrashVCam.SetActive(true);
         droneBroken.transform.position = droneCrashPath[0].position;
-        yield return new WaitForSeconds(3);
+        yield return new WaitForSeconds(1);
         // move along the path and slowly ramp up the speed
         float droneSpeed = 0.5f;
         for (int i = 1; i < droneCrashPath.Length; i++)
@@ -182,7 +182,7 @@ public class GameManager : MonoBehaviour
             },
             new Dialog
             {
-                dialogText = "10%................12%................15%................20%................25%................85%................90%......................95%.................................100%",
+                dialogText = "10%................12%................15%................20%................25%................85%................90%......................95%....................................100%",
                 dialogOptions = new DialogOption[] {}
             },
             new Dialog
@@ -209,6 +209,7 @@ public class GameManager : MonoBehaviour
     IEnumerator Room1RepairDrone()
     {
         ShowGuideBot();
+        yield return new WaitForSeconds(2);
         List<Dialog> dialogsToShow = new List<Dialog>
         {
             new Dialog // index 0
@@ -242,8 +243,8 @@ public class GameManager : MonoBehaviour
                     new DialogOption
                     {
                         optionText = "Understood, let's go.",
-                        optionType = DialogOption.OptionType.Signal,
-                        signal = room1Door
+                        optionType = DialogOption.OptionType.Jump,
+                        jumpToIndex = 5
                     }
                 }
             },
@@ -286,14 +287,28 @@ public class GameManager : MonoBehaviour
                     }
                 }
             },
+            new Dialog // index 5
+            {
+                dialogText = "Before we proceed, the Seraph unit has observed that an impact caused by a drone has damaged some systems, Proceed to the repair Station proudly Sponsored by Haptic Repairs, First ones on us!!",
+                dialogOptions = new DialogOption[]
+                {
+                    new DialogOption
+                    {
+                        optionText = "Continue",
+                        optionType = DialogOption.OptionType.End,
+                        jumpToIndex = 1
+                    }
+                }
+            },
         };
         dialogManager.dialogs = dialogsToShow;
         dialogManager.StartDialog(0);
         
-        // room1RepairPanel.enabled = false;
-        // uiManager.pickUpPrompt.SetActive(false);
+        room1RepairPanel.enabled = false;
+        uiManager.pickUpPrompt.SetActive(false);
         
         yield return new WaitUntil(() => !dialogManager.isDialogActive);
+        room1HealingStation.enabled = true;
         objectiveManager.AddNextObjective();
     }
 }
