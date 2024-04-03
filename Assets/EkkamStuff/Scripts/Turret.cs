@@ -7,6 +7,8 @@ namespace Ekkam
     {
         public GameObject rotatingBase; // this will rotate on the y axis
         public GameObject rotatingGun; // this will rotate on the x axis
+        public Vector2 baseRotationLimits = new Vector2(-360, 360);
+        public Vector2 gunRotationLimits = new Vector2(-360, 360);
         private Player player;
 
         private void Start()
@@ -16,6 +18,24 @@ namespace Ekkam
 
         private void Update()
         {
+            // lock rotation limits
+            if (rotatingBase.transform.rotation.eulerAngles.y > baseRotationLimits.y)
+            {
+                rotatingBase.transform.rotation = Quaternion.Euler(rotatingBase.transform.rotation.eulerAngles.x, baseRotationLimits.y, rotatingBase.transform.rotation.eulerAngles.z);
+            }
+            if (rotatingBase.transform.rotation.eulerAngles.y < baseRotationLimits.x)
+            {
+                rotatingBase.transform.rotation = Quaternion.Euler(rotatingBase.transform.rotation.eulerAngles.x, baseRotationLimits.x, rotatingBase.transform.rotation.eulerAngles.z);
+            }
+            if (rotatingGun.transform.rotation.eulerAngles.x > gunRotationLimits.y)
+            {
+                rotatingGun.transform.rotation = Quaternion.Euler(gunRotationLimits.y, rotatingGun.transform.rotation.eulerAngles.y, rotatingGun.transform.rotation.eulerAngles.z);
+            }
+            if (rotatingGun.transform.rotation.eulerAngles.x < gunRotationLimits.x)
+            {
+                rotatingGun.transform.rotation = Quaternion.Euler(gunRotationLimits.x, rotatingGun.transform.rotation.eulerAngles.y, rotatingGun.transform.rotation.eulerAngles.z);
+            }
+            
             // base rotation Y
             Vector3 directionToTarget = player.transform.position - transform.position;
             directionToTarget.y = 0;
