@@ -151,7 +151,7 @@ Transform:
   m_GameObject: {fileID: 617148437647987796}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.819, y: -0.06, z: -0.073}
+  m_LocalPosition: {x: 0.974, y: -0.071, z: -0.272}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1979,6 +1979,7 @@ MonoBehaviour:
   cameraStyle: 0
   bowRig: {fileID: 8268098505618454862}
   secondHandArrowIK: {fileID: 2580890301193767390}
+  secondHandArrowIKWeight: 0
   facePlates:
   - {fileID: 1264072884173521519}
   - {fileID: 5887431647721279416}

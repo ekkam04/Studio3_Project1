@@ -160,10 +160,14 @@ namespace Ekkam {
             {
                 Item item = items[slots.IndexOf(selectedSlot)];
                 item.gameObject.SetActive(true);
-                if (item.tag == "Sword" || item.tag == "Staff" || item.tag == "FireExtinguisher")
+                if (item.tag == "Staff" || item.tag == "FireExtinguisher")
                 {
                     player.anim.SetBool("isHoldingSword", true);
                     player.SwitchCameraStyle(Player.CameraStyle.Combat);
+                }
+                else if (item.tag == "Sword")
+                {
+                    player.anim.SetBool("isHoldingSword", true);
                 }
                 else if (item.tag == "Bow")
                 {
@@ -171,12 +175,7 @@ namespace Ekkam {
                     player.bowRig.weight = 1;
                     player.SwitchCameraStyle(Player.CameraStyle.Combat);
                 }
-                else
-                {
-                    player.anim.SetBool("isHoldingSword", false);
-                }
-                
-                if (item.tag == "Battery")
+                else if (item.tag == "Battery" || item.tag == "Drone")
                 {
                     player.anim.SetBool("isHolding", true);
                 }

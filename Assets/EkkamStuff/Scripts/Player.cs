@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using TMPro;
 using System.Threading.Tasks;
 using QFSW.QC;
+using Unity.VisualScripting;
 using UnityEngine.Animations.Rigging;
 using UnityEngine.UI;
 
@@ -421,6 +422,10 @@ namespace Ekkam
                     swordTimer = 0;
                     allowMovement = false;
                     combatManager.MageAttack();
+                    break;
+                case "FireExtinguisher":
+                    var fireExtinguisher = item.GetComponent<FireExtinguisher>();
+                    fireExtinguisher.Toggle();
                     break;
                 default:
                     break;

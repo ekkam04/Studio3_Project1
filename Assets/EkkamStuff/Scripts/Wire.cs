@@ -6,6 +6,7 @@ namespace Ekkam
     {
         public Signalable connectedSignalable;
         public Signalable[] extraConnectedSignalables;
+        public string poweredActionKey;
         public Wire prerequisiteWire;
         
         public bool signalSent;
@@ -14,6 +15,9 @@ namespace Ekkam
         public Color poweredColor;
         
         private Material wireMaterial;
+        
+        public delegate void OnPowered(string actionKey);
+        public static event OnPowered onPowered;
         
         void Start()
         {
@@ -44,6 +48,11 @@ namespace Ekkam
             wireMaterial.color = poweredColor;
             wireMaterial.SetColor("_EmissionColor", poweredColor);
             wireMaterial.EnableKeyword("_EMISSION");
+            
+            if (onPowered != null && poweredActionKey != null)
+            {
+                onPowered(poweredActionKey);
+            }
         }
     }
 }

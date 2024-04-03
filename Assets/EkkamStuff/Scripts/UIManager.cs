@@ -16,6 +16,7 @@ public class UIManager : MonoBehaviour
     
     public GameObject dialogUI;
     public TMP_Text dialogText;
+    public bool showingDialog;
     public GameObject dialogCamera;
 
     public Button nextButton;
@@ -29,6 +30,7 @@ public class UIManager : MonoBehaviour
 
     public async void ShowDialog(string dialog, bool showNextButton = false)
     {
+        showingDialog = true;
         inventoryUI.SetActive(false);
         dialogCamera.SetActive(true);
         dialogText.text = "";
@@ -36,8 +38,9 @@ public class UIManager : MonoBehaviour
         foreach (var letter in dialog)
         {
             dialogText.text += letter;
-            await Task.Delay(50);
+            await Task.Delay(20);
         }
+        showingDialog = false;
     }
     
     public void HideDialog()
