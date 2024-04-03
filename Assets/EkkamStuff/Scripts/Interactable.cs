@@ -82,7 +82,7 @@ namespace Ekkam {
 
         void CheckForInteract()
         {
-            if (Vector3.Distance(player.transform.position, transform.position) > player.interactDistance + 1f)
+            if (Vector3.Distance(player.transform.position, transform.position) > player.interactDistance + 0.1f)
             {
                 return;
             }

@@ -50,7 +50,7 @@ ParticleSystem:
   emitterVelocityMode: 1
   looping: 1
   prewarm: 0
-  playOnAwake: 1
+  playOnAwake: 0
   useUnscaledTime: 0
   autoRandomSeed: 1
   startDelay:
@@ -4892,6 +4892,8 @@ GameObject:
   - component: {fileID: 819989487576058581}
   - component: {fileID: 6776775001201712803}
   - component: {fileID: 8035269353287581152}
+  - component: {fileID: 7484488413370829527}
+  - component: {fileID: 5771904195023987585}
   m_Layer: 0
   m_Name: FireExtinguisher
   m_TagString: FireExtinguisher
@@ -5026,3 +5028,40 @@ MonoBehaviour:
   placeRotationOffset: {x: 0, y: 0, z: 0}
   placePositionOffset: {x: 0, y: 0, z: 0}
   tagToAccept: 
+--- !u!114 &7484488413370829527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2850544828995640950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bff681357a4a2dd47a13946232f72af9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  smoke: {fileID: 869395793084136771}
+  smokeCollider: {fileID: 5771904195023987585}
+--- !u!136 &5771904195023987585
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2850544828995640950}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 2
+  m_Radius: 1.0267725
+  m_Height: 7.72949
+  m_Direction: 2
+  m_Center: {x: 7.477174e-13, y: 0.5, z: -3.8889797}

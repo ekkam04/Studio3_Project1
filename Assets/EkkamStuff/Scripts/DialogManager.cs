@@ -13,6 +13,8 @@ namespace Ekkam
         UIManager uiManager;
         public Dialog currentDialog;
         public List<Dialog> dialogs;
+        public bool lookAtEachOther = true;
+        public bool isDialogActive;
 
         void Start()
         {
@@ -21,20 +23,32 @@ namespace Ekkam
 
         public void StartDialog(int dialogIndex)
         {
+            isDialogActive = true;
             Player.Instance.enabled = false;
+            Player.Instance.anim.SetBool("isMoving", false);
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             
-            Player.Instance.transform.LookAt(transform.position, Vector3.up);
-            transform.LookAt(Player.Instance.transform.position, Vector3.up);
+            if (lookAtEachOther)
+            {
+                Player.Instance.transform.LookAt(transform.position, Vector3.up);
+                transform.LookAt(Player.Instance.transform.position, Vector3.up);
+            }
             
             uiManager.HideAllOptions();
             uiManager.nextButton.gameObject.SetActive(false);
             
+            StartCoroutine(ShowDialogAndWaitForCompletion(dialogIndex));
+        }
+        
+        IEnumerator ShowDialogAndWaitForCompletion(int dialogIndex)
+        {
             var dialog = dialogs[dialogIndex];
             currentDialog = dialog;
             uiManager.ShowDialog(dialog.dialogText, dialog.dialogOptions.Length > 0);
-
+            
+            yield return new WaitUntil(() => !uiManager.showingDialog);
+            
             if (dialog.dialogOptions.Length > 0)
             {
                 for (int i = 0; i < dialog.dialogOptions.Length; i++)
@@ -74,12 +88,17 @@ namespace Ekkam
                     break;
                 case DialogOption.OptionType.End:
                     uiManager.HideDialog();
+                    isDialogActive = false;
                     GetComponent<Interactable>().enabled = true;
                     break;
                 case DialogOption.OptionType.Signal:
                     option.signal.Signal();
                     uiManager.HideDialog();
-                    GetComponent<Interactable>().enabled = true;
+                    isDialogActive = false;
+                    if (GetComponent<Interactable>() != null) GetComponent<Interactable>().enabled = true;
+                    break;
+                case DialogOption.OptionType.Jump:
+                    StartDialog(option.jumpToIndex);
                     break;
             }
         }
@@ -101,11 +120,13 @@ namespace Ekkam
         {
             Next,
             End,
+            Jump,
             Signal
         }
 
         public OptionType optionType;
-
+        
+        public int jumpToIndex;
         public Signalable signal;
     }
 }

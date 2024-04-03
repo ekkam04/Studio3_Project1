@@ -12,6 +12,7 @@ namespace Ekkam {
         {
             Collect,
             Interact,
+            Power,
             Destroy,
             Reach,
             Sequence,
@@ -29,6 +30,10 @@ namespace Ekkam {
         public GameObject objectiveUIItem;
         
         public Signalable[] completionSignals;
+        public string completionActionKey;
+        
+        public bool doNotAssignNextObjectiveOnCompletion;
+        
         public enum ObjectiveStatus
         {
             Inactive,

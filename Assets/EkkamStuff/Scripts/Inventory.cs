@@ -176,7 +176,7 @@ namespace Ekkam {
                     player.anim.SetBool("isHoldingSword", false);
                 }
                 
-                if (item.tag == "Battery")
+                if (item.tag == "Battery" || item.tag == "Drone")
                 {
                     player.anim.SetBool("isHolding", true);
                 }
