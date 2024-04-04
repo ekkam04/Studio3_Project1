@@ -31,7 +31,6 @@ public class GameManager : MonoBehaviour
     public Transform[] droneCrashPath;
     public Action room1FireExtinguisherHolder;
     public Interactable room1RepairPanel;
-    public Interactable room1HealingStation;
 
     private void Awake()
     {
@@ -308,7 +307,6 @@ public class GameManager : MonoBehaviour
         uiManager.pickUpPrompt.SetActive(false);
         
         yield return new WaitUntil(() => !dialogManager.isDialogActive);
-        room1HealingStation.enabled = true;
         objectiveManager.AddNextObjective();
     }
 }

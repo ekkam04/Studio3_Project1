@@ -21,6 +21,7 @@ namespace Ekkam
         PathfindingManager pathfindingManager;
         UIManager uiManager;
         public GameObject targetLockPrompt;
+        public GameObject parachute;
         
         [Header("--- Astar Pathfinding ---")]
         [SerializeField] Vector2Int startNodePosition;

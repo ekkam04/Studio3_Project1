@@ -63,8 +63,9 @@ public class Action : Signalable
                 StartCoroutine(Move());
                 break;
             case ActionToTake.Rotate:
-                transform.rotation = Quaternion.Euler(targetOffset); // Maybe use Quaternion.Lerp for smooth rotation in the future
-                Invoke("HandleActionComplete", 0.1f);
+                // transform.rotation = Quaternion.Euler(targetOffset); // Maybe use Quaternion.Lerp for smooth rotation in the future
+                // Invoke("HandleActionComplete", 0.1f);
+                StartCoroutine(Rotate());
                 break;
             case ActionToTake.Scale:
                 transform.localScale = targetOffset;
@@ -95,6 +96,20 @@ public class Action : Signalable
         while (timeElapsed < duration)
         {
             transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+        HandleActionComplete();
+    }
+    
+    IEnumerator Rotate()
+    {
+        Quaternion startRotation = transform.rotation;
+        Quaternion targetRotation = Quaternion.Euler(targetOffset);
+        float timeElapsed = 0;
+        while (timeElapsed < duration)
+        {
+            transform.rotation = Quaternion.Slerp(startRotation, targetRotation, timeElapsed / duration);
             timeElapsed += Time.deltaTime;
             yield return null;
         }
