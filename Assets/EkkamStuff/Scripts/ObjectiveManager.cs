@@ -15,7 +15,7 @@ namespace Ekkam {
     {
         private GameManager gameManager;
         public int currentObjectiveIndex = 0;
-        private float objectiveWaypointDistance = 3.5f;
+        private float objectiveWaypointDistance = 1.5f;
         
         // public int objectivesCompleted = 0;
         // public int objectivesActive = 0;
@@ -34,44 +34,20 @@ namespace Ekkam {
 
         public Volume vignetteVolume;
         public Vignette vignette;
+        
+        public delegate void OnObjectiveComplete(string completionActionKey);
+        public static event OnObjectiveComplete onObjectiveComplete;
                
         void Start()
         {
             player = FindObjectOfType<Player>();
             gameManager = FindObjectOfType<GameManager>();
-
-            // hide all objective targets if type is Reach
-            foreach (Objective objective in objectives)
-            {
-                if (objective.objectiveWaypoint != null)
-                {
-                    objective.objectiveWaypoint.gameObject.SetActive(false);
-                }
-
-                foreach (Objective sequenceObjective in objective.objectiveSequence)
-                {
-                    if (sequenceObjective.objectiveWaypoint != null)
-                    {
-                        sequenceObjective.objectiveWaypoint.gameObject.SetActive(false);
-                    }
-                }
-            }
+            
+            HideAllObjectiveMarkers();
 
             if (objectives.Count > 0)
             {
-                objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
-                AddObjectiveToUI(objectives[currentObjectiveIndex]);
-                foreach (Objective objectivesThatFailThisObjective in objectives[currentObjectiveIndex].objectivesThatFailThisObjective)
-                {
-                    objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Active;
-                    objectivesThatFailThisObjective.objectiveMessedUp = true;
-                    AddObjectiveToUI(objectivesThatFailThisObjective, 40f);
-                }
-                foreach (Objective sequenceObjective in objectives[currentObjectiveIndex].objectiveSequence)
-                {
-                    sequenceObjective.status = Objective.ObjectiveStatus.Active;
-                    AddObjectiveToUI(sequenceObjective, 40f);
-                }
+                AddNextObjective();
             }
             
             SkipTasks(currentObjectiveIndex);
@@ -171,6 +147,16 @@ namespace Ekkam {
                     }
                 }
             }
+            else if (objective.objectiveType == Objective.ObjectiveType.Power) // if objective is of type Power -------------------------------
+            {
+                foreach (GameObject target in objective.objectiveTargets)
+                {
+                    if (target.GetComponent<Wire>() != null && target.GetComponent<Wire>().isPowered)
+                    {
+                        CompleteObjective(objective, !objective.objectiveMessedUp);
+                    }
+                }
+            }
             else if (objective.objectiveType == Objective.ObjectiveType.Destroy) // if objective is of type Destroy ---------------------------------
             {
                 int numberOfTargetsToDestroy = objective.objectiveTargets.Length;
@@ -230,26 +216,25 @@ namespace Ekkam {
             
             foreach (Signalable signal in objective.completionSignals)
             {
+                if (signal == null) continue;
                 signal.Signal();
             }
+            
+            if (onObjectiveComplete != null && objective.completionActionKey != "")
+            {
+                onObjectiveComplete.Invoke(objective.completionActionKey);
+            }
+            
+            HideAllObjectiveMarkers();
             
             if (!objectives.Contains(objective)) return; // Only main objectives should progress the story
             
             if (currentObjectiveIndex < objectives.Count - 1)
             {
                 currentObjectiveIndex++;
-                objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
-                AddObjectiveToUI(objectives[currentObjectiveIndex]);
-                foreach (Objective objectivesThatFailThisObjective in objectives[currentObjectiveIndex].objectivesThatFailThisObjective)
+                if (!objective.doNotAssignNextObjectiveOnCompletion)
                 {
-                    objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Active;
-                    objectivesThatFailThisObjective.objectiveMessedUp = true;
-                    AddObjectiveToUI(objectivesThatFailThisObjective, 40f);
-                }
-                foreach (Objective sequenceObjective in objectives[currentObjectiveIndex].objectiveSequence)
-                {
-                    sequenceObjective.status = Objective.ObjectiveStatus.Active;
-                    AddObjectiveToUI(sequenceObjective, 40f);
+                    AddNextObjective();
                 }
             }
             else
@@ -258,18 +243,22 @@ namespace Ekkam {
             }
         }
         
-        // public void FailObjective(Objective objective)
-        // {
-        //     objective.status = Objective.ObjectiveStatus.Failed;
-        //     RemoveObjectiveFromUI(objective, false);
-        //     
-        //     foreach (Objective objectivesThatFailThisObjective in objective.objectivesThatFailThisObjective)
-        //     {
-        //         if (objectivesThatFailThisObjective.status == Objective.ObjectiveStatus.Completed) continue;
-        //         objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Failed;
-        //         RemoveObjectiveFromUI(objectivesThatFailThisObjective, false);
-        //     }
-        // }
+        public void AddNextObjective()
+        {
+            objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
+            AddObjectiveToUI(objectives[currentObjectiveIndex]);
+            foreach (Objective objectivesThatFailThisObjective in objectives[currentObjectiveIndex].objectivesThatFailThisObjective)
+            {
+                objectivesThatFailThisObjective.status = Objective.ObjectiveStatus.Active;
+                objectivesThatFailThisObjective.objectiveMessedUp = true;
+                AddObjectiveToUI(objectivesThatFailThisObjective, 40f);
+            }
+            foreach (Objective sequenceObjective in objectives[currentObjectiveIndex].objectiveSequence)
+            {
+                sequenceObjective.status = Objective.ObjectiveStatus.Active;
+                AddObjectiveToUI(sequenceObjective, 40f);
+            }
+        }
 
         int GetNumberOfObjectives(Objective.ObjectiveStatus status)
         {
@@ -378,6 +367,25 @@ namespace Ekkam {
             }
             vignette.intensity.value = 0;
 
+        }
+
+        public void HideAllObjectiveMarkers()
+        {
+            foreach (Objective objective in objectives)
+            {
+                if (objective.objectiveWaypoint != null)
+                {
+                    objective.objectiveWaypoint.gameObject.SetActive(false);
+                }
+
+                foreach (Objective sequenceObjective in objective.objectiveSequence)
+                {
+                    if (sequenceObjective.objectiveWaypoint != null)
+                    {
+                        sequenceObjective.objectiveWaypoint.gameObject.SetActive(false);
+                    }
+                }
+            }
         }
     }
 }

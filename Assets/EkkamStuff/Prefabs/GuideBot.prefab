@@ -5085,6 +5085,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef177ba3ee0c4f3286bb0e5e849f4aff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mainRig: {fileID: 1556912267906712411}
   offset: {x: -0.8299999, y: 0.7709999, z: 0.7300005}
   anim: {fileID: 0}
 --- !u!1 &6841880647140446959

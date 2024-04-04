@@ -11,8 +11,8 @@ public class Action : Signalable
         Move,
         Rotate,
         Scale,
-        Enable,
         Disable,
+        EnableChild,
         Destroy,
     }
     public ActionToTake actionToTake;
@@ -43,6 +43,7 @@ public class Action : Signalable
         if (virtualCameraToTransitionTo != null)
         {
             virtualCameraToTransitionTo.SetActive(true);
+            Player.Instance.enabled = false;
             yield return new WaitForSeconds(delayActionDuration);
         }
         
@@ -69,13 +70,13 @@ public class Action : Signalable
                 transform.localScale = targetOffset;
                 Invoke("HandleActionComplete", 0.1f);
                 break;
-            case ActionToTake.Enable:
-                gameObject.SetActive(true);
-                Invoke("HandleActionComplete", 0.1f);
-                break;
             case ActionToTake.Disable:
                 gameObject.SetActive(false);
-                Invoke("HandleActionComplete", 0.1f);
+                Invoke("HandleActionComplete", 1f);
+                break;
+            case ActionToTake.EnableChild:
+                transform.GetChild(0).gameObject.SetActive(true);
+                Invoke("HandleActionComplete", 1f);
                 break;
             case ActionToTake.Destroy:
                 Destroy(gameObject);
@@ -108,7 +109,11 @@ public class Action : Signalable
     void HandleActionComplete()
     {
         if (onActionComplete != null) onActionComplete();
-        if (virtualCameraToTransitionTo != null) virtualCameraToTransitionTo.SetActive(false);
+        if (virtualCameraToTransitionTo != null)
+        {
+            Player.Instance.enabled = true;
+            virtualCameraToTransitionTo.SetActive(false);
+        }
     }
     
 }

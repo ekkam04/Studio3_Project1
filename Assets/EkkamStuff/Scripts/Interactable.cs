@@ -27,13 +27,16 @@ namespace Ekkam {
             Pickup,
             Signal,
             Place,
-            Talk
+            Talk,
+            Heal
         }
         public InteractionAction interactionAction;
 
         [Header("Interactable Settings")]
         public string interactText;
         public int timesInteracted = 0;
+        public float extraInteractDistance;
+        public bool singleUse;
         
         [Header("Item Settings")]
         public Vector3 rotationOffset;
@@ -82,12 +85,12 @@ namespace Ekkam {
 
         void CheckForInteract()
         {
-            if (Vector3.Distance(player.transform.position, transform.position) > player.interactDistance + 1f)
+            if (Vector3.Distance(player.transform.position, transform.position) > player.interactDistance + extraInteractDistance + 0.1f)
             {
                 return;
             }
 
-            if (Vector3.Distance(player.transform.position, transform.position) < player.interactDistance)
+            if (Vector3.Distance(player.transform.position, transform.position) < player.interactDistance + extraInteractDistance)
             {
                 pickUpText.text = interactText;
                 pickUpPrompt.SetActive(true);
@@ -131,6 +134,7 @@ namespace Ekkam {
             {
                 print("Signaling " + signalReceiver.name);
                 signalReceiver.Signal();
+                StartCoroutine(PulsePickupPromptText(Color.yellow, 0.1f, 0.3f));
             }
             else if (interactionAction == InteractionAction.Place)
             {
@@ -164,6 +168,16 @@ namespace Ekkam {
                 dialogManager.StartDialog(0);
                 pickUpPrompt.SetActive(false);
                 this.enabled = false;
+            }
+            else if (interactionAction == InteractionAction.Heal)
+            {
+                player.Heal(50);
+                StartCoroutine(PulsePickupPromptText(Color.green, 0.1f, 0.3f));
+                if (singleUse)
+                {
+                    pickUpPrompt.SetActive(false);
+                    this.enabled = false;
+                }
             }
         }
         

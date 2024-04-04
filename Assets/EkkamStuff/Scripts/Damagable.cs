@@ -56,6 +56,18 @@ namespace Ekkam
             }
         }
         
+        public void Heal(int amount)
+        {
+            if (health + amount > 100)
+            {
+                health = 100;
+            }
+            else
+            {
+                health += amount;
+            }
+        }
+        
         public virtual void OnDamageTaken()
         {
             // this function is meant to be overridden
