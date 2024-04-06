@@ -10,7 +10,6 @@ namespace Ekkam
     public class Damagable : MonoBehaviour
     {
         public int health = 1;
-        public float selfKnockbackForce = 1;
         public Collider col;
         public Rigidbody rb;
         public Animator anim;
@@ -32,7 +31,7 @@ namespace Ekkam
             }
         }
 
-        public void TakeDamage(int damage, GameObject damageDealer, Vector3 damageDealerForward)
+        public void TakeDamage(int damage, float knockback, Damagable damageDealer)
         {
             if (tagsToIgnore.Length > 0)
             {
@@ -41,6 +40,12 @@ namespace Ekkam
                     if (damageDealer.gameObject.CompareTag(tag)) return;
                 }
             }
+            
+            if (GetComponent<Enemy>() != null)
+            {
+                GetComponent<Enemy>().attackTimer = 0;
+            }
+            
             health -= damage;
             OnDamageTaken();
             
@@ -50,7 +55,20 @@ namespace Ekkam
             }
             else
             {
-                TakeKnockback(damageDealerForward, selfKnockbackForce);
+                Vector3 damageDealerForward;
+                if (damageDealer != null)
+                {
+                    damageDealerForward = damageDealer.transform.forward;
+                }
+                else
+                {
+                    damageDealerForward = Vector3.zero;
+                }
+                
+                print("knockback: " + knockback);
+
+                StartCoroutine(TakeKnockback(damageDealerForward, knockback, 10f, 0.15f));
+                
                 if (skinnedMeshRenderer != null) StartCoroutine(PulseColor(Color.red, 0.2f, 0.5f));
                 if (anim != null) anim.SetTrigger("hit");
             }
@@ -78,9 +96,20 @@ namespace Ekkam
             gameObject.SetActive(false);
         }
         
-        public void TakeKnockback(Vector3 direction, float force)
+        // public void TakeKnockback(Vector3 direction, float force)
+        // {
+        //     rb.AddForce(direction * force);
+        // }
+        
+        IEnumerator TakeKnockback(Vector3 direction, float force, float upForce, float duration)
         {
-            rb.AddForce(direction * force, ForceMode.Impulse);
+            float timer = 0;
+            while (timer < duration)
+            {
+                rb.AddForce(direction * force + Vector3.up * upForce);
+                timer += Time.deltaTime;
+                yield return null;
+            }
         }
         
         IEnumerator PulseColor(Color color, float fadeInDuration, float fadeOutDuration)

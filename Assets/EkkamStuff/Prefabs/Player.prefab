@@ -1970,7 +1970,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 100
-  selfKnockbackForce: 2
   col: {fileID: 7236751535330574248}
   rb: {fileID: 5729310267075334706}
   anim: {fileID: 3199993596962982761}
@@ -2775,9 +2774,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 420bf930206f7c64685f1600b890cf3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  projectileOwner: {fileID: 5115719971858934883}
   speed: 0
   fallOffSpeed: 0
-  damage: 1
+  damage: 5
+  knockback: 300
   destroyOnHit: 0
   freezeOnHit: 0
   isMelee: 1

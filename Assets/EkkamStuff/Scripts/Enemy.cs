@@ -41,7 +41,7 @@ namespace Ekkam
         public float detectionRange = 25f;
         private float originalDetectionRange;
         private bool canMove = true;
-        private float attackTimer;
+        public float attackTimer;
         public float attackCooldown = 2f;
         
         [Header("--- Enemy Behaviour ---")]

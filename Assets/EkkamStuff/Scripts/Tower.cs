@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Ekkam
@@ -108,9 +109,14 @@ namespace Ekkam
             {
                 dropShip.transform.position = Vector3.MoveTowards(dropShip.transform.position, dropShipEndPoint.position, 3 * Time.deltaTime);
                 
-                // Check if enemy spawnpoint x is same as droppoint x then spawn enemy and check for next one
-                if (Mathf.Abs(enemySpawnPoint.transform.position.x - dropPoints[dropPointsReached].position.x) < 0.1f)
+                // Check if enemy spawnpoint 2d is same as droppoint 2d then spawn enemy and check for next one
+                var enemySpawnPoint2DVector = new Vector3(enemySpawnPoint.position.x, 0, enemySpawnPoint.position.z);
+                var dropPoint2DVector = new Vector3(dropPoints[dropPointsReached].position.x, 0, dropPoints[dropPointsReached].position.z);
+                var distance = Vector3.Distance(enemySpawnPoint2DVector, dropPoint2DVector);
+                distance = Mathf.Abs(distance);
+                if (distance < 0.1f)
                 {
+                    print("distance was: " + distance + " so spawning enemy. es 2d: " + enemySpawnPoint2DVector + " dp 2d: " + dropPoint2DVector);
                     SpawnEnemy();
                     if (dropPointsReached < dropPoints.Length - 1)
                     {

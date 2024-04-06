@@ -28,7 +28,8 @@ namespace Ekkam {
             Signal,
             Place,
             Talk,
-            Heal
+            Heal,
+            DamageCrystal
         }
         public InteractionAction interactionAction;
 
@@ -177,6 +178,14 @@ namespace Ekkam {
                 {
                     pickUpPrompt.SetActive(false);
                     this.enabled = false;
+                }
+            }
+            else if (interactionAction == InteractionAction.DamageCrystal)
+            {
+                var crystals = GetComponentsInChildren<Crystal>();
+                foreach (var crystal in crystals)
+                {
+                    crystal.DamageTile();
                 }
             }
         }

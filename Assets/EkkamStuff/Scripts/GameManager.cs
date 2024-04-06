@@ -156,7 +156,7 @@ public class GameManager : MonoBehaviour
             }
         }
         droneCrashSite.SetActive(true);
-        Player.Instance.TakeDamage(40, this.gameObject, transform.up);
+        Player.Instance.TakeDamage(40, 50, null);
         yield return new WaitForSeconds(3);
         droneCrashVCam.SetActive(false);
         

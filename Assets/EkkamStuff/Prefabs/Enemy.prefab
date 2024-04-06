@@ -1996,8 +1996,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65cb08fdfe88cca4294ceb86c5dc9890, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 5
-  selfKnockbackForce: 5
+  health: 15
   col: {fileID: 4247960809956907237}
   rb: {fileID: 0}
   anim: {fileID: 0}
@@ -2015,6 +2014,7 @@ MonoBehaviour:
   speed: 4
   attackRange: 3
   detectionRange: 25
+  attackTimer: 0
   attackCooldown: 2
   followsPlayer: 1
   targetObjectToWalkTo: {fileID: 0}
@@ -2852,9 +2852,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 420bf930206f7c64685f1600b890cf3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  projectileOwner: {fileID: 2976624835355934119}
   speed: 0
   fallOffSpeed: 0
-  damage: 1
+  damage: 2
+  knockback: 100
   destroyOnHit: 0
   freezeOnHit: 0
   isMelee: 1

@@ -45,7 +45,7 @@ namespace Ekkam
                 if (timer >= damageInterval)
                 {
                     timer = 0;
-                    other.GetComponent<Damagable>().TakeDamage(damage, this.gameObject, transform.up);
+                    other.GetComponent<Damagable>().TakeDamage(damage, 1, null);
                 }
             }
         }
