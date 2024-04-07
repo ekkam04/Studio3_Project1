@@ -7984,12 +7984,17 @@ PrefabInstance:
     - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
         type: 3}
       propertyPath: attackRange
-      value: 15
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
         type: 3}
       propertyPath: followsPlayer
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: detectionRange
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
         type: 3}

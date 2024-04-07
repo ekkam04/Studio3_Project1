@@ -118,8 +118,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 420bf930206f7c64685f1600b890cf3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  projectileOwner: {fileID: 0}
   speed: 7
-  damage: 1
+  fallOffSpeed: 0
+  damage: 5
+  knockback: 1
   destroyOnHit: 1
   freezeOnHit: 0
   isMelee: 0

@@ -18,7 +18,7 @@ namespace Ekkam
         [SerializeField] GameObject itemHolderLeft;
         [SerializeField] GameObject itemHolderRight;
         
-        [SerializeField] GameObject mousePosition3D;
+        [SerializeField] GameObject target;
 
         public LayerMask layersToIgnore;
 
@@ -32,6 +32,11 @@ namespace Ekkam
                 var meleeHitboxCollider = meleeHitbox.GetComponent<Collider>();
                 meleeHitboxCollider.excludeLayers = layersToIgnore;
                 meleeHitbox.SetActive(false);
+            }
+            
+            if (GetComponent<Enemy>() != null)
+            {
+                target = Player.Instance.gameObject;
             }
         }
 
@@ -83,7 +88,7 @@ namespace Ekkam
             anim.SetTrigger("swordAttack");
             await Task.Delay(250);
             GameObject newSpellBall = Instantiate(spellBall, transform.position + transform.forward + new Vector3(0, 1, 0), Quaternion.identity);
-            newSpellBall.transform.LookAt(mousePosition3D.transform.position);
+            newSpellBall.transform.LookAt(target.transform.position);
             newSpellBall.GetComponent<Projectile>().projectileOwner = GetComponent<Damagable>();
             var spellBallCollider = newSpellBall.GetComponent<Collider>();
             spellBallCollider.excludeLayers = layersToIgnore;

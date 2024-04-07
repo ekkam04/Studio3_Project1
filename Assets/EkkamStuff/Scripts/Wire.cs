@@ -41,6 +41,8 @@ namespace Ekkam
         {
             if (prerequisiteWire != null && !prerequisiteWire.isPowered)
             {
+                Interactable.interactColor = Color.red;
+                print("Prerequisite wire not powered!");
                 return;
             }
             

@@ -15,9 +15,11 @@ public class Crystal : MonoBehaviour
     [SerializeField] GameObject tileVeryDamaged;
     [SerializeField] GameObject[] tileVeryDamagedPieces;
     
-    bool isCrumbling = false;
+    public bool isBroken = false;
 
     MeshCollider meshCollider;
+    
+    Signalable onBreakSignal;
 
     void Start()
     {
@@ -65,7 +67,6 @@ public class Crystal : MonoBehaviour
             
 
             // jitter the tile
-            isCrumbling = true;
             for (int i = 0; i < 30; i++)
             {
                 Vector3 jitter = new Vector3(Random.Range(-0.1f, 0.1f), 0f, Random.Range(-0.1f, 0.1f));
@@ -73,9 +74,6 @@ public class Crystal : MonoBehaviour
                 await Task.Delay(20);
                 tileVeryDamaged.transform.position -= jitter;
             }
-
-           
-            
 
             meshCollider.enabled = false;
             GetComponent<MeshCollider>().enabled = false;
@@ -86,6 +84,8 @@ public class Crystal : MonoBehaviour
                 rb.AddExplosionForce(100f, transform.position, 10f);
                 rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
             }
+            
+            isBroken = true;
             
             Invoke("HideTile", 10f);
         }
