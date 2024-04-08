@@ -15,6 +15,9 @@ namespace Ekkam
         public Animator anim;
         public SkinnedMeshRenderer skinnedMeshRenderer;
         public string[] tagsToIgnore;
+        
+        public bool dropCoinsOnDeath;
+        public int coinsToDrop;
 
         void Start()
         {
@@ -93,6 +96,13 @@ namespace Ekkam
 
         public void Die()
         {
+            if (dropCoinsOnDeath)
+            {
+                for (int i = 0; i < coinsToDrop; i++)
+                {
+                    GameObject coin = Instantiate(GameManager.Instance.coinPrefab, transform.position, Quaternion.identity);
+                }
+            }
             gameObject.SetActive(false);
         }
         

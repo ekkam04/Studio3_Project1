@@ -16,6 +16,18 @@ namespace Ekkam
     {
         Inventory inventory;
         CombatManager combatManager;
+        UIManager uiManager;
+        
+        public enum MovementState
+        {
+            Walking,
+            Sprinting,
+            Air
+        }
+        public MovementState movementState;
+        
+        public int coins;
+        public int tokens;
         
         public enum CameraStyle
         {
@@ -112,6 +124,7 @@ namespace Ekkam
             rb = GetComponent<Rigidbody>();
             anim = GetComponent<Animator>();
             inventory = FindObjectOfType<Inventory>();
+            uiManager = FindObjectOfType<UIManager>();
             combatManager = GetComponent<CombatManager>();
             
             foreach (var facePlate in facePlates)
@@ -164,6 +177,7 @@ namespace Ekkam
             
             ControlSpeed();
             CheckForGround();
+            MovementStateHandler();
 
             // temporary, need to use new input system but for now this will do
             if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
@@ -188,30 +202,6 @@ namespace Ekkam
                 {
                     disguiseBattery = 0;
                     ToggleDisguise();
-                }
-            }
-            
-            //cycle faceplates on P key (Testing)
-            if (Input.GetKeyDown(KeyCode.P))
-            {
-                int currentFacePlateIndex = 0;
-                for (int i = 0; i < facePlates.Length; i++)
-                {
-                    if (facePlates[i].activeSelf)
-                    {
-                        currentFacePlateIndex = i;
-                    }
-                }
-                // disable current faceplate
-                facePlates[currentFacePlateIndex].SetActive(false);
-                // enable next faceplate
-                if (currentFacePlateIndex == facePlates.Length - 1)
-                {
-                    facePlates[0].SetActive(true);
-                }
-                else
-                {
-                    facePlates[currentFacePlateIndex + 1].SetActive(true);
                 }
             }
             
@@ -339,8 +329,10 @@ namespace Ekkam
         
         void CheckForGround()
         {
-            RaycastHit hit1;
-            if (Physics.BoxCast(transform.position + new Vector3(0, 0.5f, 0), new Vector3(0.2f, 0.5f, 0.2f), Vector3.down, out hit1, Quaternion.identity, groundDistance + 0.1f))
+            RaycastHit hit;
+            // if (Physics.BoxCast(transform.position + new Vector3(0, 0.5f, 0), new Vector3(0.2f, 0.5f, 0.2f), Vector3.down, out hit, Quaternion.identity, groundDistance + 0.1f))
+            bool foundGround = Physics.Raycast(transform.position, Vector3.down, out hit, groundDistance + 0.1f);
+            if (foundGround)
             {
                 isGrounded = true;
                 rb.drag = groundDrag;
@@ -351,10 +343,9 @@ namespace Ekkam
                     anim.SetBool("isJumping", false);
                 }
                 
-                if (hit1.collider.CompareTag("Movable"))
+                if (hit.collider.CompareTag("Movable"))
                 {
-                    transform.parent = hit1.transform;
-                    // transform.SetParent(hit1.transform, true);
+                    transform.parent = hit.transform;
                 }
             }
             else
@@ -362,6 +353,22 @@ namespace Ekkam
                 isGrounded = false;
                 rb.drag = 0;
                 transform.parent = null;
+            }
+        }
+        
+        void MovementStateHandler()
+        {
+            if (isGrounded && Input.GetKey(KeyCode.LeftShift))
+            {
+                movementState = MovementState.Sprinting;
+            }
+            else if (isGrounded)
+            {
+                movementState = MovementState.Walking;
+            }
+            else
+            {
+                movementState = MovementState.Air;
             }
         }
 
@@ -472,11 +479,15 @@ namespace Ekkam
                     cameraObj = explorationCamera.transform;
                     explorationCamera.SetActive(true);
                     combatCamera.SetActive(false);
+                    uiManager.combatReticle.SetActive(false);
+                    uiManager.explorationReticle.SetActive(true);
                     break;
                 case CameraStyle.Combat:
                     cameraObj = combatCamera.transform;
                     combatCamera.SetActive(true);
                     explorationCamera.SetActive(false);
+                    uiManager.explorationReticle.SetActive(false);
+                    uiManager.combatReticle.SetActive(true);
                     break;
                 default:
                     break;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -23,6 +24,19 @@ public class GameManager : MonoBehaviour
     public GuideBot guideBot;
     public DialogManager dialogManager;
     public ObjectiveManager objectiveManager;
+    
+    public GameObject coinPrefab;
+    public GameObject tokenPrefab;
+    
+    public delegate void OnPauseGame();
+    public static event OnPauseGame onPauseGame;
+    
+    private List<Enemy> pausedEnemies = new List<Enemy>();
+    private List<Drone> pausedDrones = new List<Drone>();
+    private List<Interactable> pausedInteractables = new List<Interactable>();
+    
+    public delegate void OnResumeGame();
+    public static event OnResumeGame onResumeGame;
 
     [Header("Scripted Event References")]
     public GameObject droneCrashVCam;
@@ -31,6 +45,9 @@ public class GameManager : MonoBehaviour
     public Transform[] droneCrashPath;
     public Action room1FireExtinguisherHolder;
     public Interactable room1RepairPanel;
+    
+    [Header("Drone Dialogs")]
+    public List<Dialog> droneDialog1;
 
     private void Awake()
     {
@@ -56,6 +73,105 @@ public class GameManager : MonoBehaviour
         
         ObjectiveManager.onObjectiveComplete += HandleActionKey;
         Wire.onPowered += HandleActionKey;
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            PauseGame();
+        }
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ResumeGame();
+        }
+    }
+
+    public void PauseGame()
+    {
+        if (onPauseGame != null)
+        {
+            onPauseGame();
+        }
+        
+        Player.Instance.anim.SetBool("isMoving", false);
+        Player.Instance.enabled = false;
+        
+        foreach (var enemy in FindObjectsOfType<Enemy>())
+        {
+            if (
+                enemy.gameObject.activeSelf
+                && enemy.enabled
+            )
+            {
+                if (enemy.anim != null) enemy.anim.SetBool("isMoving", false);
+                pausedEnemies.Add(enemy);
+                enemy.enabled = false;
+            }
+        }
+        
+        foreach (var drone in FindObjectsOfType<Drone>())
+        {
+            if (
+                drone.gameObject.activeSelf
+                && drone.enabled
+            )
+            {
+                pausedDrones.Add(drone);
+                drone.enabled = false;
+            }
+        }
+
+        foreach (var interactable in FindObjectsOfType<Interactable>())
+        {
+            if (
+                interactable.gameObject.activeSelf
+                && interactable.enabled
+            )
+            {
+                pausedInteractables.Add(interactable);
+                interactable.enabled = false;
+            }
+        }
+        uiManager.pickUpPrompt.SetActive(false);
+    }
+    
+    public void ResumeGame()
+    {
+        if (onResumeGame != null)
+        {
+            onResumeGame();
+        }
+        
+        Player.Instance.enabled = true;
+        
+        foreach (var enemy in pausedEnemies)
+        {
+            if (enemy.gameObject.activeSelf)
+            {
+                enemy.enabled = true;
+            }
+        }
+        
+        foreach (var drone in pausedDrones)
+        {
+            if (drone.gameObject.activeSelf)
+            {
+                drone.enabled = true;
+            }
+        }
+        
+        foreach (var interactable in pausedInteractables)
+        {
+            if (interactable.gameObject.activeSelf)
+            {
+                interactable.enabled = true;
+            }
+        }
+        
+        pausedEnemies.Clear();
+        pausedDrones.Clear();
+        pausedInteractables.Clear();
     }
     
     [Command("grant-item")]
@@ -114,6 +230,8 @@ public class GameManager : MonoBehaviour
     {
         print("GM - Objective completed - Key received: " + completionActionKey);
         uiManager.pickUpPrompt.SetActive(false);
+        List<Dialog> dialogsToShow;
+        
         switch (completionActionKey)
         {
             case "show-objectives":
@@ -125,12 +243,136 @@ public class GameManager : MonoBehaviour
             case "room1-drone-intro":
                 StartCoroutine(Room1DroneIntro());
                 break;
+            case "room1-teach-item":
+                dialogsToShow = new List<Dialog>
+                {
+                    new Dialog
+                    {
+                        dialogText = "Here is your first item, the Fire Extinguisher. This item can be used to put out fires.",
+                        dialogOptions = new DialogOption[] {}
+                    },
+                    new Dialog
+                    {
+                        dialogText = "To use the Fire Extinguisher, press the 'Left Mouse Button'.",
+                        dialogOptions = new DialogOption[] {}
+                    }
+                };
+                StartCoroutine(PlayDroneDialogAndAssignObjective(dialogsToShow, 1));
+                break;
+            case "room1-teach-hotbar":
+                dialogsToShow = new List<Dialog>
+                {
+                    new Dialog
+                    {
+                        dialogText = "Press keys '1' to '5' to switch between items in your hotbar.",
+                        dialogOptions = new DialogOption[] {}
+                    }
+                };
+                StartCoroutine(PlayDroneDialogAndAssignObjective(dialogsToShow, 1));
+                break;
             case "room1-allow-drone-pickup":
                 droneBroken.GetComponent<Interactable>().enabled = true;
                 break;
             case "room1-repair-drone":
-                print("Room 1 repair drone");
-                StartCoroutine(Room1RepairDrone());
+                dialogsToShow = new List<Dialog>
+                {
+                    new Dialog // index 0
+                    {
+                        dialogText = "Initializing systems... Armor integrity at 40%... Power levels at 50%... Systems check complete.",
+                        dialogOptions = new DialogOption[] {}
+                    },
+                    new Dialog // index 1
+                    {
+                        dialogText = "You have been selected for the search and extraction of anomaly Charlie.",
+                        dialogOptions = new DialogOption[] {}
+                    },
+                    new Dialog // index 2
+                    {
+                        dialogText = "Please make your way through this facility for Seeker Evaluation.",
+                        dialogOptions = new DialogOption[]
+                        {
+                            new DialogOption
+                            {
+                                optionText = "Who are you?",
+                                optionType = DialogOption.OptionType.Jump,
+                                jumpToIndex = 3
+                            },
+                            new DialogOption
+                            {
+                                optionText = "Who am I?",
+                                optionType = DialogOption.OptionType.Jump,
+                                jumpToIndex = 4
+                            },
+                            new DialogOption
+                            {
+                                optionText = "What is this place?",
+                                optionType = DialogOption.OptionType.Jump,
+                                jumpToIndex = 5
+                            },
+                            new DialogOption
+                            {
+                                optionText = "Understood, let's go.",
+                                optionType = DialogOption.OptionType.Jump,
+                                jumpToIndex = 6
+                            }
+                        }
+                    },
+                    new Dialog // index 3
+                    {
+                        dialogText = "This unit is a drone, Code Name: Seraph, This unit will provide Tactical Data on the Seeker Evaluation and Tasks given by ……. Name of the superior is ….. ACCESS DENIED.",
+                        dialogOptions = new DialogOption[]
+                        {
+                            new DialogOption
+                            {
+                                optionText = "Continue",
+                                optionType = DialogOption.OptionType.Jump,
+                                jumpToIndex = 2
+                            }
+                        }
+                    },
+                    new Dialog // index 4
+                    {
+                        dialogText = "Scanning... Unit name: Dynamo, No dread virus detected, No anomaly levels detected, Generation 3 robot, Fire suppression protocol Outlier Detected, deemed not a threat, Selected for Seeker Evaluation.",
+                        dialogOptions = new DialogOption[]
+                        {
+                            new DialogOption
+                            {
+                                optionText = "Continue",
+                                optionType = DialogOption.OptionType.Jump,
+                                jumpToIndex = 2
+                            }
+                        }
+                    },
+                    new Dialog // index 5
+                    {
+                        dialogText = "This facility is Site RC-32, previously used as a prison for anomaly type Robots, but after the Dread Virus Outbreak this facility was Abandoned.",
+                        dialogOptions = new DialogOption[]
+                        {
+                            new DialogOption
+                            {
+                                optionText = "Continue",
+                                optionType = DialogOption.OptionType.Jump,
+                                jumpToIndex = 2
+                            }
+                        }
+                    },
+                    new Dialog // index 6
+                    {
+                        dialogText = "Before we proceed, the Seraph unit has observed that an impact caused by a drone has damaged some systems, Proceed to the repair Station proudly Sponsored by Haptic Repairs, First ones on us!!",
+                        dialogOptions = new DialogOption[]
+                        {
+                            new DialogOption
+                            {
+                                optionText = "Continue",
+                                optionType = DialogOption.OptionType.End
+                            }
+                        }
+                    },
+                };
+                
+                ShowGuideBot();
+                room1RepairPanel.enabled = false;
+                StartCoroutine(PlayDroneDialogAndAssignObjective(dialogsToShow, 1));
                 break;
             default:
                 break;
@@ -307,6 +549,17 @@ public class GameManager : MonoBehaviour
         uiManager.pickUpPrompt.SetActive(false);
         
         yield return new WaitUntil(() => !dialogManager.isDialogActive);
+        objectiveManager.AddNextObjective();
+    }
+
+    IEnumerator PlayDroneDialogAndAssignObjective(List<Dialog> dialogs, int delay = 0)
+    {
+        PauseGame();
+        yield return new WaitForSeconds(delay);
+        dialogManager.dialogs = dialogs;
+        dialogManager.StartDialog(0);
+        yield return new WaitUntil(() => !dialogManager.isDialogActive);
+        ResumeGame();
         objectiveManager.AddNextObjective();
     }
 }

@@ -32,7 +32,7 @@ namespace Ekkam {
             Signal,
             Place,
             Talk,
-            Heal,
+            Shop,
             DamageCrystal
         }
         public InteractionAction interactionAction;
@@ -205,10 +205,9 @@ namespace Ekkam {
                 pickUpPrompt.SetActive(false);
                 this.enabled = false;
             }
-            else if (interactionAction == InteractionAction.Heal)
+            else if (interactionAction == InteractionAction.Shop)
             {
-                player.Heal(50);
-                interactColor = Color.green;
+                uiManager.OpenShopUI();
                 StartCoroutine(PulsePickupPromptText(0.1f, 0.3f));
             }
             else if (interactionAction == InteractionAction.DamageCrystal)

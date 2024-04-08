@@ -43,7 +43,7 @@ public class Action : Signalable
         if (virtualCameraToTransitionTo != null)
         {
             virtualCameraToTransitionTo.SetActive(true);
-            Player.Instance.enabled = false;
+            GameManager.Instance.PauseGame();
             yield return new WaitForSeconds(delayActionDuration);
         }
         
@@ -126,7 +126,7 @@ public class Action : Signalable
         if (onActionComplete != null) onActionComplete();
         if (virtualCameraToTransitionTo != null)
         {
-            Player.Instance.enabled = true;
+            GameManager.Instance.ResumeGame();
             virtualCameraToTransitionTo.SetActive(false);
         }
     }

@@ -24,8 +24,7 @@ namespace Ekkam
         public void StartDialog(int dialogIndex)
         {
             isDialogActive = true;
-            Player.Instance.enabled = false;
-            Player.Instance.anim.SetBool("isMoving", false);
+            GameManager.Instance.PauseGame();
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             
@@ -77,10 +76,6 @@ namespace Ekkam
         
         public void HandleOption(DialogOption option)
         {
-            Player.Instance.enabled = true;
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            
             switch (option.optionType)
             {
                 case DialogOption.OptionType.Next:
@@ -89,7 +84,7 @@ namespace Ekkam
                 case DialogOption.OptionType.End:
                     uiManager.HideDialog();
                     isDialogActive = false;
-                    GetComponent<Interactable>().enabled = true;
+                    if (GetComponent<Interactable>() != null) GetComponent<Interactable>().enabled = true;
                     break;
                 case DialogOption.OptionType.Signal:
                     option.signal.Signal();
