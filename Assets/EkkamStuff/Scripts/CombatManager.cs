@@ -85,7 +85,7 @@ namespace Ekkam
         
         public async void MageAttack()
         {
-            anim.SetTrigger("swordAttack");
+            anim.SetTrigger("staffAttack");
             await Task.Delay(250);
             GameObject newSpellBall = Instantiate(spellBall, transform.position + transform.forward + new Vector3(0, 1, 0), Quaternion.identity);
             newSpellBall.transform.LookAt(target.transform.position);

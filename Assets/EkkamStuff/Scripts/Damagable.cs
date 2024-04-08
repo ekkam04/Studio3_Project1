@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using QFSW.QC;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -74,6 +75,16 @@ namespace Ekkam
                 
                 if (skinnedMeshRenderer != null) StartCoroutine(PulseColor(Color.red, 0.2f, 0.5f));
                 if (anim != null) anim.SetTrigger("hit");
+            }
+            
+            if (damageDealer.GetComponent<Player>() != null)
+            {
+                // player damaged an enemy
+                var objectiveManager = FindObjectOfType<ObjectiveManager>();
+                if (objectiveManager != null)
+                {
+                    objectiveManager.playerDamagedEnemyCheck = true;
+                }
             }
         }
         

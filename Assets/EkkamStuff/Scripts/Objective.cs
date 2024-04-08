@@ -16,6 +16,7 @@ namespace Ekkam {
             Destroy,
             Reach,
             Sequence,
+            DamageAnyEnemy,
         }
         public ObjectiveType objectiveType;
     

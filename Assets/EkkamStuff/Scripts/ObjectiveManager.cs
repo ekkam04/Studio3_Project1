@@ -31,6 +31,7 @@ namespace Ekkam {
         [SerializeField] GameObject objectiveUI;
         [SerializeField] GameObject objectiveItem;
         Player player;
+        public bool playerDamagedEnemyCheck = false;
 
         public Volume vignetteVolume;
         public Vignette vignette;
@@ -167,6 +168,14 @@ namespace Ekkam {
                     {
                         numberOfDestroyedTargets++;
                     }
+                    else if (
+                        target.GetComponent<Interactable>() != null
+                        && target.GetComponent<Interactable>().interactionAction == Interactable.InteractionAction.DamageCrystal
+                        && target.GetComponent<Interactable>().timesInteracted > 2
+                    )
+                    {
+                        numberOfDestroyedTargets++;
+                    }
                 }
 
                 if (numberOfDestroyedTargets == numberOfTargetsToDestroy)
@@ -189,6 +198,14 @@ namespace Ekkam {
                 if (sequenceCompleted)
                 {
                     CompleteObjective(objective, !objective.objectiveMessedUp);
+                }
+            }
+            else if (objective.objectiveType == Objective.ObjectiveType.DamageAnyEnemy)
+            {
+                if (playerDamagedEnemyCheck)
+                {
+                    CompleteObjective(objective, !objective.objectiveMessedUp);
+                    playerDamagedEnemyCheck = false;
                 }
             }
         }
@@ -245,6 +262,7 @@ namespace Ekkam {
         
         public void AddNextObjective()
         {
+            playerDamagedEnemyCheck = false;
             objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
             AddObjectiveToUI(objectives[currentObjectiveIndex]);
             foreach (Objective objectivesThatFailThisObjective in objectives[currentObjectiveIndex].objectivesThatFailThisObjective)

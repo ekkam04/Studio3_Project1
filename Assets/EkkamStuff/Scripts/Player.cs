@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 using System.Threading.Tasks;
+using Cinemachine;
 using QFSW.QC;
 using Unity.VisualScripting;
 using UnityEngine.Animations.Rigging;
@@ -97,6 +98,10 @@ namespace Ekkam
         private float bowTimer;
         private float bowResetCooldown = 1.25f;
         private float bowAttackCooldown = 1.25f;
+        
+        private float staffTimer;
+        // private float staffResetCooldown = 1.25f;
+        private float staffAttackCooldown = 0.5f;
 
         private bool targetLock;
         private Enemy previousNearestEnemy;
@@ -207,6 +212,7 @@ namespace Ekkam
             
             swordTimer += Time.deltaTime;
             bowTimer += Time.deltaTime;
+            staffTimer += Time.deltaTime;
             
             if (swordTimer >= swordResetCooldown)
             {
@@ -425,9 +431,8 @@ namespace Ekkam
                     combatManager.ArcherAttack(item, this);
                     break;
                 case "Staff":
-                    if (swordTimer < swordAttackCooldown || isGrounded == false) return;
-                    swordTimer = 0;
-                    allowMovement = false;
+                    if (staffTimer < staffAttackCooldown || isGrounded == false) return;
+                    staffTimer = 0;
                     combatManager.MageAttack();
                     break;
                 case "FireExtinguisher":
@@ -472,11 +477,22 @@ namespace Ekkam
         
         public void SwitchCameraStyle(CameraStyle style)
         {
+            var combatCamCinemachine = combatCamera.GetComponent<CinemachineFreeLook>();
+            var explorationCamCinemachine = explorationCamera.GetComponent<CinemachineFreeLook>();
+            
+            float combatX = combatCamCinemachine.m_XAxis.Value;
+            float combatY = combatCamCinemachine.m_YAxis.Value;
+            
+            float explorationX = explorationCamCinemachine.m_XAxis.Value;
+            float explorationY = explorationCamCinemachine.m_YAxis.Value;
+            
             cameraStyle = style;
             switch (style)
             {
                 case CameraStyle.Exploration:
                     cameraObj = explorationCamera.transform;
+                    explorationCamCinemachine.m_XAxis.Value = combatX;
+                    explorationCamCinemachine.m_YAxis.Value = combatY;
                     explorationCamera.SetActive(true);
                     combatCamera.SetActive(false);
                     uiManager.combatReticle.SetActive(false);
@@ -484,6 +500,8 @@ namespace Ekkam
                     break;
                 case CameraStyle.Combat:
                     cameraObj = combatCamera.transform;
+                    // combatCamCinemachine.m_XAxis.Value = explorationX;
+                    // combatCamCinemachine.m_YAxis.Value = explorationY;
                     combatCamera.SetActive(true);
                     explorationCamera.SetActive(false);
                     uiManager.explorationReticle.SetActive(false);

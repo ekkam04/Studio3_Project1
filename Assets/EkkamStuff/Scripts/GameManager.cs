@@ -125,8 +125,7 @@ public class GameManager : MonoBehaviour
         foreach (var interactable in FindObjectsOfType<Interactable>())
         {
             if (
-                interactable.gameObject.activeSelf
-                && interactable.enabled
+                interactable.enabled
             )
             {
                 pausedInteractables.Add(interactable);
@@ -163,10 +162,7 @@ public class GameManager : MonoBehaviour
         
         foreach (var interactable in pausedInteractables)
         {
-            if (interactable.gameObject.activeSelf)
-            {
-                interactable.enabled = true;
-            }
+            interactable.enabled = true;
         }
         
         pausedEnemies.Clear();
