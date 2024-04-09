@@ -68,6 +68,7 @@ namespace Ekkam
         public float horizontalInput = 0f;
         public float verticalInput = 0f;
         Vector3 moveDirection;
+        Vector3 combatRotationDirection;
         public float speed = 1.0f;
         private float initialSpeed;
         public float maxSpeed = 5.0f;
@@ -153,17 +154,17 @@ namespace Ekkam
         {
             // Movement
             viewDirection = transform.position - new Vector3(cameraObj.position.x, transform.position.y, cameraObj.position.z);
-            orientation.forward = viewDirection.normalized;
 
             if (cameraStyle == CameraStyle.Exploration)
             {
+                orientation.forward = viewDirection.normalized;
                 moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-                 
-                if(moveDirection != Vector3.zero)
-                {
-                    if(!targetLock) transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
-                    // anim.SetBool("isMoving", true);
-                }
+                
+                // if(moveDirection != Vector3.zero)
+                // {
+                //     transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
+                //     // anim.SetBool("isMoving", true);
+                // }
                 // else
                 // {
                 //     anim.SetBool("isMoving", false);
@@ -173,8 +174,8 @@ namespace Ekkam
             {
                 moveDirection = combatLookAt.position - new Vector3(cameraObj.position.x, combatLookAt.position.y, cameraObj.position.z);
                 orientation.forward = moveDirection.normalized;
-                
-                transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
+                combatRotationDirection = new Vector3(viewDirection.x, 0, viewDirection.z).normalized;
+                // transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
             }
             
             // set isMoving parameter in animator to true if player is moving
@@ -242,6 +243,21 @@ namespace Ekkam
         {
             // Move player
             MovePlayer();
+            
+            // Orient player
+            if (cameraStyle == CameraStyle.Exploration)
+            {
+                if (moveDirection != Vector3.zero)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(moveDirection.normalized);
+                    rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                }
+            }
+            else if (cameraStyle == CameraStyle.Combat)
+            {
+                Quaternion combatTargetRotation = Quaternion.LookRotation(combatRotationDirection);
+                rb.MoveRotation(Quaternion.Slerp(rb.rotation, combatTargetRotation, Time.fixedDeltaTime * rotationSpeed));
+            }
 
             // Jumping
             if (isJumping)
@@ -272,6 +288,7 @@ namespace Ekkam
         {
             if (context.started)
             {
+                if (!this.enabled) return;
                 if (!isGrounded && allowDoubleJump && !doubleJumped)
                 {
                     doubleJumped = true;
@@ -352,6 +369,7 @@ namespace Ekkam
                 if (hit.collider.CompareTag("Movable"))
                 {
                     transform.parent = hit.transform;
+                    rb.interpolation = RigidbodyInterpolation.None;
                 }
             }
             else
@@ -359,6 +377,7 @@ namespace Ekkam
                 isGrounded = false;
                 rb.drag = 0;
                 transform.parent = null;
+                rb.interpolation = RigidbodyInterpolation.Interpolate;
             }
         }
         

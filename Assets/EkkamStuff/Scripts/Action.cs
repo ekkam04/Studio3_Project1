@@ -22,12 +22,22 @@ public class Action : Signalable
     public Vector3 targetOffset;
     public Vector3[] sequentialTargetOffsets;
     
+    private Vector3 startPosition;
+    private Vector3 targetPosition;
+    float timeElapsed;
+    bool isMoving;
+    
     [Header("Sequence Settings")]
     public int sequenceIndex = 0;
     public float duration = 2f;
     
     public GameObject virtualCameraToTransitionTo;
     private float delayActionDuration = 1.5f;
+    
+    [Header("Loop Settings")]
+    public bool loop;
+    public float loopDelay;
+    private float loopTimer;
     
     [Header("Remove Tag From Inventory Settings")]
     public string tagToRemove;
@@ -38,7 +48,33 @@ public class Action : Signalable
     void Start()
     {
         originalTargetOffset = targetOffset;
+        loopTimer = duration + loopDelay; // So that the first action is taken immediately if loop is enabled
     }
+    
+    void Update()
+    {
+        if (loop)
+        {
+            loopTimer += Time.deltaTime;
+            if (loopTimer >= duration + loopDelay)
+            {
+                loopTimer = 0;
+                StartCoroutine(TakeAction());
+            }
+        }
+        
+        if (isMoving)
+        {
+            transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            if (timeElapsed >= duration)
+            {
+                isMoving = false;
+                HandleActionComplete();
+            }
+        }
+    }
+    
     public override void Signal()
     {
         print(gameObject.name + " is taking action: " + actionToTake);
@@ -66,7 +102,11 @@ public class Action : Signalable
         switch (actionToTake)
         {
             case ActionToTake.Move:
-                StartCoroutine(Move());
+                // StartCoroutine(Move());
+                startPosition = transform.position;
+                targetPosition = startPosition + targetOffset;
+                timeElapsed = 0;
+                isMoving = true;
                 break;
             case ActionToTake.Rotate:
                 // transform.rotation = Quaternion.Euler(targetOffset); // Maybe use Quaternion.Lerp for smooth rotation in the future

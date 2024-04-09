@@ -36,6 +36,9 @@ namespace Ekkam
         public GameObject towerUI;
         public TMP_Text towerNameText;
         public Slider towerProgressSlider;
+        
+        public GameObject areaPopupUI;
+        public TMP_Text areaPopupText;
 
         Player player;
 
@@ -137,6 +140,19 @@ namespace Ekkam
             playerUI.SetActive(true);
             objectivesUI.SetActive(true);
             shopInteractionBlocker.SetActive(false);
+        }
+        
+        public void ShowAreaPopup(string areaName, float duration)
+        {
+            StartCoroutine(ShowAreaPopupCoroutine(areaName, duration));
+        }
+        
+        IEnumerator ShowAreaPopupCoroutine(string areaName, float duration)
+        {
+            areaPopupText.text = areaName;
+            areaPopupUI.SetActive(true);
+            yield return new WaitForSeconds(duration);
+            areaPopupUI.SetActive(false);
         }
     }
 }

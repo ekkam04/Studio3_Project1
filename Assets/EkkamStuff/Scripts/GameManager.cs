@@ -95,6 +95,9 @@ public class GameManager : MonoBehaviour
         }
         
         Player.Instance.anim.SetBool("isMoving", false);
+        Player.Instance.anim.SetBool("isJumping", false);
+        Player.Instance.rb.velocity = Vector3.zero;
+        Player.Instance.rb.useGravity = true;
         Player.Instance.enabled = false;
         
         foreach (var enemy in FindObjectsOfType<Enemy>())
@@ -142,6 +145,7 @@ public class GameManager : MonoBehaviour
             onResumeGame();
         }
         
+        Player.Instance.rb.useGravity = false;
         Player.Instance.enabled = true;
         
         foreach (var enemy in pausedEnemies)
@@ -315,11 +319,11 @@ public class GameManager : MonoBehaviour
                 }
             }
         };
-        dialogManager.dialogs = dialogsToShow;
-        dialogManager.StartDialog(0);
-
-        yield return new WaitUntil(() => !dialogManager.isDialogActive);
-        objectiveManager.AddNextObjective();
+        // dialogManager.dialogs = dialogsToShow;
+        // dialogManager.StartDialog(0);
+        // yield return new WaitUntil(() => !dialogManager.isDialogActive);
+        // objectiveManager.AddNextObjective();
+        PlayDroneDialog(dialogsToShow);
     }
 
     IEnumerator Room1RepairDrone()
@@ -427,12 +431,12 @@ public class GameManager : MonoBehaviour
         objectiveManager.AddNextObjective();
     }
     
-    public void PlayDroneDialogAndAssignObjective(List<Dialog> dialogs, float delay = 0.5f)
+    public void PlayDroneDialog(List<Dialog> dialogs, bool assignNextObjective = true, float delay = 0.5f)
     {
-        StartCoroutine(PlayDroneDialogAndAssignObjectiveCoroutine(dialogs, delay));
+        StartCoroutine(PlayDroneDialogCoroutine(dialogs, assignNextObjective, delay));
     }
 
-    IEnumerator PlayDroneDialogAndAssignObjectiveCoroutine(List<Dialog> dialogs, float delay)
+    IEnumerator PlayDroneDialogCoroutine(List<Dialog> dialogs, bool assignNextObjective, float delay)
     {
         PauseGame();
         yield return new WaitForSeconds(delay);
@@ -440,6 +444,9 @@ public class GameManager : MonoBehaviour
         dialogManager.StartDialog(0);
         yield return new WaitUntil(() => !dialogManager.isDialogActive);
         ResumeGame();
-        objectiveManager.AddNextObjective();
+        if (assignNextObjective)
+        {
+            objectiveManager.AddNextObjective();
+        }
     }
 }

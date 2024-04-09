@@ -107,35 +107,7 @@ namespace Ekkam {
                 if (distance < objectiveWaypointDistance)
                 {
                     CompleteObjective(objective, !objective.objectiveMessedUp);
-                    if (isSequential && parentObjective != null)
-                    {
-                        int sequenceObjectiveIndex = Array.IndexOf(parentObjective.objectiveSequence, objective);
-                        int completedSequenceObjectives = 0;
-                        foreach (Objective sequenceObjective in parentObjective.objectiveSequence)
-                        {
-                            if (sequenceObjective.status != Objective.ObjectiveStatus.Active)
-                            {
-                                completedSequenceObjectives++;
-                            }
-                        }
-                        int remainingSequenceObjectives = parentObjective.objectiveSequence.Length - completedSequenceObjectives;
-                        
-                        print("completedSequenceObjectives: " + completedSequenceObjectives);
-                        if (remainingSequenceObjectives > 0)
-                        {
-                            if (sequenceObjectiveIndex == completedSequenceObjectives - 1)
-                            {
-                                print("Sequence maintained");
-                                parentObjective.objectiveMessedUp = false;
-                            }
-                            else
-                            {
-                                print("Sequence not maintained");
-                                parentObjective.objectiveMessedUp = true;
-                            }
-                        }
-                        print("Sequence maintained? " + !parentObjective.objectiveMessedUp);
-                    }
+                    CheckSequence(isSequential, objective, parentObjective);
                 }
             }
             else if (objective.objectiveType == Objective.ObjectiveType.Interact) // if objective is of type Interact -------------------------------
@@ -145,6 +117,7 @@ namespace Ekkam {
                     if (target.GetComponent<Interactable>() != null && target.GetComponent<Interactable>().timesInteracted > 0)
                     {
                         CompleteObjective(objective, !objective.objectiveMessedUp);
+                        CheckSequence(isSequential, objective, parentObjective);
                     }
                 }
             }
@@ -155,6 +128,7 @@ namespace Ekkam {
                     if (target.GetComponent<Wire>() != null && target.GetComponent<Wire>().isPowered)
                     {
                         CompleteObjective(objective, !objective.objectiveMessedUp);
+                        CheckSequence(isSequential, objective, parentObjective);
                     }
                 }
             }
@@ -181,6 +155,7 @@ namespace Ekkam {
                 if (numberOfDestroyedTargets == numberOfTargetsToDestroy)
                 {
                     CompleteObjective(objective, !objective.objectiveMessedUp);
+                    CheckSequence(isSequential, objective, parentObjective);
                 }
             }
             else if (objective.objectiveType == Objective.ObjectiveType.Sequence)
@@ -198,6 +173,7 @@ namespace Ekkam {
                 if (sequenceCompleted)
                 {
                     CompleteObjective(objective, !objective.objectiveMessedUp);
+                    CheckSequence(isSequential, objective, parentObjective);
                 }
             }
             else if (objective.objectiveType == Objective.ObjectiveType.DamageAnyEnemy)
@@ -205,8 +181,42 @@ namespace Ekkam {
                 if (playerDamagedEnemyCheck)
                 {
                     CompleteObjective(objective, !objective.objectiveMessedUp);
+                    CheckSequence(isSequential, objective, parentObjective);
                     playerDamagedEnemyCheck = false;
                 }
+            }
+        }
+
+        private void CheckSequence(bool isSequential, Objective objective, Objective parentObjective = null)
+        {
+            if (isSequential && parentObjective != null)
+            {
+                int sequenceObjectiveIndex = Array.IndexOf(parentObjective.objectiveSequence, objective);
+                int completedSequenceObjectives = 0;
+                foreach (Objective sequenceObjective in parentObjective.objectiveSequence)
+                {
+                    if (sequenceObjective.status != Objective.ObjectiveStatus.Active)
+                    {
+                        completedSequenceObjectives++;
+                    }
+                }
+                int remainingSequenceObjectives = parentObjective.objectiveSequence.Length - completedSequenceObjectives;
+                        
+                print("completedSequenceObjectives: " + completedSequenceObjectives);
+                if (remainingSequenceObjectives > 0)
+                {
+                    if (sequenceObjectiveIndex == completedSequenceObjectives - 1)
+                    {
+                        print("Sequence maintained");
+                        parentObjective.objectiveMessedUp = false;
+                    }
+                    else
+                    {
+                        print("Sequence not maintained");
+                        parentObjective.objectiveMessedUp = true;
+                    }
+                }
+                print("Sequence maintained? " + !parentObjective.objectiveMessedUp);
             }
         }
 
@@ -246,12 +256,12 @@ namespace Ekkam {
             
             if (wasSuccessful && objective.completionDialogs.Count > 0)
             {
-                gameManager.PlayDroneDialogAndAssignObjective(objective.completionDialogs);
+                gameManager.PlayDroneDialog(objective.completionDialogs);
                 objective.doNotAssignNextObjectiveOnCompletion = true;
             }
             else if (!wasSuccessful && objective.failedDialogs.Count > 0)
             {
-                gameManager.PlayDroneDialogAndAssignObjective(objective.failedDialogs);
+                gameManager.PlayDroneDialog(objective.failedDialogs);
                 objective.doNotAssignNextObjectiveOnCompletion = true;
             }
             
