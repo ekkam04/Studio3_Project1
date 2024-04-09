@@ -29327,6 +29327,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae9628a1f64a416e85ac3c533747c053, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  towerName: Tower
   progress: 0
   progressSpeed: 3
   activated: 0
@@ -82043,6 +82044,7 @@ MonoBehaviour:
   sequenceIndex: 1
   duration: 2
   virtualCameraToTransitionTo: {fileID: 0}
+  tagToRemove: 
 --- !u!1 &6952321062299571637
 GameObject:
   m_ObjectHideFlags: 0
@@ -96537,6 +96539,7 @@ MonoBehaviour:
   positionOffset: {x: 0, y: 0, z: 0}
   heldInOffHand: 0
   signalReceiver: {fileID: 4733609248692521108}
+  extraSignalReceivers: []
   placeRotationOffset: {x: 0, y: 0, z: 0}
   placePositionOffset: {x: 0, y: 0, z: 0}
   tagToAccept: 

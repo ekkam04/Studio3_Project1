@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Ekkam
 {
     public class Tower : Signalable
     {
         [Header("Tower Settings")]
+        public string towerName;
         public float progress;
         const float progressRequired = 100;
         public float progressSpeed = 1;
@@ -33,6 +35,7 @@ namespace Ekkam
         public Material progressMaterial;
         public GameObject progressIndicator;
         private UIManager uiManager;
+        private Slider progressSlider;
 
         private void Start()
         {
@@ -46,9 +49,13 @@ namespace Ekkam
         {
             if (activated) return;
             print("Tower activated!");
+            progressSlider = uiManager.towerProgressSlider;
+            progressSlider.maxValue = progressRequired;
             activated = true;
             towerButton.enabled = false;
             uiManager.pickUpPrompt.SetActive(false);
+            uiManager.towerNameText.text = towerName;
+            uiManager.towerUI.SetActive(true);
             progressParticles.Play();
         }
         
@@ -77,12 +84,14 @@ namespace Ekkam
                 print("Tower complete!");
                 completionParticles.Play();
                 progressParticles.Stop();
+                uiManager.towerUI.SetActive(false);
                 if (completionSignal != null) completionSignal.Signal();
                 activated = false;
                 return;
             }
             progress += progressSpeed * Time.deltaTime;
             progressMaterial.SetFloat("_FillAmount", progress / 100);
+            progressSlider.value = progress;
             
             foreach (var milestone in progressMilestonesToSpawnWaves)
             {

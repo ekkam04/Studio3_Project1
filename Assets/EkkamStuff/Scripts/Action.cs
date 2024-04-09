@@ -14,17 +14,23 @@ public class Action : Signalable
         Disable,
         EnableChild,
         Destroy,
+        RemoveTagFromInventory
     }
+    [Header("Action Settings")]
     public ActionToTake actionToTake;
     private Vector3 originalTargetOffset;
     public Vector3 targetOffset;
     public Vector3[] sequentialTargetOffsets;
     
+    [Header("Sequence Settings")]
     public int sequenceIndex = 0;
     public float duration = 2f;
     
     public GameObject virtualCameraToTransitionTo;
     private float delayActionDuration = 1.5f;
+    
+    [Header("Remove Tag From Inventory Settings")]
+    public string tagToRemove;
     
     public delegate void OnActionComplete();
     public static event OnActionComplete onActionComplete;
@@ -82,6 +88,10 @@ public class Action : Signalable
             case ActionToTake.Destroy:
                 Destroy(gameObject);
                 // ActionComplete event is handled in OnDestroy
+                break;
+            case ActionToTake.RemoveTagFromInventory:
+                var inventory = FindObjectOfType<Inventory>();
+                inventory.RemoveItemByTag(tagToRemove);
                 break;
         }
         

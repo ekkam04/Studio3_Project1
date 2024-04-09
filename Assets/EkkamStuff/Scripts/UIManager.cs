@@ -33,6 +33,10 @@ namespace Ekkam
         public Button nextButton;
         public Button[] optionButtons;
 
+        public GameObject towerUI;
+        public TMP_Text towerNameText;
+        public Slider towerProgressSlider;
+
         Player player;
 
         private void Start()

@@ -244,6 +244,17 @@ namespace Ekkam {
             
             HideAllObjectiveMarkers();
             
+            if (wasSuccessful && objective.completionDialogs.Count > 0)
+            {
+                gameManager.PlayDroneDialogAndAssignObjective(objective.completionDialogs);
+                objective.doNotAssignNextObjectiveOnCompletion = true;
+            }
+            else if (!wasSuccessful && objective.failedDialogs.Count > 0)
+            {
+                gameManager.PlayDroneDialogAndAssignObjective(objective.failedDialogs);
+                objective.doNotAssignNextObjectiveOnCompletion = true;
+            }
+            
             if (!objectives.Contains(objective)) return; // Only main objectives should progress the story
             
             if (currentObjectiveIndex < objectives.Count - 1)

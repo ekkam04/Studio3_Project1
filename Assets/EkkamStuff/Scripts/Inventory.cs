@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,6 +20,8 @@ namespace Ekkam {
         public List<GameObject> slots = new List<GameObject>();
         public List<Item> items = new List<Item>();
         public GameObject selectedSlot;
+        
+        private bool shiftingItems = false;
 
         // private float slotPositionX = 0f;
         Player player;
@@ -65,6 +68,7 @@ namespace Ekkam {
 
         public void CycleSlot(bool forward)
         {
+            if (shiftingItems) return;
             int index = slots.IndexOf(selectedSlot);
             if (forward)
             {
@@ -87,6 +91,7 @@ namespace Ekkam {
         
         void SetSelectedSlot(int index)
         {
+            if (shiftingItems) return;
             foreach (GameObject slot in slots)
             {
                 slot.GetComponentInChildren<Animator>().SetTrigger("Normal");
@@ -103,32 +108,69 @@ namespace Ekkam {
             {
                 if (slot.GetComponentInChildren<RawImage>() == null)
                 {
-                    GameObject itemObj = new GameObject("Item");
-                    itemObj.transform.SetParent(slot.transform.GetChild(0).transform);
-                    itemObj.AddComponent<RawImage>();
-                    itemObj.GetComponent<RawImage>().texture = item.itemTexture;
-
-                    float scaleFactor = itemObj.GetComponentInParent<Canvas>().scaleFactor;
-                    itemObj.GetComponent<RectTransform>().sizeDelta = new Vector2(item.itemSize * scaleFactor, item.itemSize * scaleFactor);
-
-                    itemObj.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
+                    // GameObject itemObj = new GameObject("Item");
+                    // itemObj.transform.SetParent(slot.transform.GetChild(0).transform);
+                    // itemObj.AddComponent<RawImage>();
+                    // itemObj.GetComponent<RawImage>().texture = item.itemTexture;
+                    //
+                    // float scaleFactor = itemObj.GetComponentInParent<Canvas>().scaleFactor;
+                    // itemObj.GetComponent<RectTransform>().sizeDelta = new Vector2(item.itemSize * scaleFactor, item.itemSize * scaleFactor);
+                    //
+                    // itemObj.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
+                    CreateItemObject(item, slot);
                     items.Add(item);
+                    
                     break;
                 }
             }
             ShowEquippedItem();
         }
         
-        public void RemoveItem(Item item)
+        public async void RemoveItem(Item item)
         {
             // Remove item from slot
+            int index = items.IndexOf(item);
             if (items.Contains(item))
             {
-                int index = items.IndexOf(item);
                 items.Remove(item);
                 Destroy(slots[index].GetComponentInChildren<RawImage>().gameObject);
+                Destroy(item.gameObject);
             }
+            
+            shiftingItems = true;
+            await Task.Delay(100);
+            print("shifting items");
+            
+            // shift items to the left if necessary
+            for (int i = 0; i < slots.Count; i++)
+            {
+                if (i < items.Count)
+                {
+                    CreateItemObject(items[i], slots[i]);
+                }
+                else
+                {
+                    if (slots[i].GetComponentInChildren<RawImage>() != null)
+                    {
+                        Destroy(slots[i].GetComponentInChildren<RawImage>().gameObject);
+                    }
+                }
+            }
+            shiftingItems = false;
+            
             Invoke("ShowEquippedItem", 0.1f);
+        }
+        
+        public void RemoveItemByTag(string tag)
+        {
+            foreach (Item item in items)
+            {
+                if (item.tag == tag)
+                {
+                    RemoveItem(item);
+                    break;
+                }
+            }
         }
         
         public Item GetSelectedItem()
@@ -138,6 +180,20 @@ namespace Ekkam {
                 return items[slots.IndexOf(selectedSlot)];
             }
             return null;
+        }
+        
+        // Factory pattern in the wild!!??
+        public void CreateItemObject(Item item, GameObject slot)
+        {
+            GameObject itemObj = new GameObject("Item");
+            itemObj.transform.SetParent(slot.transform.GetChild(0).transform);
+            itemObj.AddComponent<RawImage>();
+            itemObj.GetComponent<RawImage>().texture = item.itemTexture;
+
+            float scaleFactor = itemObj.GetComponentInParent<Canvas>().scaleFactor;
+            itemObj.GetComponent<RectTransform>().sizeDelta = new Vector2(item.itemSize * scaleFactor, item.itemSize * scaleFactor);
+
+            itemObj.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
         }
 
         public void ShowEquippedItem()

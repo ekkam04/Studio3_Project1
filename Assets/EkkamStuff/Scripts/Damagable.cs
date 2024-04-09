@@ -77,7 +77,7 @@ namespace Ekkam
                 if (anim != null) anim.SetTrigger("hit");
             }
             
-            if (damageDealer.GetComponent<Player>() != null)
+            if (damageDealer != null && damageDealer.GetComponent<Player>() != null)
             {
                 // player damaged an enemy
                 var objectiveManager = FindObjectOfType<ObjectiveManager>();

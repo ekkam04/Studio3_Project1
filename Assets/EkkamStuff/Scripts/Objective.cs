@@ -7,6 +7,7 @@ namespace Ekkam {
     [System.Serializable]
     public class Objective
     {
+        [Header("Objective Settings")]
         public string objectiveText;
         public enum ObjectiveType
         {
@@ -30,9 +31,11 @@ namespace Ekkam {
     
         public GameObject objectiveUIItem;
         
+        [Header("Completion Settings")]
         public Signalable[] completionSignals;
         public string completionActionKey;
-        
+        public List<Dialog> completionDialogs;
+        public List<Dialog> failedDialogs;
         public bool doNotAssignNextObjectiveOnCompletion;
         
         public enum ObjectiveStatus
@@ -43,6 +46,7 @@ namespace Ekkam {
             KindaCompleted,
             Failed
         }
+        [Header("Objective Status")]
         public ObjectiveStatus status;
     }
 }
