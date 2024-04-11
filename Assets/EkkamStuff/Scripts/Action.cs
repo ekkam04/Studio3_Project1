@@ -22,6 +22,7 @@ public class Action : Signalable
     private Vector3 originalTargetOffset;
     public Vector3 targetOffset;
     public Vector3[] sequentialTargetOffsets;
+    public bool assignNextObjectiveOnActionComplete;
     
     private Vector3 startPosition;
     private Vector3 targetPosition;
@@ -186,6 +187,10 @@ public class Action : Signalable
         {
             GameManager.Instance.ResumeGame();
             virtualCameraToTransitionTo.SetActive(false);
+        }
+        if (assignNextObjectiveOnActionComplete)
+        {
+            FindObjectOfType<ObjectiveManager>().AddNextObjective();
         }
     }
     

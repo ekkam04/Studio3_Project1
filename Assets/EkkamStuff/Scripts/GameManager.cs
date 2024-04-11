@@ -46,6 +46,9 @@ public class GameManager : MonoBehaviour
     public Action room1FireExtinguisherHolder;
     public Interactable room1RepairPanel;
     
+    public GameObject room6BatteryHolder;
+    public GameObject room6BatteryVCam;
+    
     [Header("Drone Dialogs")]
     public List<Dialog> droneDialog1;
 
@@ -73,6 +76,7 @@ public class GameManager : MonoBehaviour
         
         ObjectiveManager.onObjectiveComplete += HandleActionKey;
         Wire.onPowered += HandleActionKey;
+        Interactable.onInteraction += HandleActionKey;
     }
 
     private void Update()
@@ -253,6 +257,9 @@ public class GameManager : MonoBehaviour
                 ShowGuideBot();
                 room1RepairPanel.enabled = false;
                 break;
+            case "room6-drop-battery":
+                StartCoroutine(Room6DropBattery());
+                break;
             default:
                 break;
         }
@@ -319,116 +326,21 @@ public class GameManager : MonoBehaviour
                 }
             }
         };
-        // dialogManager.dialogs = dialogsToShow;
-        // dialogManager.StartDialog(0);
-        // yield return new WaitUntil(() => !dialogManager.isDialogActive);
-        // objectiveManager.AddNextObjective();
+
         PlayDroneDialog(dialogsToShow);
     }
 
-    IEnumerator Room1RepairDrone()
+    IEnumerator Room6DropBattery()
     {
-        ShowGuideBot();
+        var room6BatteryHolderRb = room6BatteryHolder.GetComponent<Rigidbody>();
+        room6BatteryHolderRb.isKinematic = false;
+        room6BatteryVCam.SetActive(true);
         yield return new WaitForSeconds(2);
-        List<Dialog> dialogsToShow = new List<Dialog>
-        {
-            new Dialog // index 0
-            {
-                dialogText = "You have been selected for the search and extraction of anomaly Charlie.",
-                dialogOptions = new DialogOption[] {}
-            },
-            new Dialog // index 1
-            {
-                dialogText = "Please make your way through this facility for Seeker Evaluation.",
-                dialogOptions = new DialogOption[]
-                {
-                    new DialogOption
-                    {
-                        optionText = "Who are you?",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 2
-                    },
-                    new DialogOption
-                    {
-                        optionText = "Who am I?",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 3
-                    },
-                    new DialogOption
-                    {
-                        optionText = "What is this place?",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 4
-                    },
-                    new DialogOption
-                    {
-                        optionText = "Understood, let's go.",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 5
-                    }
-                }
-            },
-            new Dialog // index 2
-            {
-                dialogText = "This unit is a drone, Code Name: Seraph, This unit will provide Tactical Data on the Seeker Evaluation and Tasks given by ……. Name of the superior is ….. ACCESS DENIED.",
-                dialogOptions = new DialogOption[]
-                {
-                    new DialogOption
-                    {
-                        optionText = "Continue",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 1
-                    }
-                }
-            },
-            new Dialog // index 3
-            {
-                dialogText = "Scanning... Unit name: Dynamo, No dread virus detected, No anomaly levels detected, Generation 3 robot, Fire suppression protocol Outlier Detected, deemed not a threat, Selected for Seeker Evaluation.",
-                dialogOptions = new DialogOption[]
-                {
-                    new DialogOption
-                    {
-                        optionText = "Continue",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 1
-                    }
-                }
-            },
-            new Dialog // index 4
-            {
-                dialogText = "This facility is Site RC-32, previously used as a prison for anomaly type Robots, but after the Dread Virus Outbreak this facility was Abandoned.",
-                dialogOptions = new DialogOption[]
-                {
-                    new DialogOption
-                    {
-                        optionText = "Continue",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 1
-                    }
-                }
-            },
-            new Dialog // index 5
-            {
-                dialogText = "Before we proceed, the Seraph unit has observed that an impact caused by a drone has damaged some systems, Proceed to the repair Station proudly Sponsored by Haptic Repairs, First ones on us!!",
-                dialogOptions = new DialogOption[]
-                {
-                    new DialogOption
-                    {
-                        optionText = "Continue",
-                        optionType = DialogOption.OptionType.End,
-                        jumpToIndex = 1
-                    }
-                }
-            },
-        };
-        dialogManager.dialogs = dialogsToShow;
-        dialogManager.StartDialog(0);
-        
-        room1RepairPanel.enabled = false;
-        uiManager.pickUpPrompt.SetActive(false);
-        
-        yield return new WaitUntil(() => !dialogManager.isDialogActive);
-        objectiveManager.AddNextObjective();
+        room6BatteryHolderRb.AddForce(Vector3.forward * -5, ForceMode.Impulse);
+        yield return new WaitForSeconds(4);
+        room6BatteryHolderRb.isKinematic = true;
+        room6BatteryHolder.GetComponent<Collider>().enabled = false;
+        room6BatteryVCam.SetActive(false);
     }
     
     public void PlayDroneDialog(List<Dialog> dialogs, bool assignNextObjective = true, float delay = 0.5f)

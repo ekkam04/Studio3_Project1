@@ -126,7 +126,7 @@ namespace Ekkam {
             ShowEquippedItem();
         }
         
-        public async void RemoveItem(Item item)
+        public async void RemoveItem(Item item, bool destroyGameObject = true)
         {
             // Remove item from slot
             int index = items.IndexOf(item);
@@ -134,7 +134,7 @@ namespace Ekkam {
             {
                 items.Remove(item);
                 Destroy(slots[index].GetComponentInChildren<RawImage>().gameObject);
-                Destroy(item.gameObject);
+                if (destroyGameObject) Destroy(item.gameObject);
             }
             
             shiftingItems = true;

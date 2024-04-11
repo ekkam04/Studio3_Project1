@@ -145,7 +145,7 @@ namespace Ekkam {
                     else if (
                         target.GetComponent<Interactable>() != null
                         && target.GetComponent<Interactable>().interactionAction == Interactable.InteractionAction.DamageCrystal
-                        && target.GetComponent<Interactable>().timesInteracted > 2
+                        && target.GetComponent<Interactable>().isBroken == true
                     )
                     {
                         numberOfDestroyedTargets++;

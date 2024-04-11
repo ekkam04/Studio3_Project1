@@ -42,6 +42,7 @@ namespace Ekkam {
         public int timesInteracted = 0;
         public float extraInteractDistance;
         public bool singleUse;
+        public string interactionActionKey;
         
         [Header("Item Settings")]
         public Vector3 rotationOffset;
@@ -56,6 +57,12 @@ namespace Ekkam {
         public Vector3 placeRotationOffset;
         public Vector3 placePositionOffset;
         public string tagToAccept;
+        
+        [Header("Crystal Settings")]
+        public bool isBroken;
+        
+        public delegate void OnInteraction(string actionKey);
+        public static event OnInteraction onInteraction;
 
         void Start()
         {
@@ -102,6 +109,7 @@ namespace Ekkam {
                             extraSignalReceiver.Signal();
                         }
                     }
+                    isBroken = true;
                 }
             }
         }
@@ -155,9 +163,17 @@ namespace Ekkam {
             }
             else if (interactionAction == InteractionAction.Signal)
             {
-                print("Signaling " + signalReceiver.name);
                 interactColor = Color.yellow;
-                signalReceiver.Signal();
+                if (signalReceiver != null)
+                {
+                    print("Signaling " + signalReceiver.name);
+                    signalReceiver.Signal();
+                }
+                else if (onInteraction != null && interactionActionKey != "")
+                {
+                    onInteraction.Invoke(interactionActionKey);
+                }
+                
                 foreach (var extraSignalReceiver in extraSignalReceivers)
                 {
                     extraSignalReceiver.Signal();
@@ -179,7 +195,7 @@ namespace Ekkam {
                     objectToPlace.transform.Rotate(placeRotationOffset);
                     
                     await Task.Delay(100);
-                    inventory.RemoveItem(inventory.GetSelectedItem());
+                    inventory.RemoveItem(inventory.GetSelectedItem(), false);
                     if (signalReceiver != null)
                     {
                         signalReceiver.Signal();
