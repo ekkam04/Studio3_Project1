@@ -76,6 +76,7 @@ namespace Ekkam
         
         public void HandleOption(DialogOption option)
         {
+            if (option.signal != null) option.signal.Signal();
             switch (option.optionType)
             {
                 case DialogOption.OptionType.Next:
@@ -87,7 +88,7 @@ namespace Ekkam
                     if (GetComponent<Interactable>() != null) GetComponent<Interactable>().enabled = true;
                     break;
                 case DialogOption.OptionType.Signal:
-                    option.signal.Signal();
+                    // option.signal.Signal();
                     uiManager.HideDialog();
                     isDialogActive = false;
                     if (GetComponent<Interactable>() != null) GetComponent<Interactable>().enabled = true;

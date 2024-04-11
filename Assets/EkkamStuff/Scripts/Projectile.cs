@@ -16,6 +16,18 @@ namespace Ekkam {
         
         public bool isMelee = false;
         public GameObject baseParent;
+        
+        [Header("Particle Settings")]
+        public ParticleSystem trailParticleSystem;
+        public float trailStartDelay = 0.5f;
+        
+        private void Start()
+        {
+            if (trailParticleSystem != null)
+            {
+                Invoke("EnableTrail", trailStartDelay);
+            }
+        }
 
         void Update()
         {
@@ -41,6 +53,11 @@ namespace Ekkam {
                 other.gameObject.GetComponent<Interactable>().Interact();
             }
             if (destroyOnHit) Destroy(gameObject);
+        }
+        
+        private void EnableTrail()
+        {
+            trailParticleSystem.Play();
         }
 
         // private void OnCollisionEnter(Collision other)

@@ -63,12 +63,12 @@ namespace Ekkam {
                 foreach (Objective objectivesThatFailThisObjective in objective.objectivesThatFailThisObjective)
                 {
                     CheckObjectiveCompletion(objectivesThatFailThisObjective);
-                    // if (objectivesThatFailThisObjective.status != Objective.ObjectiveStatus.Active)
-                    // {
-                    //     // CompleteObjective(objective, false);
-                    //     objective.objectiveMessedUp = true;
-                    //     // return;
-                    // }
+                    if (objectivesThatFailThisObjective.status != Objective.ObjectiveStatus.Active)
+                    {
+                        // CompleteObjective(objective, false);
+                        objective.objectiveMessedUp = true;
+                        // return;
+                    }
                 }
                 
                 if (objective.objectiveType == Objective.ObjectiveType.Sequence)

@@ -102,7 +102,7 @@ namespace Ekkam
         
         private float staffTimer;
         // private float staffResetCooldown = 1.25f;
-        private float staffAttackCooldown = 0.5f;
+        private float staffAttackCooldown = 0.1f;
 
         private bool targetLock;
         private Enemy previousNearestEnemy;

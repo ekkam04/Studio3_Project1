@@ -3312,8 +3312,10 @@ MonoBehaviour:
   speed: 0
   fallOffSpeed: 0
   damage: 5
-  knockback: 300
+  knockback: 200
   destroyOnHit: 0
   freezeOnHit: 0
   isMelee: 1
   baseParent: {fileID: 7879049295762253105}
+  trailParticleSystem: {fileID: 0}
+  trailStartDelay: 0.5

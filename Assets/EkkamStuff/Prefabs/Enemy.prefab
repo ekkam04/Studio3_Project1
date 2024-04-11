@@ -2002,6 +2002,8 @@ MonoBehaviour:
   anim: {fileID: 0}
   skinnedMeshRenderer: {fileID: 6575460995464151839}
   tagsToIgnore: []
+  dropCoinsOnDeath: 0
+  coinsToDrop: 0
   grid: {fileID: 0}
   targetLockPrompt: {fileID: 0}
   parachute: {fileID: 1547082733166906513}
@@ -2011,7 +2013,7 @@ MonoBehaviour:
   lastUnblockedNode: {fileID: 0}
   findingPath: 0
   pathfindingState: 0
-  speed: 4
+  speed: 5
   attackRange: 3
   detectionRange: 25
   attackTimer: 0
@@ -2037,6 +2039,7 @@ MonoBehaviour:
   meleeHitbox: {fileID: 8687661573327120393}
   itemHolderLeft: {fileID: 2376309944885874681}
   itemHolderRight: {fileID: 935415510685801418}
+  target: {fileID: 0}
   layersToIgnore:
     serializedVersion: 2
     m_Bits: 256
@@ -2861,6 +2864,8 @@ MonoBehaviour:
   freezeOnHit: 0
   isMelee: 1
   baseParent: {fileID: 6241122315721747023}
+  trailParticleSystem: {fileID: 0}
+  trailStartDelay: 0.5
 --- !u!1 &8781236071354215677
 GameObject:
   m_ObjectHideFlags: 0

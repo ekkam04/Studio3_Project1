@@ -66,17 +66,11 @@ public class DOTSPathfinding : MonoBehaviour
                 }
             }
 
-            NativeArray<int2> neighbourOffsetArray = new NativeArray<int2>(new int2[]
-            {
-                new int2(-1, 0), // Left
-                new int2(+1, 0), // Right
-                new int2(0, +1), // Up
-                new int2(0, -1), // Down
-                // new int2(-1, -1), // Left Down
-                // new int2(-1, +1), // Left Up
-                // new int2(+1, -1), // Right Down
-                // new int2(+1, +1) // Right Up
-            }, Allocator.Temp);
+            NativeArray<int2> neighbourOffsetArray = new NativeArray<int2>(4, Allocator.Temp);
+            neighbourOffsetArray[0] = new int2(-1, 0); // Left
+            neighbourOffsetArray[1] = new int2(+1, 0); // Right
+            neighbourOffsetArray[2] = new int2(0, +1); // Up
+            neighbourOffsetArray[3] = new int2(0, -1); // Down
             
             PathNode startNode = pathNodeArray[CalculateIndex(startPosition.x, startPosition.y, gridSize.x)];
             startNode.gCost = 0;

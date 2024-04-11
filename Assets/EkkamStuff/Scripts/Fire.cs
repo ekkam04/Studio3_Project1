@@ -26,7 +26,7 @@ namespace Ekkam
         
         public void Extinguish()
         {
-            fire.Stop();
+            if (fire != null) fire.Stop();
             fireCollider.enabled = false;
             if (signalOnExtinguish != null) signalOnExtinguish.Signal();
             Invoke(nameof(DisableFire), 2);
@@ -39,7 +39,7 @@ namespace Ekkam
         
         private void OnTriggerStay(Collider other)
         {
-            if (other.CompareTag("Player") || other.CompareTag("Enemy"))
+            if (other.GetComponent<Damagable>() != null)
             {
                 timer += Time.deltaTime;
                 if (timer >= damageInterval)

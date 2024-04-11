@@ -14,7 +14,8 @@ public class Action : Signalable
         Disable,
         EnableChild,
         Destroy,
-        RemoveTagFromInventory
+        RemoveTagFromInventory,
+        AddCoins
     }
     [Header("Action Settings")]
     public ActionToTake actionToTake;
@@ -41,6 +42,9 @@ public class Action : Signalable
     
     [Header("Remove Tag From Inventory Settings")]
     public string tagToRemove;
+    
+    [Header("Events")]
+    public int coinsToAdd = 0;
     
     public delegate void OnActionComplete();
     public static event OnActionComplete onActionComplete;
@@ -132,6 +136,10 @@ public class Action : Signalable
             case ActionToTake.RemoveTagFromInventory:
                 var inventory = FindObjectOfType<Inventory>();
                 inventory.RemoveItemByTag(tagToRemove);
+                break;
+            case ActionToTake.AddCoins:
+                Player.Instance.coins += coinsToAdd;
+                if (Player.Instance.coins < 0) Player.Instance.coins = 0;
                 break;
         }
         
