@@ -25,6 +25,7 @@ namespace Ekkam
             Sprinting,
             Air
         }
+        [Header("--- Player Settings and References ---")]
         public MovementState movementState;
         
         public int coins;
@@ -36,11 +37,6 @@ namespace Ekkam
             Combat
         }
         public CameraStyle cameraStyle;
-        public Rig bowRig;
-        public TwoBoneIKConstraint secondHandArrowIK;
-        public float secondHandArrowIKWeight;
-
-        public GameObject[] facePlates;
         
         private bool allowMovement = true;
         public bool allowFall = true;
@@ -51,6 +47,10 @@ namespace Ekkam
 
         public float freeWill = 50f;
         public Slider freeWillSlider;
+        
+        public float interactDistance = 3f;
+        
+        public GameObject[] facePlates;
         
         public Slider healthSlider;
 
@@ -63,8 +63,14 @@ namespace Ekkam
         
         public Transform combatLookAt;
         private Vector3 cameraOffset;
-        public float rotationSpeed = 5f;
         
+        [Header("--- Rig Settings ---")]
+        public Rig bowRig;
+        public TwoBoneIKConstraint secondHandArrowIK;
+        public float secondHandArrowIKWeight;
+        
+        [Header("--- Movement Settings ---")]
+        public float rotationSpeed = 5f;
         public float horizontalInput = 0f;
         public float verticalInput = 0f;
         Vector3 moveDirection;
@@ -89,9 +95,8 @@ namespace Ekkam
         float gravity;
         private float initialJumpVelocity;
         private float jumpStartTime;
-
-        public float interactDistance = 3f;
         
+        // --- constant values ---
         float swordTimer;
         float swordResetCooldown = 1.25f;
         float swordAttackCooldown = 0.25f;
@@ -101,14 +106,20 @@ namespace Ekkam
         private float bowAttackCooldown = 1.25f;
         
         private float staffTimer;
-        // private float staffResetCooldown = 1.25f;
         private float staffAttackCooldown = 0.1f;
 
         private bool targetLock;
         private Enemy previousNearestEnemy;
+        
+        [Header("--- Model Settings ---")]
 
         [SerializeField] public GameObject itemHolderRight;
         [SerializeField] public GameObject itemHolderLeft;
+        
+        public SkinnedMeshRenderer playerMesh;
+        
+        public DisguiseDetails[] disguiseDetails;
+        public ParticleSystem disguiseParticles;
 
         public static Player Instance { get; private set; }
 
@@ -133,11 +144,11 @@ namespace Ekkam
             uiManager = FindObjectOfType<UIManager>();
             combatManager = GetComponent<CombatManager>();
             
-            foreach (var facePlate in facePlates)
-            {
-                facePlate.SetActive(false);
-            }
-            facePlates[0].SetActive(true);
+            // foreach (var facePlate in facePlates)
+            // {
+            //     facePlate.SetActive(false);
+            // }
+            // facePlates[0].SetActive(true);
             disguiseSlider.maxValue = disguiseBattery;
             disguiseSlider.gameObject.SetActive(false);
 
@@ -187,7 +198,7 @@ namespace Ekkam
 
             // temporary, need to use new input system but for now this will do
             if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
-            if (Input.GetKey(KeyCode.Mouse1) || Input.GetKey(KeyCode.L)) LookAtNearestEnemy();
+            // if (Input.GetKey(KeyCode.Mouse1) || Input.GetKey(KeyCode.L)) LookAtNearestEnemy();
             
             if (Input.GetKeyUp(KeyCode.Mouse1) || Input.GetKeyUp(KeyCode.L))
             {
@@ -487,11 +498,15 @@ namespace Ekkam
         {
             disguiseActive = !disguiseActive;
             disguiseSlider.gameObject.SetActive(disguiseActive);
-            foreach (var facePlate in facePlates)
+            foreach (var disguiseDetail in disguiseDetails)
             {
-                facePlate.SetActive(false);
+                disguiseDetail.facePlate.SetActive(false);
             }
-            facePlates[disguiseActive ? 3 : 0].SetActive(true);
+            disguiseDetails[disguiseActive ? 1 : 0].facePlate.SetActive(true);
+            playerMesh.material = disguiseDetails[disguiseActive ? 1 : 0].material;
+            var disguiseParticlesMain = disguiseParticles.main;
+            disguiseParticlesMain.startColor = disguiseDetails[disguiseActive ? 1 : 0].color;
+            disguiseParticles.Play();
         }
         
         public void SwitchCameraStyle(CameraStyle style)
@@ -510,8 +525,8 @@ namespace Ekkam
             {
                 case CameraStyle.Exploration:
                     cameraObj = explorationCamera.transform;
-                    explorationCamCinemachine.m_XAxis.Value = combatX;
-                    explorationCamCinemachine.m_YAxis.Value = combatY;
+                    // explorationCamCinemachine.m_XAxis.Value = combatX;
+                    // explorationCamCinemachine.m_YAxis.Value = combatY;
                     explorationCamera.SetActive(true);
                     combatCamera.SetActive(false);
                     uiManager.combatReticle.SetActive(false);
@@ -530,5 +545,14 @@ namespace Ekkam
                     break;
             }
         }
+    }
+
+    [System.Serializable]
+    public class DisguiseDetails
+    {
+        public string name;
+        public GameObject facePlate;
+        public Material material;
+        public Color color;
     }
 }

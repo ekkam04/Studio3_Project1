@@ -169,7 +169,7 @@ namespace Ekkam {
                     print("Signaling " + signalReceiver.name);
                     signalReceiver.Signal();
                 }
-                else if (onInteraction != null && interactionActionKey != "")
+                if (onInteraction != null && interactionActionKey != "")
                 {
                     onInteraction.Invoke(interactionActionKey);
                 }

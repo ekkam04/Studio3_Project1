@@ -350,11 +350,29 @@ public class GameManager : MonoBehaviour
     IEnumerator Room6DoorExplosion()
     {
         room6ExplosionVCam.SetActive(true);
-        yield return new WaitForSeconds(1);
-        room6ExplosionFire.SetActive(true);
         yield return new WaitForSeconds(2);
+        room6ExplosionFire.SetActive(true);
+        Player.Instance.TakeDamage(20, 50, null);
+        yield return new WaitForSeconds(4);
         room6ExplosionVCam.SetActive(false);
-        room6FireExtinguisherHolder.Signal();
+
+        List<Dialog> dialogsToShow = new List<Dialog>
+        {
+            new Dialog
+            {
+                dialogText = "Fire hazard detected. Fire suppression protocol activated.",
+                dialogOptions = new DialogOption[]
+                {
+                    new DialogOption
+                    {
+                        optionText = "Accept",
+                        optionType = DialogOption.OptionType.Signal,
+                        signal = room6FireExtinguisherHolder
+                    }
+                }
+            }
+        };
+        PlayDroneDialog(dialogsToShow);
     }
 
     IEnumerator Room6DropBattery()
