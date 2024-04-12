@@ -18,6 +18,7 @@ namespace Ekkam {
             Reach,
             Sequence,
             DamageAnyEnemy,
+            ObserveCollider
         }
         public ObjectiveType objectiveType;
     

@@ -32,6 +32,8 @@ namespace Ekkam {
         [SerializeField] GameObject objectiveItem;
         Player player;
         public bool playerDamagedEnemyCheck = false;
+        public bool playerObservedColliderCheck = false;
+        private bool mousePosition3DObserverCheck = false;
 
         public Volume vignetteVolume;
         public Vignette vignette;
@@ -185,6 +187,21 @@ namespace Ekkam {
                     playerDamagedEnemyCheck = false;
                 }
             }
+            else if (objective.objectiveType == Objective.ObjectiveType.ObserveCollider)
+            {
+                if (!mousePosition3DObserverCheck)
+                {
+                    FindObjectOfType<MousePosition3D>().colliderToObserve = objective.objectiveTargets[0].GetComponent<Collider>();
+                    FindObjectOfType<MousePosition3D>().observeCollider = true;
+                    mousePosition3DObserverCheck = true;
+                }
+                if (playerObservedColliderCheck)
+                {
+                    CompleteObjective(objective, !objective.objectiveMessedUp);
+                    CheckSequence(isSequential, objective, parentObjective);
+                    playerObservedColliderCheck = false;
+                }
+            }
         }
 
         private void CheckSequence(bool isSequential, Objective objective, Objective parentObjective = null)
@@ -284,6 +301,7 @@ namespace Ekkam {
         public void AddNextObjective()
         {
             playerDamagedEnemyCheck = false;
+            playerObservedColliderCheck = false;
             objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
             AddObjectiveToUI(objectives[currentObjectiveIndex]);
             foreach (Objective objectivesThatFailThisObjective in objectives[currentObjectiveIndex].objectivesThatFailThisObjective)

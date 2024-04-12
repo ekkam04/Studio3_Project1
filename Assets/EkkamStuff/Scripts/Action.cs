@@ -75,6 +75,7 @@ public class Action : Signalable
             if (timeElapsed >= duration)
             {
                 isMoving = false;
+                transform.position = targetPosition;
                 HandleActionComplete();
             }
         }
@@ -192,6 +193,30 @@ public class Action : Signalable
         {
             FindObjectOfType<ObjectiveManager>().AddNextObjective();
         }
+    }
+    
+    public void ResetSequence()
+    {
+        targetOffset = originalTargetOffset;
+        sequenceIndex = 0;
+    }
+    
+    public void MoveToWorldPosition(Vector3 targetPosition, float duration)
+    {
+        StartCoroutine(MoveToWorldPositionCoroutine(targetPosition, duration));
+    }
+    
+    IEnumerator MoveToWorldPositionCoroutine(Vector3 targetPosition, float duration)
+    {
+        float timeElapsed = 0;
+        Vector3 startPosition = transform.position;
+        while (timeElapsed < duration)
+        {
+            transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+        transform.position = targetPosition;
     }
     
 }

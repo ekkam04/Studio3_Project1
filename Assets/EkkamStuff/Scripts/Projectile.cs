@@ -48,7 +48,7 @@ namespace Ekkam {
             {
                 other.gameObject.GetComponent<Damagable>().TakeDamage(damage, knockback, projectileOwner);
             }
-            else if (other.gameObject.GetComponent<Interactable>() != null && other.gameObject.GetComponent<Interactable>().interactionType == Interactable.InteractionType.Damage)
+            else if (other.gameObject.GetComponent<Interactable>() != null && other.gameObject.GetComponent<Interactable>().enabled && other.gameObject.GetComponent<Interactable>().interactionType == Interactable.InteractionType.Damage)
             {   
                 other.gameObject.GetComponent<Interactable>().Interact();
             }

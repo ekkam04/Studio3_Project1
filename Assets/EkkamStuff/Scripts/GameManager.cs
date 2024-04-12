@@ -45,9 +45,15 @@ public class GameManager : MonoBehaviour
     public Transform[] droneCrashPath;
     public Action room1FireExtinguisherHolder;
     public Interactable room1RepairPanel;
-    
+
+    public GameObject room6ExplosionVCam;
+    public GameObject room6ExplosionFire;
+    public Action room6FireExtinguisherHolder;
     public GameObject room6BatteryHolder;
     public GameObject room6BatteryVCam;
+    public Action room6Elevator;
+    public float room6ElevatorGroundYPosition;
+    public Action room6ElevatorUseButtonHolder;
     
     [Header("Drone Dialogs")]
     public List<Dialog> droneDialog1;
@@ -257,8 +263,19 @@ public class GameManager : MonoBehaviour
                 ShowGuideBot();
                 room1RepairPanel.enabled = false;
                 break;
+            case "room6-door-explosion":
+                StartCoroutine(Room6DoorExplosion());
+                break;
             case "room6-drop-battery":
                 StartCoroutine(Room6DropBattery());
+                break;
+            case "room6-elevator-reset":
+                room6Elevator.ResetSequence();
+                room6ElevatorUseButtonHolder.Signal();
+                room6Elevator.MoveToWorldPosition(
+                    new Vector3(room6Elevator.transform.position.x, room6ElevatorGroundYPosition, room6Elevator.transform.position.z),
+                    2
+                );
                 break;
             default:
                 break;
@@ -328,6 +345,16 @@ public class GameManager : MonoBehaviour
         };
 
         PlayDroneDialog(dialogsToShow);
+    }
+    
+    IEnumerator Room6DoorExplosion()
+    {
+        room6ExplosionVCam.SetActive(true);
+        yield return new WaitForSeconds(1);
+        room6ExplosionFire.SetActive(true);
+        yield return new WaitForSeconds(2);
+        room6ExplosionVCam.SetActive(false);
+        room6FireExtinguisherHolder.Signal();
     }
 
     IEnumerator Room6DropBattery()
