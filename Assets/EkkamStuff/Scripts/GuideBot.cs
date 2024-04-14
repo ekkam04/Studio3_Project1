@@ -6,10 +6,24 @@ namespace Ekkam
 {
     public class GuideBot : MonoBehaviour
     {
+        public enum GuideBotState
+        {
+            Following,
+            Talking,
+            Flashlight
+        }
+        public GuideBotState guideBotState;
+        
         public GameObject mainRig;
-        [SerializeField] Vector3 offset;
+        public GameObject mousePosition3D;
+        
+        [SerializeField] Vector3 followingOffset;
+        [SerializeField] Vector3 talkingOffset;
+        [SerializeField] Vector3 flashlightOffset;
+        
         private Player player;
         public Animator anim;
+        
         private float speed = 1.5f;
         private float rotationSpeed = 5f;
         
@@ -18,21 +32,57 @@ namespace Ekkam
             player = Player.Instance;
             anim = GetComponent<Animator>();
             // offset = transform.position - player.transform.position;
-            print("GuideBot offset: " + offset);
         }
         
         void Update()
         {
-            Vector3 directionToTarget = (player.transform.position + new Vector3(0, 0.5f, 0)) - transform.position;
+            switch (guideBotState)
+            {
+                case GuideBotState.Following:
+                    Follow(followingOffset);
+                    LookAt(player.transform.position);
+                    break;
+                case GuideBotState.Talking:
+                    Follow(talkingOffset);
+                    LookAt(player.transform.position);
+                    break;
+                case GuideBotState.Flashlight:
+                    Follow(flashlightOffset);
+                    LookAt(mousePosition3D.transform.position);
+                    break;
+            }
+        }
+        
+        private void Follow(Vector3 offset)
+        {
+            transform.position = Vector3.Slerp(
+                transform.position,
+                player.transform.position + player.transform.forward * offset.z + player.transform.right * offset.x + player.transform.up * offset.y, 
+                speed * Time.deltaTime
+            );
+        }
+        
+        private void LookAt(Vector3 target)
+        {
+            Vector3 directionToTarget = target - transform.position;
             Quaternion targetRotation = Quaternion.LookRotation(directionToTarget);
             Quaternion targetRotationLocal = Quaternion.Inverse(transform.parent.rotation) * targetRotation;
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotationLocal, Time.deltaTime * rotationSpeed);
         }
         
-        void FixedUpdate()
+        public void SwitchToFollowing()
         {
-            float step = speed * Time.deltaTime;
-            transform.position = Vector3.Slerp(transform.position, player.transform.position + player.transform.forward * offset.z + player.transform.right * offset.x + player.transform.up * offset.y, step);
+            guideBotState = GuideBotState.Following;
+        }
+        
+        public void SwitchToTalking()
+        {
+            guideBotState = GuideBotState.Talking;
+        }
+        
+        public void SwitchToFlashlight()
+        {
+            guideBotState = GuideBotState.Flashlight;
         }
     }
 }

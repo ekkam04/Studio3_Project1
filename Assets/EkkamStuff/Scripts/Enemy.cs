@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -36,13 +37,20 @@ namespace Ekkam
         CombatManager combatManager;
 
         [Header("--- Enemy Stats ---")]
-        public float speed = 2f;
+        public float speed = 4f;
         public float attackRange = 3f;
         public float detectionRange = 25f;
         private float originalDetectionRange;
         private bool canMove = true;
         public float attackTimer;
         public float attackCooldown = 2f;
+
+        private float calculationTimer;
+        private float calculationCooldown = 0f;
+
+        private bool shouldMove;
+        private Vector3 nextPosition;
+        private Quaternion nextRotation;
         
         [Header("--- Enemy Behaviour ---")]
         public bool followsPlayer = true;
@@ -137,6 +145,9 @@ namespace Ekkam
             }
             else
             {
+                // remove the first node as it is the starting position
+                path.RemoveAt(0);
+                
                 foreach (var pos in path)
                 {
                     pathNodes.Add(grid.GetNode(new Vector2Int(pos.x, pos.y)));
@@ -148,7 +159,13 @@ namespace Ekkam
 
         void Update()
         {
+            base.Update();
+            
             rootNode.Evaluate();
+            
+            calculationTimer += Time.deltaTime;
+            
+            // print("speed: " + speed + " fixedDeltaTime: " + Time.fixedDeltaTime + " Time.deltaTime: " + Time.deltaTime);
             
             // if(Input.GetKeyDown(KeyCode.P))
             // {
@@ -172,10 +189,27 @@ namespace Ekkam
             }
         }
 
+        private void FixedUpdate()
+        {
+            base.FixedUpdate();
+            
+            if (shouldMove)
+            {
+                // rb.MovePosition(nextPosition);
+                rb.AddForce((nextPosition - transform.position).normalized * speed * 10f);
+                rb.rotation = nextRotation;
+                shouldMove = false;
+            }
+            else
+            {
+                rb.velocity = new Vector3(0, rb.velocity.y, 0);
+            }
+        }
+
         public class CheckPlayerPresence : Node
         {
             Enemy enemy;
-            private float recalculationDistance = 3f;
+            private float recalculationDistance = 5f;
             private PathfindingGrid grid;
             private Transform transform;
             private bool canMove;
@@ -206,12 +240,16 @@ namespace Ekkam
                     print("Player is present");
 
                     if (
-                        canMove && followsPlayer &&
+                        canMove &&
+                        followsPlayer &&
+                        enemy.calculationTimer >= enemy.calculationCooldown &&
                         grid.GetDistance(
                         grid.GetPositionFromWorldPoint(Player.Instance.transform.position),
                         enemy.endNodePosition
-                    ) > recalculationDistance)
+                        ) > recalculationDistance
+                    )
                     {
+                        enemy.calculationTimer = 0;
                         enemy.endNodePosition = grid.GetPositionFromWorldPoint(Player.Instance.transform.position);
                         enemy.pathNodes.Clear();
                         enemy.startNodePosition = enemy.lastUnblockedNode.gridPosition;
@@ -301,8 +339,13 @@ namespace Ekkam
                 print("Walking towards player");
                 enemy.anim.SetBool("isMoving", true);
                 Vector3 targetPosition = new Vector3(Player.Instance.transform.position.x, transform.position.y, Player.Instance.transform.position.z);
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
-                rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
+                
+                // transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
+                // rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
+                enemy.nextRotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
+                enemy.nextPosition = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+                enemy.shouldMove = true;
+                
                 return NodeState.Success;
             }
         }
@@ -389,6 +432,7 @@ namespace Ekkam
             {
                 print("Attacking player");
                 enemy.anim.SetBool("isMoving", false);
+                enemy.shouldMove = false;
                 
                 Vector3 targetPosition = new Vector3(
                     Player.Instance.transform.position.x,
@@ -599,8 +643,13 @@ namespace Ekkam
                         transform.position.y,
                         enemy.pathNodes[enemy.pathNodes.Count - 1].transform.position.z
                     );
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
-                    rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
+                    
+                    // transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
+                    // rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
+                    enemy.nextRotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
+                    enemy.nextPosition = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+                    enemy.shouldMove = true;
+                    
                     if (Vector3.Distance(transform.position, enemy.pathNodes[enemy.pathNodes.Count - 1].transform.position) < nodeReachedDistance)
                     {
                         enemy.pathNodes.RemoveAt(enemy.pathNodes.Count - 1);

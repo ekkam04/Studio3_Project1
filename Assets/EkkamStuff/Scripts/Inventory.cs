@@ -120,6 +120,9 @@ namespace Ekkam {
                     CreateItemObject(item, slot);
                     items.Add(item);
                     
+                    // auto equip item
+                    SetSelectedSlot(slots.IndexOf(slot));
+                    
                     break;
                 }
             }

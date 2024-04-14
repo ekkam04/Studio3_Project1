@@ -10,9 +10,11 @@ namespace Ekkam
         public Button selectButton;
         public TMP_Text itemNameText;
         public TMP_Text itemPriceText;
+        public int itemPrice;
         public TMP_Text itemStockText;
         public string itemDescription;
         public string itemKey;
+        public bool isUpgrade;
         public RawImage itemIcon;
         public RawImage currencyIcon;
         

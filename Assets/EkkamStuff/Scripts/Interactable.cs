@@ -58,6 +58,9 @@ namespace Ekkam {
         public Vector3 placePositionOffset;
         public string tagToAccept;
         
+        [Header("Dialog Settings")]
+        public DialogManager dialogManager;
+        
         [Header("Crystal Settings")]
         public bool isBroken;
         
@@ -169,10 +172,6 @@ namespace Ekkam {
                     print("Signaling " + signalReceiver.name);
                     signalReceiver.Signal();
                 }
-                if (onInteraction != null && interactionActionKey != "")
-                {
-                    onInteraction.Invoke(interactionActionKey);
-                }
                 
                 foreach (var extraSignalReceiver in extraSignalReceivers)
                 {
@@ -216,7 +215,10 @@ namespace Ekkam {
             }
             else if (interactionAction == InteractionAction.Talk)
             {
-                DialogManager dialogManager = GetComponent<DialogManager>();
+                if (dialogManager == null)
+                {
+                    dialogManager = GetComponent<DialogManager>();
+                }
                 dialogManager.StartDialog(0);
                 pickUpPrompt.SetActive(false);
                 this.enabled = false;
@@ -233,6 +235,11 @@ namespace Ekkam {
                 {
                     crystal.DamageTile();
                 }
+            }
+            
+            if (onInteraction != null && interactionActionKey != "")
+            {
+                onInteraction.Invoke(interactionActionKey);
             }
             
             if (singleUse)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -34,6 +35,7 @@ namespace Ekkam
                 shopItemScript.itemKey = item.itemKey;
                 shopItemScript.itemNameText.text = item.itemName;
                 shopItemScript.itemDescription = item.itemDescription;
+                shopItemScript.itemPrice = item.itemPrice;
                 if (item.itemPrice == 0)
                 {
                     shopItemScript.itemPriceText.text = "FREE";
@@ -44,6 +46,7 @@ namespace Ekkam
                 }
                 shopItemScript.itemStockText.text = item.itemStock.ToString();
                 shopItemScript.itemIcon.texture = item.itemIcon.texture;
+                shopItemScript.isUpgrade = item.isUpgrade;
                 if (item.isUpgrade)
                 {
                     shopItemScript.currencyIcon.texture = currencyIcons[1].texture;
@@ -81,6 +84,45 @@ namespace Ekkam
                 return;
             }
             
+            if (!selectedShopItem.isUpgrade && Player.Instance.coins < selectedShopItem.itemPrice)
+            {
+                print("Not enough coins");
+                var dialog = new Dialog
+                {
+                    dialogText = "You don't have enough coins to buy this item.",
+                    dialogOptions = new DialogOption[]
+                    {
+                        new DialogOption
+                        {
+                            optionText = "OK",
+                            optionType = DialogOption.OptionType.End
+                        }
+                    }
+                };
+                GameManager.Instance.dialogManager.dialogs = new List<Dialog> { dialog };
+                ShowDialogAfterDelay(200);
+                return;
+            }
+            else if (selectedShopItem.isUpgrade && Player.Instance.tokens < selectedShopItem.itemPrice)
+            {
+                print("Not enough tokens");
+                var dialog = new Dialog
+                {
+                    dialogText = "You don't have enough tokens to buy this item.",
+                    dialogOptions = new DialogOption[]
+                    {
+                        new DialogOption
+                        {
+                            optionText = "OK",
+                            optionType = DialogOption.OptionType.End
+                        }
+                    }
+                };
+                GameManager.Instance.dialogManager.dialogs = new List<Dialog> { dialog };
+                ShowDialogAfterDelay(200);
+                return;
+            }
+            
             int index = shopItems.FindIndex(x => x.itemKey == selectedShopItem.itemKey);
             shopItems[index].itemStock--;
             selectedShopItem.itemStockText.text = shopItems[index].itemStock.ToString();
@@ -89,6 +131,15 @@ namespace Ekkam
             {
                 Destroy(shopItemPrefabs[index].gameObject);
                 shopItemPrefabs.RemoveAt(index);
+            }
+            
+            if (selectedShopItem.isUpgrade)
+            {
+                Player.Instance.tokens -= selectedShopItem.itemPrice;
+            }
+            else
+            {
+                Player.Instance.coins -= selectedShopItem.itemPrice;
             }
             
             switch (selectedShopItem.itemKey)
@@ -109,6 +160,12 @@ namespace Ekkam
         void CloseShopUI()
         {
             uiManager.CloseShopUI();
+        }
+        
+        async void ShowDialogAfterDelay(int delay)
+        {
+            await Task.Delay(delay);
+            GameManager.Instance.dialogManager.StartDialog(0);
         }
     }
     

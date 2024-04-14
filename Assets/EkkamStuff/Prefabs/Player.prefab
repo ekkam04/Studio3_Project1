@@ -6912,7 +6912,7 @@ MonoBehaviour:
   cameraStyle: 0
   allowFall: 1
   disguiseActive: 0
-  disguiseBattery: 15
+  disguiseBattery: 100
   disguiseSlider: {fileID: 66739340346367860}
   freeWill: 30
   freeWillSlider: {fileID: 0}

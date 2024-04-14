@@ -163,6 +163,8 @@ namespace Ekkam
 
         void Update()
         {
+            base.Update();
+            
             // Movement
             viewDirection = transform.position - new Vector3(cameraObj.position.x, transform.position.y, cameraObj.position.z);
 
@@ -252,6 +254,8 @@ namespace Ekkam
 
         void FixedUpdate()
         {
+            base.FixedUpdate();
+            
             // Move player
             MovePlayer();
             

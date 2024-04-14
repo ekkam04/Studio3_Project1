@@ -15,6 +15,9 @@ namespace Ekkam
         public List<Dialog> dialogs;
         public bool lookAtEachOther = true;
         public bool isDialogActive;
+        
+        public delegate void OnOptionSelected(string actionKey);
+        public static event OnOptionSelected onOptionSelected;
 
         void Start()
         {
@@ -77,6 +80,18 @@ namespace Ekkam
         public void HandleOption(DialogOption option)
         {
             if (option.signal != null) option.signal.Signal();
+            if (option.extraSignals != null)
+            {
+                foreach (var signal in option.extraSignals)
+                {
+                    signal.Signal();
+                }
+            }
+            if (option.selectionActionKey != null && onOptionSelected != null)
+            {
+                onOptionSelected(option.selectionActionKey);
+            }
+            
             switch (option.optionType)
             {
                 case DialogOption.OptionType.Next:
@@ -124,5 +139,7 @@ namespace Ekkam
         
         public int jumpToIndex;
         public Signalable signal;
+        public List<Signalable> extraSignals;
+        public string selectionActionKey;
     }
 }

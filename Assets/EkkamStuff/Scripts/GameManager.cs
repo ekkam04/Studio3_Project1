@@ -6,6 +6,7 @@ using Ekkam;
 using QFSW.QC;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class GameManager : MonoBehaviour
 {
@@ -34,6 +35,10 @@ public class GameManager : MonoBehaviour
     private List<Enemy> pausedEnemies = new List<Enemy>();
     private List<Drone> pausedDrones = new List<Drone>();
     private List<Interactable> pausedInteractables = new List<Interactable>();
+
+    public Camera noPostCam;
+    public Volume globalVolume;
+    public Volume darknessVolume;
     
     public delegate void OnResumeGame();
     public static event OnResumeGame onResumeGame;
@@ -54,6 +59,10 @@ public class GameManager : MonoBehaviour
     public Action room6Elevator;
     public float room6ElevatorGroundYPosition;
     public Action room6ElevatorUseButtonHolder;
+    
+    public GameObject hovercraftVCam;
+    public GameObject hovercraft;
+    public Transform[] hovercraftPath;
     
     [Header("Drone Dialogs")]
     public List<Dialog> droneDialog1;
@@ -81,8 +90,11 @@ public class GameManager : MonoBehaviour
         Cursor.visible = false;
         
         ObjectiveManager.onObjectiveComplete += HandleActionKey;
+        DialogManager.onOptionSelected += HandleActionKey;
         Wire.onPowered += HandleActionKey;
         Interactable.onInteraction += HandleActionKey;
+        
+        // Application.targetFrameRate = 60;
     }
 
     private void Update()
@@ -239,6 +251,7 @@ public class GameManager : MonoBehaviour
         guideBot.gameObject.SetActive(true);
     }
 
+    [Command("handle-action-key")]
     private void HandleActionKey(string completionActionKey)
     {
         print("GM - Objective completed - Key received: " + completionActionKey);
@@ -276,6 +289,15 @@ public class GameManager : MonoBehaviour
                     new Vector3(room6Elevator.transform.position.x, room6ElevatorGroundYPosition, room6Elevator.transform.position.z),
                     2
                 );
+                break;
+            case "toggle-disguise":
+                Player.Instance.ToggleDisguise();
+                break;
+            case "send-hovercraft":
+                StartCoroutine(SendHovercraft());
+                break;
+            case "ride-hovercraft":
+                StartCoroutine(RideHovercraft());
                 break;
             default:
                 break;
@@ -387,6 +409,52 @@ public class GameManager : MonoBehaviour
         room6BatteryHolder.GetComponent<Collider>().enabled = false;
         room6BatteryVCam.SetActive(false);
     }
+
+    IEnumerator SendHovercraft()
+    {
+        hovercraftVCam.SetActive(true);
+        
+        float hovercraftSpeed = 5f;
+        float hovercraftRotation = hovercraft.transform.rotation.eulerAngles.y;
+        float hovercraftTargetRotation = 90;
+        for (int i = 1; i < hovercraftPath.Length; i++)
+        {
+            while (Vector3.Distance(hovercraft.transform.position, hovercraftPath[i].position) > 0.1f)
+            {
+                hovercraft.transform.position = Vector3.MoveTowards(hovercraft.transform.position, hovercraftPath[i].position, hovercraftSpeed * Time.deltaTime);
+                hovercraftRotation = Mathf.Lerp(hovercraftRotation, hovercraftTargetRotation, hovercraftSpeed * Time.deltaTime);
+                hovercraft.transform.rotation = Quaternion.Euler(0, hovercraftRotation, 0);
+                yield return null;
+            }
+        }
+        
+        hovercraftVCam.SetActive(false);
+        objectiveManager.AddNextObjective();
+    }
+
+    IEnumerator RideHovercraft()
+    {
+        hovercraftVCam.SetActive(true);
+        PauseGame();
+        
+        float hovercraftSpeed = 5f;
+        float hovercraftRotation = hovercraft.transform.rotation.eulerAngles.y;
+        float hovercraftTargetRotation = 0;
+        for (int i = hovercraftPath.Length - 1; i >= 0; i--)
+        {
+            while (Vector3.Distance(hovercraft.transform.position, hovercraftPath[i].position) > 0.1f)
+            {
+                hovercraft.transform.position = Vector3.MoveTowards(hovercraft.transform.position, hovercraftPath[i].position, hovercraftSpeed * Time.deltaTime);
+                hovercraftRotation = Mathf.Lerp(hovercraftRotation, hovercraftTargetRotation, hovercraftSpeed * Time.deltaTime);
+                hovercraft.transform.rotation = Quaternion.Euler(0, hovercraftRotation, 0);
+                yield return null;
+            }
+        }
+        
+        hovercraftVCam.SetActive(false);
+        ResumeGame();
+        objectiveManager.AddNextObjective();
+    }
     
     public void PlayDroneDialog(List<Dialog> dialogs, bool assignNextObjective = true, float delay = 0.5f)
     {
@@ -396,14 +464,48 @@ public class GameManager : MonoBehaviour
     IEnumerator PlayDroneDialogCoroutine(List<Dialog> dialogs, bool assignNextObjective, float delay)
     {
         PauseGame();
+        guideBot.SwitchToTalking();
         yield return new WaitForSeconds(delay);
         dialogManager.dialogs = dialogs;
         dialogManager.StartDialog(0);
         yield return new WaitUntil(() => !dialogManager.isDialogActive);
         ResumeGame();
+        guideBot.SwitchToFollowing();
         if (assignNextObjective)
         {
             objectiveManager.AddNextObjective();
         }
+    }
+    
+    [Command("enable-darkness")]
+    public void EnableDarkness()
+    {
+        noPostCam.gameObject.SetActive(true);
+        StartCoroutine(LerpVolume(darknessVolume, 0.75f, 1));
+    }
+    
+    [Command("disable-darkness")]
+    public void DisableDarkness()
+    {
+        StartCoroutine(LerpVolume(darknessVolume, 0.75f, 0));
+        Invoke("DisableNoPostCam", 0.75f);
+    }
+    
+    private void DisableNoPostCam()
+    {
+        noPostCam.gameObject.SetActive(false);
+    }
+    
+    IEnumerator LerpVolume(Volume volume, float duration, float targetValue)
+    {
+        float timeElapsed = 0;
+        float startValue = volume.weight;
+        while (timeElapsed < duration)
+        {
+            volume.weight = Mathf.Lerp(startValue, targetValue, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+        volume.weight = targetValue;
     }
 }

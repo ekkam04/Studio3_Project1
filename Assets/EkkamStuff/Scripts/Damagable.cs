@@ -19,6 +19,9 @@ namespace Ekkam
         
         public bool dropCoinsOnDeath;
         public int coinsToDrop;
+        
+        private bool shouldKnockback;
+        private Vector3 knockbackDirection;
 
         void Start()
         {
@@ -26,12 +29,21 @@ namespace Ekkam
             rb = GetComponent<Rigidbody>();
         }
 
-        void Update()
+        public void Update()
         {
             // if the object falls off the map
             if (transform.position.y < -30)
             {
                 Die();
+            }
+        }
+
+        public void FixedUpdate()
+        {
+            if (shouldKnockback)
+            {
+                rb.AddForce(knockbackDirection);
+                print("taking knockback");
             }
         }
 
@@ -117,20 +129,18 @@ namespace Ekkam
             gameObject.SetActive(false);
         }
         
-        // public void TakeKnockback(Vector3 direction, float force)
-        // {
-        //     rb.AddForce(direction * force);
-        // }
-        
         IEnumerator TakeKnockback(Vector3 direction, float force, float upForce, float duration)
         {
             float timer = 0;
             while (timer < duration)
             {
-                rb.AddForce(direction * force + Vector3.up * upForce);
+                // rb.AddForce(direction * force + (Vector3.up * upForce));
+                knockbackDirection = direction * force + Vector3.up * upForce;
+                shouldKnockback = true;
                 timer += Time.deltaTime;
                 yield return null;
             }
+            shouldKnockback = false;
         }
         
         IEnumerator PulseColor(Color color, float fadeInDuration, float fadeOutDuration)

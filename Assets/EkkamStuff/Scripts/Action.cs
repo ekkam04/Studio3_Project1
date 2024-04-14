@@ -15,7 +15,9 @@ public class Action : Signalable
         EnableChild,
         Destroy,
         RemoveTagFromInventory,
-        AddCoins
+        AddCoins,
+        EnableDarkness,
+        DisableDarkness
     }
     [Header("Action Settings")]
     public ActionToTake actionToTake;
@@ -44,7 +46,7 @@ public class Action : Signalable
     [Header("Remove Tag From Inventory Settings")]
     public string tagToRemove;
     
-    [Header("Events")]
+    [Header("Coin Settings")]
     public int coinsToAdd = 0;
     
     public delegate void OnActionComplete();
@@ -142,6 +144,12 @@ public class Action : Signalable
             case ActionToTake.AddCoins:
                 Player.Instance.coins += coinsToAdd;
                 if (Player.Instance.coins < 0) Player.Instance.coins = 0;
+                break;
+            case ActionToTake.EnableDarkness:
+                GameManager.Instance.EnableDarkness();
+                break;
+            case ActionToTake.DisableDarkness:
+                GameManager.Instance.DisableDarkness();
                 break;
         }
         

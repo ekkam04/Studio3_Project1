@@ -62,10 +62,10 @@ namespace Ekkam
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.H))
-            {
-                OpenShopUI();
-            }
+            // if (Input.GetKeyDown(KeyCode.H))
+            // {
+            //     OpenShopUI();
+            // }
         }
 
         public async void ShowDialog(string dialog, bool showNextButton = false)
