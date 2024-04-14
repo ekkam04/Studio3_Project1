@@ -66,7 +66,9 @@ namespace Ekkam
             }
             else
             {
+                var particleSystem = GetComponentInChildren<ParticleSystem>();
                 anim.SetTrigger("swordAttack");
+                if (particleSystem != null) particleSystem.Play();
                 // get all layers
                 if (anim.layerCount > 1) anim.SetLayerWeight(1, 0);
                 await Task.Delay(250);
@@ -74,6 +76,7 @@ namespace Ekkam
                 rb.AddForce(transform.forward * 3.5f, ForceMode.Impulse);
                 await Task.Delay(50);
                 meleeHitbox.SetActive(false);
+                if (particleSystem != null) particleSystem.Stop();
             }
         }
         

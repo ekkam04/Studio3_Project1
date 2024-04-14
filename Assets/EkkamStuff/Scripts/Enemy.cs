@@ -171,6 +171,7 @@ namespace Ekkam
             {
                 lastUnblockedNode = grid.GetNode(lastPos);
             }
+            startNodePosition = lastUnblockedNode.gridPosition;
         }
 
         private void FixedUpdate()
@@ -195,32 +196,6 @@ namespace Ekkam
             Quaternion rotation = Quaternion.AngleAxis(angleDegrees, Vector3.up);
             return rotation * direction;
         }
-        
-        // private Vector3 CalculateSeparationForce(float separationDistance)
-        // {
-        //     Vector3 separationForce = Vector3.zero;
-        //     var enemies = grid.enemiesOnThisGrid;
-        //     int closeCount = 0;
-        //
-        //     foreach (var other in enemies)
-        //     {
-        //         if (other != this)
-        //         {
-        //             Vector3 toOther = transform.position - other.transform.position;
-        //             float distance = toOther.magnitude;
-        //             if (distance < separationDistance && distance > 0)
-        //             {
-        //                 separationForce += toOther.normalized / distance;
-        //                 closeCount++;
-        //             }
-        //         }
-        //     }
-        //
-        //     if (closeCount > 0)
-        //         separationForce /= closeCount;
-        //
-        //     return separationForce;
-        // }
 
         public class CheckPlayerPresence : Node
         {
@@ -268,7 +243,6 @@ namespace Ekkam
                         enemy.calculationTimer = 0;
                         enemy.endNodePosition = grid.GetPositionFromWorldPoint(Player.Instance.transform.position);
                         enemy.pathNodes.Clear();
-                        enemy.startNodePosition = enemy.lastUnblockedNode.gridPosition;
                         enemy.pathfindingState = Enemy.PathfindingState.Idle;
         
                         if (grid.GetNode(enemy.endNodePosition).isBlocked)
@@ -467,6 +441,25 @@ namespace Ekkam
                 
                 if (distanceToPlayer <= enemy.attackRange)
                 {
+                    if (!enemy.followsPlayer)
+                    {
+                        var heightOffset = new Vector3(0, 1, 0);
+                        if (Physics.Raycast(
+                                enemy.transform.position + heightOffset,
+                                (Player.Instance.transform.position + heightOffset) - (enemy.transform.position + heightOffset),
+                                out RaycastHit hit,
+                                enemy.attackRange * 2f
+                           )
+                        )
+                        {
+                            if (hit.collider.gameObject.layer != 6)
+                            {
+                                print("Obstacle in the way");
+                                return NodeState.Failure;
+                            }
+                        }
+                    }
+                    
                     print("Ready to attack");
                     enemy.canMove = false;
                     enemy.pathNodes.Clear();

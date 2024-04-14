@@ -1996,7 +1996,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65cb08fdfe88cca4294ceb86c5dc9890, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  health: 15
+  health: 20
   col: {fileID: 4247960809956907237}
   rb: {fileID: 0}
   anim: {fileID: 0}

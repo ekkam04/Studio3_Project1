@@ -64,6 +64,17 @@ namespace Ekkam
         public Transform combatLookAt;
         private Vector3 cameraOffset;
         
+        public GameObject playerSilhouette;
+        private float silhouetteTimer;
+        
+        public float freeFlowSphereCastRadius = 2f;
+        public float freeFlowSphereCastDistance = 5f;
+        public float freeFlowLeapSpeedMultiplier = 3f;
+        
+        private Enemy attackTarget = null;
+        private bool isAttacking = false;
+        private float attackStopDistance = 1.5f;
+        
         [Header("--- Rig Settings ---")]
         public Rig bowRig;
         public TwoBoneIKConstraint secondHandArrowIK;
@@ -144,11 +155,6 @@ namespace Ekkam
             uiManager = FindObjectOfType<UIManager>();
             combatManager = GetComponent<CombatManager>();
             
-            // foreach (var facePlate in facePlates)
-            // {
-            //     facePlate.SetActive(false);
-            // }
-            // facePlates[0].SetActive(true);
             disguiseSlider.maxValue = disguiseBattery;
             disguiseSlider.gameObject.SetActive(false);
 
@@ -172,35 +178,21 @@ namespace Ekkam
             {
                 orientation.forward = viewDirection.normalized;
                 moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-                
-                // if(moveDirection != Vector3.zero)
-                // {
-                //     transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
-                //     // anim.SetBool("isMoving", true);
-                // }
-                // else
-                // {
-                //     anim.SetBool("isMoving", false);
-                // }
             }
             else if (cameraStyle == CameraStyle.Combat)
             {
                 moveDirection = combatLookAt.position - new Vector3(cameraObj.position.x, combatLookAt.position.y, cameraObj.position.z);
                 orientation.forward = moveDirection.normalized;
                 combatRotationDirection = new Vector3(viewDirection.x, 0, viewDirection.z).normalized;
-                // transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
             }
             
-            // set isMoving parameter in animator to true if player is moving
             anim.SetBool("isMoving", verticalInput != 0 || horizontalInput != 0);
             
             ControlSpeed();
             CheckForGround();
             MovementStateHandler();
-
-            // temporary, need to use new input system but for now this will do
+            
             if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
-            // if (Input.GetKey(KeyCode.Mouse1) || Input.GetKey(KeyCode.L)) LookAtNearestEnemy();
             
             if (Input.GetKeyUp(KeyCode.Mouse1) || Input.GetKeyUp(KeyCode.L))
             {
@@ -227,6 +219,7 @@ namespace Ekkam
             swordTimer += Time.deltaTime;
             bowTimer += Time.deltaTime;
             staffTimer += Time.deltaTime;
+            silhouetteTimer += Time.deltaTime;
             
             if (swordTimer >= swordResetCooldown)
             {
@@ -257,7 +250,19 @@ namespace Ekkam
             base.FixedUpdate();
             
             // Move player
-            MovePlayer();
+            if (isAttacking)
+            {
+                MoveTowardsAttackTarget();
+                if (silhouetteTimer > 0.075f)
+                {
+                    GameObject newPlayerSilhouette = Instantiate(playerSilhouette, transform.position, transform.rotation);
+                    silhouetteTimer = 0f;
+                }
+            }
+            else
+            {
+                MovePlayer();
+            }
             
             // Orient player
             if (cameraStyle == CameraStyle.Exploration)
@@ -339,6 +344,25 @@ namespace Ekkam
             }
             rb.AddForce(moveDirection * moveSpeed * 10f, ForceMode.Force);
         }
+        
+        void MoveTowardsAttackTarget()
+        {
+            if (attackTarget != null && Vector3.Distance(transform.position, attackTarget.transform.position) > attackStopDistance)
+            {
+                Vector3 moveDirection = Vector3.MoveTowards(transform.position, attackTarget.transform.position, speed * freeFlowLeapSpeedMultiplier * Time.fixedDeltaTime);
+                rb.MovePosition(moveDirection);
+                
+                Vector3 lookDirection = attackTarget.transform.position - transform.position;
+                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed * freeFlowLeapSpeedMultiplier));
+            }
+            else
+            {
+                isAttacking = false;
+                attackTarget = null;
+                combatManager.MeleeAttack();
+            }
+        }
 
         void ControlSpeed()
         {
@@ -411,40 +435,6 @@ namespace Ekkam
                 movementState = MovementState.Air;
             }
         }
-
-        void LookAtNearestEnemy()
-        {
-            var enemies = GameObject.FindObjectsOfType<Enemy>();
-            var nearestEnemy = enemies[0];
-            var nearestDistance = Mathf.Infinity;
-            foreach (var enemy in enemies)
-            {
-                var distance = Vector3.Distance(enemy.transform.position, transform.position);
-                if (distance < nearestDistance)
-                {
-                    nearestDistance = distance;
-                    nearestEnemy = enemy;
-                    if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
-                    previousNearestEnemy = nearestEnemy;
-                }
-            }
-
-            if (nearestDistance < 10f)
-            {
-                targetLock = true;
-                nearestEnemy.targetLockPrompt.SetActive(true);
-                var viewDirection = nearestEnemy.transform.position - transform.position;
-                viewDirection.y = 0;
-                transform.forward = Vector3.Slerp(transform.forward, viewDirection.normalized,
-                    Time.deltaTime * rotationSpeed);
-                print("Locked on to " + nearestEnemy.name);
-            }
-            else
-            {
-                targetLock = false;
-                if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
-            }
-        }
         
         private void UseItem()
         {
@@ -453,10 +443,17 @@ namespace Ekkam
             switch (item.tag)
             {
                 case "Sword":
-                    if (swordTimer < swordAttackCooldown || isGrounded == false) return;
+                    if (swordTimer < swordAttackCooldown || isGrounded == false || isAttacking) return;
                     allowMovement = false;
                     swordTimer = 0;
-                    combatManager.MeleeAttack();
+                    if (CheckForNearbyEnemies())
+                    {
+                        PerformFreeFlowAttack();
+                    }
+                    else
+                    {
+                        combatManager.MeleeAttack();
+                    }
                     break;
                 case "Bow":
                     if (bowTimer < bowAttackCooldown || isGrounded == false) return;
@@ -475,6 +472,36 @@ namespace Ekkam
                     break;
                 default:
                     break;
+            }
+        }
+        
+        bool CheckForNearbyEnemies()
+        {
+            float detectionRadius = 10f;
+            LayerMask enemyLayerMask = LayerMask.GetMask("Enemy");
+            Collider[] hitColliders = Physics.OverlapSphere(transform.position, detectionRadius, enemyLayerMask);
+            return hitColliders.Length > 0;
+        }
+        
+        void PerformFreeFlowAttack()
+        {
+            RaycastHit hit;
+            float sphereCastRadius = freeFlowSphereCastRadius;
+            float sphereCastDistance = freeFlowSphereCastDistance;
+            Vector3 sphereCastDirection = orientation.forward;
+            LayerMask enemyLayerMask = LayerMask.GetMask("Enemy");
+            if (Physics.SphereCast(transform.position, sphereCastRadius, sphereCastDirection, out hit, sphereCastDistance, enemyLayerMask))
+            {
+                Enemy enemy = hit.collider.GetComponent<Enemy>();
+                if (enemy != null)
+                {
+                    attackTarget = enemy;
+                    isAttacking = true;
+                }
+            }
+            else
+            {
+                combatManager.MeleeAttack();
             }
         }
         
@@ -547,6 +574,29 @@ namespace Ekkam
                     break;
                 default:
                     break;
+            }
+        }
+        
+        void OnDrawGizmos()
+        {
+            if (!Application.isPlaying)
+                return;
+
+            Vector3 sphereCastDirection = orientation.forward;
+            float sphereCastRadius = freeFlowSphereCastRadius;
+            float sphereCastDistance = freeFlowSphereCastDistance;
+
+            Vector3 startSphereCenter = transform.position;
+            Vector3 endSphereCenter = transform.position + sphereCastDirection * sphereCastDistance;
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(startSphereCenter, endSphereCenter);
+            Gizmos.DrawWireSphere(startSphereCenter, sphereCastRadius);
+            Gizmos.DrawWireSphere(endSphereCenter, sphereCastRadius);
+            
+            for (float i = 0; i <= sphereCastDistance; i += sphereCastDistance / 5)
+            {
+                Gizmos.DrawWireSphere(transform.position + sphereCastDirection * i, sphereCastRadius);
             }
         }
     }

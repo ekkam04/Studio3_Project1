@@ -6928,6 +6928,9 @@ MonoBehaviour:
   explorationCamera: {fileID: 0}
   combatCamera: {fileID: 0}
   combatLookAt: {fileID: 3502726841654579565}
+  freeFlowSphereCastRadius: 1.5
+  freeFlowSphereCastDistance: 5
+  freeFlowLeapSpeedMultiplier: 2.5
   bowRig: {fileID: 8268098505618454862}
   secondHandArrowIK: {fileID: 2580890301193767390}
   secondHandArrowIKWeight: 0
@@ -8251,7 +8254,7 @@ MonoBehaviour:
   speed: 0
   fallOffSpeed: 0
   damage: 5
-  knockback: 200
+  knockback: 250
   destroyOnHit: 0
   freezeOnHit: 0
   isMelee: 1
