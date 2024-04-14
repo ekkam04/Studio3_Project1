@@ -2014,10 +2014,11 @@ MonoBehaviour:
   findingPath: 0
   pathfindingState: 0
   speed: 32
-  attackRange: 3
+  circlingRadius: 2.5
+  attackRange: 2
   detectionRange: 25
   attackTimer: 0
-  attackCooldown: 2
+  attackCooldown: 1
   followsPlayer: 1
   targetObjectToWalkTo: {fileID: 0}
   enemyType: 0

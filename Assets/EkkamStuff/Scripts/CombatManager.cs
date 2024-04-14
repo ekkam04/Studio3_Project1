@@ -19,6 +19,8 @@ namespace Ekkam
         [SerializeField] GameObject itemHolderRight;
         
         [SerializeField] GameObject target;
+        
+        public static CombatManager CurrentAttacker = null;
 
         public LayerMask layersToIgnore;
 
@@ -47,14 +49,32 @@ namespace Ekkam
 
         public async void MeleeAttack()
         {
-            anim.SetTrigger("swordAttack");
-            // get all layers
-            if (anim.layerCount > 1) anim.SetLayerWeight(1, 0);
-            await Task.Delay(250);
-            meleeHitbox.SetActive(true);
-            rb.AddForce(transform.forward * 3.5f, ForceMode.Impulse);
-            await Task.Delay(50);
-            meleeHitbox.SetActive(false);
+            if (GetComponent<Enemy>())
+            {
+                if (CurrentAttacker != null && CurrentAttacker != this) return;
+                
+                CurrentAttacker = this;
+                anim.SetTrigger("swordAttack");
+                
+                if (anim.layerCount > 1) anim.SetLayerWeight(1, 0);
+                await Task.Delay(250);
+                meleeHitbox.SetActive(true);
+                rb.AddForce(transform.forward * 3.5f, ForceMode.Impulse);
+                await Task.Delay(50);
+                meleeHitbox.SetActive(false);
+                CurrentAttacker = null;
+            }
+            else
+            {
+                anim.SetTrigger("swordAttack");
+                // get all layers
+                if (anim.layerCount > 1) anim.SetLayerWeight(1, 0);
+                await Task.Delay(250);
+                meleeHitbox.SetActive(true);
+                rb.AddForce(transform.forward * 3.5f, ForceMode.Impulse);
+                await Task.Delay(50);
+                meleeHitbox.SetActive(false);
+            }
         }
         
         public async void ArcherAttack(Item bow, Player player)

@@ -29194,6 +29194,7 @@ GameObject:
   - component: {fileID: 5828030977677791053}
   - component: {fileID: 6145734743725988794}
   - component: {fileID: 4733609248692521108}
+  - component: {fileID: 8840599485179647237}
   m_Layer: 0
   m_Name: Tower
   m_TagString: Untagged
@@ -29354,6 +29355,27 @@ MonoBehaviour:
   exitPortal: {fileID: 272026517377546354}
   progressMaterial: {fileID: 2100000, guid: 06dde4e0bc83ba84fb983588e58fd0b6, type: 2}
   progressIndicator: {fileID: 482028232822427927}
+--- !u!65 &8840599485179647237
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1894360949299039605}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 12.038618, y: 23.059195, z: 3.511075}
+  m_Center: {x: 0, y: 11.523589, z: -0.0000004172325}
 --- !u!1 &1944741258578602349
 GameObject:
   m_ObjectHideFlags: 0
@@ -82041,10 +82063,14 @@ MonoBehaviour:
   actionToTake: 4
   targetOffset: {x: 0, y: 0, z: 0}
   sequentialTargetOffsets: []
+  assignNextObjectiveOnActionComplete: 0
   sequenceIndex: 1
   duration: 2
   virtualCameraToTransitionTo: {fileID: 0}
+  loop: 0
+  loopDelay: 0
   tagToRemove: 
+  coinsToAdd: 0
 --- !u!1 &6952321062299571637
 GameObject:
   m_ObjectHideFlags: 0
@@ -96535,6 +96561,7 @@ MonoBehaviour:
   timesInteracted: 0
   extraInteractDistance: 0
   singleUse: 0
+  interactionActionKey: 
   rotationOffset: {x: 0, y: 0, z: 0}
   positionOffset: {x: 0, y: 0, z: 0}
   heldInOffHand: 0
@@ -96543,6 +96570,8 @@ MonoBehaviour:
   placeRotationOffset: {x: 0, y: 0, z: 0}
   placePositionOffset: {x: 0, y: 0, z: 0}
   tagToAccept: 
+  dialogManager: {fileID: 0}
+  isBroken: 0
 --- !u!1 &9085290743917032789
 GameObject:
   m_ObjectHideFlags: 0
