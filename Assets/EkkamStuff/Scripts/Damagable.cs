@@ -117,6 +117,11 @@ namespace Ekkam
             // this function is meant to be overridden
         }
 
+        public virtual void OnDeath()
+        {
+            // this function is meant to be overridden
+        }
+
         public void Die()
         {
             if (dropCoinsOnDeath)
@@ -127,6 +132,7 @@ namespace Ekkam
                 }
             }
             gameObject.SetActive(false);
+            OnDeath();
         }
         
         IEnumerator TakeKnockback(Vector3 direction, float force, float upForce, float duration)

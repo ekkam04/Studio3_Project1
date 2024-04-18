@@ -72,7 +72,6 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -167,8 +166,8 @@ public class GameManager : MonoBehaviour
             onResumeGame();
         }
         
-        Player.Instance.rb.useGravity = false;
-        Player.Instance.enabled = true;
+        if (Player.Instance != null) Player.Instance.rb.useGravity = false;
+        if (Player.Instance != null) Player.Instance.enabled = true;
         
         foreach (var enemy in pausedEnemies)
         {
@@ -255,6 +254,7 @@ public class GameManager : MonoBehaviour
     private void HandleActionKey(string completionActionKey)
     {
         print("GM - Objective completed - Key received: " + completionActionKey);
+        if (uiManager == null) uiManager = FindObjectOfType<UIManager>();
         uiManager.pickUpPrompt.SetActive(false);
         List<Dialog> dialogsToShow;
         

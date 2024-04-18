@@ -515,6 +515,11 @@ namespace Ekkam
             Invoke("RevertFacePlate", 1f);
         }
 
+        public override void OnDeath()
+        {
+            CheckpointManager.Instance.LoadCheckpointData();
+        }
+
         private void RevertFacePlate()
         {
             foreach (var facePlate in facePlates)

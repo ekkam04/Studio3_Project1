@@ -13,6 +13,9 @@ namespace Ekkam
         }
         public TriggerAction triggerAction;
         public bool oneTimeTrigger = true;
+        public Transform checkpoint;
+        
+        
         private bool triggered;
         private UIManager uiManager;
         
@@ -42,6 +45,12 @@ namespace Ekkam
                         GameManager.Instance.PlayDroneDialog(dialogs, false);
                         break;
                 }
+
+                if (checkpoint != null)
+                {
+                    CheckpointManager.Instance.SaveCheckpointData(checkpoint.position, checkpoint.eulerAngles);
+                }
+                
                 if (oneTimeTrigger)
                 {
                     this.enabled = false;

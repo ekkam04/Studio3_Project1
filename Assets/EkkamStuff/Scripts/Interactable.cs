@@ -147,21 +147,7 @@ namespace Ekkam {
             {
                 if (GetComponent<Item>())
                 {
-                    pickUpPrompt.SetActive(false);
-                    inventory.AddItem(GetComponent<Item>());
-                    if (heldInOffHand)
-                    {
-                        transform.SetParent(player.itemHolderLeft.transform);
-                    }
-                    else
-                    {
-                        transform.SetParent(player.itemHolderRight.transform);
-                    }
-                    
-                    transform.localPosition = Vector3.zero;
-                    transform.localPosition += positionOffset;
-                    transform.localRotation = Quaternion.identity;
-                    transform.Rotate(rotationOffset);
+                    PickUp();
                 }
             }
             else if (interactionAction == InteractionAction.Signal)
@@ -261,6 +247,29 @@ namespace Ekkam {
                 pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().color = Color.Lerp(interactColor, Color.white, t / fadeOutDuration);
                 yield return null;
             }
+        }
+
+        public void PickUp()
+        {
+            if (uiManager == null) uiManager = FindObjectOfType<UIManager>();
+            if (inventory == null) inventory = FindObjectOfType<Inventory>();
+            if (player == null) player = FindObjectOfType<Player>();
+            
+            uiManager.pickUpPrompt.SetActive(false);
+            inventory.AddItem(GetComponent<Item>());
+            if (heldInOffHand)
+            {
+                transform.SetParent(player.itemHolderLeft.transform);
+            }
+            else
+            {
+                transform.SetParent(player.itemHolderRight.transform);
+            }
+                    
+            transform.localPosition = Vector3.zero;
+            transform.localPosition += positionOffset;
+            transform.localRotation = Quaternion.identity;
+            transform.Rotate(rotationOffset);
         }
 
         private void OnDisable()

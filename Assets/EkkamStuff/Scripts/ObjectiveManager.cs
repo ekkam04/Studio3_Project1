@@ -47,13 +47,16 @@ namespace Ekkam {
             gameManager = FindObjectOfType<GameManager>();
             
             HideAllObjectiveMarkers();
-
+        }
+        
+        public void InitializeFromCurrentIndex()
+        {
+            SkipTasks(currentObjectiveIndex);
+            
             if (objectives.Count > 0)
             {
                 AddNextObjective();
             }
-            
-            SkipTasks(currentObjectiveIndex);
         }
 
         void Update()

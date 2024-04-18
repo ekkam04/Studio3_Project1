@@ -199,7 +199,7 @@ public class Action : Signalable
         }
         if (assignNextObjectiveOnActionComplete)
         {
-            FindObjectOfType<ObjectiveManager>().AddNextObjective();
+            if (FindObjectOfType<ObjectiveManager>() != null) FindObjectOfType<ObjectiveManager>().AddNextObjective();
         }
     }
     
