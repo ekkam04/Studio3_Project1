@@ -28,6 +28,13 @@ namespace Ekkam
         [Header("--- Player Settings and References ---")]
         public MovementState movementState;
         
+        public float energy = 100f;
+        public float maxEnergy = 100f;
+        public Slider energySlider;
+        
+        public float sprintEnergyDrain = 10f;
+        public float sprintEnergyRecharge = 10f;
+        
         public int coins;
         public int tokens;
         
@@ -74,6 +81,9 @@ namespace Ekkam
         private Enemy attackTarget = null;
         private bool isAttacking = false;
         private float attackStopDistance = 1.5f;
+
+        public ParticleSystem hoverParticlesL;
+        public ParticleSystem hoverParticlesR;
         
         [Header("--- Rig Settings ---")]
         public Rig bowRig;
@@ -86,15 +96,18 @@ namespace Ekkam
         public float verticalInput = 0f;
         Vector3 moveDirection;
         Vector3 combatRotationDirection;
-        public float speed = 1.0f;
-        private float initialSpeed;
-        public float maxSpeed = 5.0f;
+        private float speed = 3.0f;
+        private float maxSpeed = 5.0f;
+        public float walkSpeed = 3.0f;
+        public float sprintSpeed = 5.0f;
+        public float maxSpeedOffset = 2.0f;
         public float groundDrag = 3f;
 
         public float groundDistance = 0.5f;
         public float groundDistanceLandingOffset = 0.2f;
         public bool isGrounded;
         public bool isJumping;
+        public bool isSprinting;
         public bool allowDoubleJump;
         public bool doubleJumped;
         public bool hasLanded;
@@ -102,7 +115,9 @@ namespace Ekkam
         public float jumpHeightApex = 2f;
         public float jumpDuration = 1f;
         float currentJumpDuration;
-        public float downwardsGravityMultiplier = 1f;
+        private float downwardsGravityMultiplier = 1.5f;
+        public float normalDownwardsGravityMultiplier = 1.5f;
+        public float hoveringDownwardsGravityMultiplier = 0.5f;
         float gravity;
         private float initialJumpVelocity;
         private float jumpStartTime;
@@ -155,6 +170,8 @@ namespace Ekkam
             uiManager = FindObjectOfType<UIManager>();
             combatManager = GetComponent<CombatManager>();
             
+            energySlider.maxValue = maxEnergy;
+            
             disguiseSlider.maxValue = disguiseBattery;
             disguiseSlider.gameObject.SetActive(false);
 
@@ -164,7 +181,6 @@ namespace Ekkam
 
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
             initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
-            initialSpeed = speed;
         }
 
         void Update()
@@ -187,10 +203,45 @@ namespace Ekkam
             }
             
             anim.SetBool("isMoving", verticalInput != 0 || horizontalInput != 0);
+            anim.SetBool("isHovering", isSprinting);
+            float rbVelocity2D = new Vector2(rb.velocity.x, rb.velocity.z).magnitude;
+            float rbVelocity2DNormalized = rbVelocity2D / maxSpeed;
+            anim.SetFloat("hoverTilt", Mathf.Lerp(anim.GetFloat("hoverTilt"), rbVelocity2DNormalized, Time.deltaTime * 5));
             
+            if (Input.GetKeyDown(KeyCode.LeftShift)) isSprinting = !isSprinting;
+            
+            speed = isSprinting ? sprintSpeed : walkSpeed;
+            maxSpeed = speed + maxSpeedOffset;
+            downwardsGravityMultiplier = isSprinting ? hoveringDownwardsGravityMultiplier : normalDownwardsGravityMultiplier;
             ControlSpeed();
             CheckForGround();
             MovementStateHandler();
+            
+            if (isSprinting)
+            {
+                energy -= sprintEnergyDrain * Time.deltaTime;
+                if (energy <= 0)
+                {
+                    energy = 0;
+                    isSprinting = false;
+                }
+            }
+            else
+            {
+                energy += sprintEnergyRecharge * Time.deltaTime;
+                if (energy > maxEnergy) energy = maxEnergy;
+            }
+            
+            if (isSprinting && (verticalInput != 0 || horizontalInput != 0))
+            {
+                if (hoverParticlesL.isStopped) hoverParticlesL.Play();
+                if (hoverParticlesR.isStopped) hoverParticlesR.Play();
+            }
+            else
+            {
+                if (hoverParticlesL.isPlaying) hoverParticlesL.Stop();
+                if (hoverParticlesR.isPlaying) hoverParticlesR.Stop();
+            }
             
             if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
             
@@ -241,6 +292,7 @@ namespace Ekkam
 
             freeWillSlider.value = Mathf.Lerp(freeWillSlider.value, freeWill, Time.deltaTime * 5);
             healthSlider.value = Mathf.Lerp(healthSlider.value, health, Time.deltaTime * 5);
+            energySlider.value = Mathf.Lerp(energySlider.value, energy, Time.deltaTime * 5);
             
             secondHandArrowIK.weight = Mathf.Lerp(secondHandArrowIK.weight, secondHandArrowIKWeight, Time.deltaTime * 5);
         }
@@ -422,7 +474,7 @@ namespace Ekkam
         
         void MovementStateHandler()
         {
-            if (isGrounded && Input.GetKey(KeyCode.LeftShift))
+            if (isGrounded && isSprinting)
             {
                 movementState = MovementState.Sprinting;
             }
@@ -507,6 +559,7 @@ namespace Ekkam
         
         public override void OnDamageTaken()
         {
+            uiManager.PulseVignette(Color.red, 0.25f, 0.5f);
             foreach (var facePlate in facePlates)
             {
                 facePlate.SetActive(false);
@@ -518,6 +571,11 @@ namespace Ekkam
         public override void OnDeath()
         {
             CheckpointManager.Instance.LoadCheckpointData();
+        }
+
+        public override void OnHeal()
+        {
+            uiManager.PulseVignette(Color.green, 0.25f, 5f);
         }
 
         private void RevertFacePlate()

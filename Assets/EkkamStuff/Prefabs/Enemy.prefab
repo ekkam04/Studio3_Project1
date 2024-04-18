@@ -2051,7 +2051,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6241122315721747023}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: a584b683a0c1546c8aa29655748c98e4, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -2836,7 +2836,7 @@ BoxCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 256
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
@@ -2859,7 +2859,7 @@ MonoBehaviour:
   projectileOwner: {fileID: 2976624835355934119}
   speed: 0
   fallOffSpeed: 0
-  damage: 2
+  damage: 10
   knockback: 100
   destroyOnHit: 0
   freezeOnHit: 0

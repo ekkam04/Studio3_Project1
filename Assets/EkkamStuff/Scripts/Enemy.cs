@@ -738,7 +738,7 @@ namespace Ekkam
                     {
                         enemy.pathNodes.RemoveAt(enemy.pathNodes.Count - 1);
                     }
-                    else if (enemy.pathNodes[enemy.pathNodes.Count - 2] != null && Vector3.Distance(transform.position, enemy.pathNodes[enemy.pathNodes.Count - 2].transform.position) < nodeReachedDistance)
+                    else if (enemy.pathNodes.Count > 1 && enemy.pathNodes[enemy.pathNodes.Count - 2] != null && Vector3.Distance(transform.position, enemy.pathNodes[enemy.pathNodes.Count - 2].transform.position) < nodeReachedDistance)
                     {
                         enemy.pathNodes.RemoveAt(enemy.pathNodes.Count - 2);
                         enemy.pathNodes.RemoveAt(enemy.pathNodes.Count - 1);

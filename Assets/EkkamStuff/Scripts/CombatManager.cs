@@ -66,7 +66,7 @@ namespace Ekkam
             }
             else
             {
-                var particleSystem = GetComponentInChildren<ParticleSystem>();
+                var particleSystem = itemHolderRight.GetComponentInChildren<ParticleSystem>();
                 anim.SetTrigger("swordAttack");
                 if (particleSystem != null) particleSystem.Play();
                 // get all layers

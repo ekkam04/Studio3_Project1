@@ -110,6 +110,7 @@ namespace Ekkam
             {
                 health += amount;
             }
+            OnHeal();
         }
         
         public virtual void OnDamageTaken()
@@ -118,6 +119,11 @@ namespace Ekkam
         }
 
         public virtual void OnDeath()
+        {
+            // this function is meant to be overridden
+        }
+        
+        public virtual void OnHeal()
         {
             // this function is meant to be overridden
         }

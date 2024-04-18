@@ -25,6 +25,7 @@ namespace Ekkam
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
                 objectiveManager.InitializeFromCurrentIndex();
+                SaveTempCheckpoint();
             }
             else
             {

@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using TMPro;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 namespace Ekkam
@@ -39,6 +41,9 @@ namespace Ekkam
         
         public GameObject areaPopupUI;
         public TMP_Text areaPopupText;
+        
+        public Volume vignetteVolume;
+        public Vignette vignette;
 
         Player player;
 
@@ -153,6 +158,35 @@ namespace Ekkam
             areaPopupUI.SetActive(true);
             yield return new WaitForSeconds(duration);
             areaPopupUI.SetActive(false);
+        }
+        
+        public void PulseVignette(Color color, float fadeInDuration, float fadeOutDuration)
+        {
+            StartCoroutine(PulseVignetteCoroutine(color, fadeInDuration, fadeOutDuration));
+        }
+        
+        IEnumerator PulseVignetteCoroutine(Color color, float fadeInDuration, float fadeOutDuration)
+        {
+            vignetteVolume.profile.TryGet(out vignette);
+            vignette.color.value = color;
+            float startTime = Time.time;
+            float endTime = startTime + fadeInDuration;
+            while (Time.time < endTime)
+            {
+                float t = (Time.time - startTime) / fadeInDuration;
+                vignette.intensity.value = Mathf.Lerp(0, 0.5f, t);
+                yield return null;
+            }
+            startTime = Time.time;
+            endTime = startTime + fadeOutDuration;
+            while (Time.time < endTime)
+            {
+                float t = (Time.time - startTime) / fadeOutDuration;
+                vignette.intensity.value = Mathf.Lerp(0.5f, 0, t);
+                yield return null;
+            }
+            vignette.intensity.value = 0;
+
         }
     }
 }

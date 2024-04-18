@@ -34,9 +34,6 @@ namespace Ekkam {
         public bool playerDamagedEnemyCheck = false;
         public bool playerObservedColliderCheck = false;
         private bool mousePosition3DObserverCheck = false;
-
-        public Volume vignetteVolume;
-        public Vignette vignette;
         
         public delegate void OnObjectiveComplete(string completionActionKey);
         public static event OnObjectiveComplete onObjectiveComplete;
@@ -287,6 +284,19 @@ namespace Ekkam {
             
             if (!objectives.Contains(objective)) return; // Only main objectives should progress the story
             
+            // Determine freewill change if defiance was possible
+            if (objective.objectivesThatFailThisObjective.Length > 0 || objective.objectiveSequence.Length > 0)
+            {
+                if (wasSuccessful)
+                {
+                    Player.Instance.freeWill += 10f;
+                }
+                else
+                {
+                    Player.Instance.freeWill -= 10f;
+                }
+            }
+            
             if (currentObjectiveIndex < objectives.Count - 1)
             {
                 currentObjectiveIndex++;
@@ -332,11 +342,6 @@ namespace Ekkam {
             }
             return numberOfObjectives;
         }
-
-        void DetermineFreeWill(Objective completedObjective)
-        {
-            
-        }
         
         [Command("skip-tasks")]
         public async void SkipTasks(int numberOfTasksToSkip)
@@ -354,7 +359,7 @@ namespace Ekkam {
             
             for (int i = firstActiveObjectiveIndex; i < numberOfTasksToSkip; i++)
             {
-                print("Skipping task " + i);
+                // print("Skipping task " + i);
                 if (objectives[i].status == Objective.ObjectiveStatus.Active)
                 {
                     foreach (Objective objectivesThatFailThisObjective in objectives[i].objectivesThatFailThisObjective)
@@ -402,31 +407,6 @@ namespace Ekkam {
             }
             await Task.Delay(2000);
             objective.objectiveUIItem.SetActive(false);
-        }
-
-        IEnumerator PulseVignette(Color color, float fadeInDuration, float fadeOutDuration)
-        {
-            // set intensity from 0 to 0.5 and back to 0
-            vignetteVolume.profile.TryGet(out vignette);
-            vignette.color.value = color;
-            float startTime = Time.time;
-            float endTime = startTime + fadeInDuration;
-            while (Time.time < endTime)
-            {
-                float t = (Time.time - startTime) / fadeInDuration;
-                vignette.intensity.value = Mathf.Lerp(0, 0.5f, t);
-                yield return null;
-            }
-            startTime = Time.time;
-            endTime = startTime + fadeOutDuration;
-            while (Time.time < endTime)
-            {
-                float t = (Time.time - startTime) / fadeOutDuration;
-                vignette.intensity.value = Mathf.Lerp(0.5f, 0, t);
-                yield return null;
-            }
-            vignette.intensity.value = 0;
-
         }
 
         public void HideAllObjectiveMarkers()
