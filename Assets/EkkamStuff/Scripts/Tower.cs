@@ -87,6 +87,7 @@ namespace Ekkam
                 uiManager.towerUI.SetActive(false);
                 if (completionSignal != null) completionSignal.Signal();
                 activated = false;
+                SoundManager.Instance.PlaySound("tower-complete");
                 return;
             }
             progress += progressSpeed * Time.deltaTime;

@@ -20,6 +20,7 @@ namespace Ekkam
         public PathfindingGrid grid;
         PathfindingManager pathfindingManager;
         UIManager uiManager;
+        AudioSource audioSource;
         public GameObject targetLockPrompt;
         public GameObject parachute;
         
@@ -68,6 +69,7 @@ namespace Ekkam
         {
             pathfindingManager = FindObjectOfType<PathfindingManager>();
             uiManager = FindObjectOfType<UIManager>();
+            audioSource = GetComponent<AudioSource>();
             var mainCamera = Camera.main;
             
             originalDetectionRange = detectionRange;
@@ -188,6 +190,11 @@ namespace Ekkam
             {
                 rb.velocity = new Vector3(0, rb.velocity.y, 0);
             }
+        }
+        
+        public void OnFootstep()
+        {
+            SoundManager.Instance.PlaySound("footstep-enemy", audioSource);
         }
         
         private Vector3 GetCirclingDirection(Vector3 toPlayer, float angleDegrees)

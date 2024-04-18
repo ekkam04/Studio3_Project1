@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 9017607965302550759}
   m_Layer: 0
   m_Name: Crate
-  m_TagString: Untagged
+  m_TagString: Crate
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -142,6 +142,7 @@ MonoBehaviour:
   skinnedMeshRenderer: {fileID: 0}
   tagsToIgnore:
   - Projectile
+  - Arrow
   dropCoinsOnDeath: 1
   coinsToDrop: 1
 --- !u!54 &9017607965302550759

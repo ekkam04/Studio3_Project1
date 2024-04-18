@@ -53,6 +53,7 @@ namespace Ekkam
             {
                 if (CurrentAttacker != null && CurrentAttacker != this) return;
                 
+                SoundManager.Instance.PlaySound("axe-swing");
                 CurrentAttacker = this;
                 anim.SetTrigger("swordAttack");
                 
@@ -66,6 +67,7 @@ namespace Ekkam
             }
             else
             {
+                SoundManager.Instance.PlaySound("sword-swing");
                 var particleSystem = itemHolderRight.GetComponentInChildren<ParticleSystem>();
                 anim.SetTrigger("swordAttack");
                 if (particleSystem != null) particleSystem.Play();
@@ -97,6 +99,7 @@ namespace Ekkam
             newArrow.SetActive(true);
             await Task.Delay(550);
             
+            SoundManager.Instance.PlaySound("bow-shoot");
             newArrow.transform.SetParent(null);
             newArrow.transform.position = bow.transform.position;
             newArrow.GetComponent<Projectile>().speed = 15;

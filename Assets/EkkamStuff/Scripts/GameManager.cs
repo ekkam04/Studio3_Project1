@@ -274,6 +274,7 @@ public class GameManager : MonoBehaviour
                 break;
             case "room1-repair-drone":
                 ShowGuideBot();
+                SoundManager.Instance.PlaySound("repair");
                 room1RepairPanel.enabled = false;
                 break;
             case "room6-door-explosion":
@@ -323,6 +324,7 @@ public class GameManager : MonoBehaviour
             }
         }
         droneCrashSite.SetActive(true);
+        SoundManager.Instance.PlaySound("explosion-drone-crash");
         Player.Instance.TakeDamage(40, 50, null);
         yield return new WaitForSeconds(3);
         droneCrashVCam.SetActive(false);
@@ -374,6 +376,7 @@ public class GameManager : MonoBehaviour
         room6ExplosionVCam.SetActive(true);
         yield return new WaitForSeconds(2);
         room6ExplosionFire.SetActive(true);
+        SoundManager.Instance.PlaySound("explosion-tower");
         Player.Instance.TakeDamage(20, 50, null);
         yield return new WaitForSeconds(4);
         room6ExplosionVCam.SetActive(false);

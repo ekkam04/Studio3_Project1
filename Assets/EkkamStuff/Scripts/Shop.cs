@@ -141,6 +141,7 @@ namespace Ekkam
             {
                 Player.Instance.coins -= selectedShopItem.itemPrice;
             }
+            SoundManager.Instance.PlaySound("shop-buy");
             
             switch (selectedShopItem.itemKey)
             {

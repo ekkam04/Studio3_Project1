@@ -36,9 +36,11 @@ namespace Ekkam
                 {
                     case CollectibleType.Coin:
                         Player.Instance.coins++;
+                        SoundManager.Instance.PlaySound("coin-collect");
                         break;
                     case CollectibleType.Token:
                         Player.Instance.tokens++;
+                        SoundManager.Instance.PlaySound("token-collect");
                         break;
                 }
                 particleSystem.Stop();

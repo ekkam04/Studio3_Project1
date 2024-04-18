@@ -131,6 +131,8 @@ namespace Ekkam
             inventoryUI.SetActive(false);
             playerUI.SetActive(false);
             objectivesUI.SetActive(false);
+            
+            SoundManager.Instance.PlaySound("shop-open");
         }
 
         public void CloseShopUI()
@@ -145,6 +147,8 @@ namespace Ekkam
             playerUI.SetActive(true);
             objectivesUI.SetActive(true);
             shopInteractionBlocker.SetActive(false);
+            
+            SoundManager.Instance.PlaySound("shop-close");
         }
         
         public void ShowAreaPopup(string areaName, float duration)

@@ -38,6 +38,20 @@ namespace Ekkam {
         void OnTriggerEnter(Collider other)
         {
             print("Hit " + other.gameObject.name);
+            switch (gameObject.tag)
+            {
+                case "Sword":
+                    SoundManager.Instance.PlaySound("sword-impact");
+                    break;
+                case "Axe":
+                    SoundManager.Instance.PlaySound("axe-impact");
+                    break;
+                case "Arrow":
+                    SoundManager.Instance.PlaySound("arrow-impact");
+                    break;
+                default:
+                    break;
+            }
             
             if (freezeOnHit)
             {

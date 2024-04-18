@@ -38,12 +38,9 @@ namespace Ekkam
             }
         }
 
-        // private void OnDestroy()
-        // {
-        //     if (onMoveComplete != null)
-        //     {
-        //         onMoveComplete();
-        //     }
-        // }
+        private void OnDestroy()
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySound("crate-break");
+        }
     }
 }

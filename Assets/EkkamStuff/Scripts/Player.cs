@@ -18,6 +18,7 @@ namespace Ekkam
         Inventory inventory;
         CombatManager combatManager;
         UIManager uiManager;
+        AudioSource audioSource;
         
         public enum MovementState
         {
@@ -34,6 +35,7 @@ namespace Ekkam
         
         public float sprintEnergyDrain = 10f;
         public float sprintEnergyRecharge = 10f;
+        public AudioSource hoverSound;
         
         public int coins;
         public int tokens;
@@ -169,6 +171,7 @@ namespace Ekkam
             inventory = FindObjectOfType<Inventory>();
             uiManager = FindObjectOfType<UIManager>();
             combatManager = GetComponent<CombatManager>();
+            audioSource = GetComponent<AudioSource>();
             
             energySlider.maxValue = maxEnergy;
             
@@ -208,7 +211,17 @@ namespace Ekkam
             float rbVelocity2DNormalized = rbVelocity2D / maxSpeed;
             anim.SetFloat("hoverTilt", Mathf.Lerp(anim.GetFloat("hoverTilt"), rbVelocity2DNormalized, Time.deltaTime * 5));
             
-            if (Input.GetKeyDown(KeyCode.LeftShift)) isSprinting = !isSprinting;
+            if (Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                if (isSprinting)
+                {
+                    isSprinting = false;
+                }
+                else if (energy > 15f)
+                {
+                    isSprinting = true;
+                }
+            }
             
             speed = isSprinting ? sprintSpeed : walkSpeed;
             maxSpeed = speed + maxSpeedOffset;
@@ -236,11 +249,24 @@ namespace Ekkam
             {
                 if (hoverParticlesL.isStopped) hoverParticlesL.Play();
                 if (hoverParticlesR.isStopped) hoverParticlesR.Play();
+                if (!hoverSound.isPlaying)
+                {
+                    hoverSound.volume = 0.75f;
+                    hoverSound.Play();
+                }
             }
             else
             {
                 if (hoverParticlesL.isPlaying) hoverParticlesL.Stop();
                 if (hoverParticlesR.isPlaying) hoverParticlesR.Stop();
+                if (hoverSound.isPlaying)
+                {
+                    hoverSound.volume -= Time.deltaTime * 2;
+                    if (hoverSound.volume <= 0)
+                    {
+                        hoverSound.Stop();
+                    }
+                }
             }
             
             if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
@@ -366,11 +392,13 @@ namespace Ekkam
                     doubleJumped = true;
                     anim.SetTrigger("doubleJump");
                     StartJump(jumpHeightApex, jumpDuration);
+                    SoundManager.Instance.PlaySound("jump", audioSource);
                 }
                 else if (isGrounded)
                 {
                     doubleJumped = false;
                     StartJump(jumpHeightApex, jumpDuration);
+                    SoundManager.Instance.PlaySound("jump", audioSource);
                 }
             }
         }
@@ -455,6 +483,7 @@ namespace Ekkam
                 {
                     hasLanded = true;
                     anim.SetBool("isJumping", false);
+                    SoundManager.Instance.PlaySound("land", audioSource);
                 }
                 
                 if (hit.collider.CompareTag("Movable"))
@@ -637,6 +666,14 @@ namespace Ekkam
                     break;
                 default:
                     break;
+            }
+        }
+        
+        public void OnFootstep()
+        {
+            if (isGrounded)
+            {
+                SoundManager.Instance.PlaySound("footstep", audioSource);
             }
         }
         
