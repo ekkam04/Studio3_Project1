@@ -1,0 +1,13 @@
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\bin\Debug\EkkamPathfinding.dll
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\bin\Debug\EkkamPathfinding.pdb
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\bin\Debug\Unity.Burst.dll
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\bin\Debug\Unity.Collections.dll
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\bin\Debug\Unity.Mathematics.dll
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\obj\Debug\EkkamPathfinding.csproj.AssemblyReference.cache
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\obj\Debug\EkkamPathfinding.csproj.CoreCompileInputs.cache
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\obj\Debug\EkkamPathfinding.csproj.CopyComplete
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\obj\Debug\EkkamPathfinding.dll
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\obj\Debug\EkkamPathfinding.pdb
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\bin\Debug\UnityEngine.SharedInternalsModule.dll
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\bin\Debug\UnityEngine.CoreModule.xml
+C:\UnityProjects\Studio3_FinalProject\EkkamPathfinding\EkkamPathfinding\bin\Debug\UnityEngine.SharedInternalsModule.xml
