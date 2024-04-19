@@ -5,6 +5,7 @@ using TMPro;
 using System.Threading.Tasks;
 using Ekkam;
 using System;
+using Unity.VisualScripting;
 
 namespace Ekkam
 {
@@ -16,12 +17,20 @@ namespace Ekkam
         public bool lookAtEachOther = true;
         public bool isDialogActive;
         
+        private AudioSource audioSource;
+        private float dialogSoundVolume = 0.5f;
+        public AudioClip dialogSound;
+        
         public delegate void OnOptionSelected(string actionKey);
         public static event OnOptionSelected onOptionSelected;
 
         void Start()
         {
             uiManager = FindObjectOfType<UIManager>();
+            audioSource = transform.AddComponent<AudioSource>();
+            audioSource.volume = dialogSoundVolume;
+            audioSource.clip = dialogSound;
+            audioSource.loop = true;
         }
 
         public void StartDialog(int dialogIndex)
@@ -49,7 +58,9 @@ namespace Ekkam
             currentDialog = dialog;
             uiManager.ShowDialog(dialog.dialogText, dialog.dialogOptions.Length > 0);
             
+            audioSource.Play();
             yield return new WaitUntil(() => !uiManager.showingDialog);
+            audioSource.Stop();
             
             if (dialog.dialogOptions.Length > 0)
             {
@@ -112,6 +123,7 @@ namespace Ekkam
                     StartDialog(option.jumpToIndex);
                     break;
             }
+            SoundManager.Instance.PlaySound("button-click");
         }
     }
     

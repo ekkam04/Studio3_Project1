@@ -5021,13 +5021,19 @@ MonoBehaviour:
   interactionAction: 0
   interactText: Pick up
   timesInteracted: 0
+  extraInteractDistance: 0
+  singleUse: 0
+  interactionActionKey: 
   rotationOffset: {x: 25, y: 240, z: -5}
   positionOffset: {x: 0.35, y: -0.15, z: 0.2}
   heldInOffHand: 0
   signalReceiver: {fileID: 0}
+  extraSignalReceivers: []
   placeRotationOffset: {x: 0, y: 0, z: 0}
   placePositionOffset: {x: 0, y: 0, z: 0}
   tagToAccept: 
+  dialogManager: {fileID: 0}
+  isBroken: 0
 --- !u!114 &7484488413370829527
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5042,6 +5048,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   smoke: {fileID: 869395793084136771}
   smokeCollider: {fileID: 5771904195023987585}
+  smokeSound: {fileID: 8300000, guid: cc5b74f165d16df4a8d56bf531305402, type: 3}
+  extinguishSound: {fileID: 8300000, guid: 5d9bb58f8005e3e4880557d19b7a24f4, type: 3}
 --- !u!136 &5771904195023987585
 CapsuleCollider:
   m_ObjectHideFlags: 0

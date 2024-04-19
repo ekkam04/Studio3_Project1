@@ -511,4 +511,12 @@ public class GameManager : MonoBehaviour
         }
         volume.weight = targetValue;
     }
+
+    private void OnDestroy()
+    {
+        ObjectiveManager.onObjectiveComplete -= HandleActionKey;
+        DialogManager.onOptionSelected -= HandleActionKey;
+        Wire.onPowered -= HandleActionKey;
+        Interactable.onInteraction -= HandleActionKey;
+    }
 }

@@ -243,10 +243,12 @@ namespace Ekkam {
             if (wasSuccessful)
             {
                 objective.status = Objective.ObjectiveStatus.Completed;
+                SoundManager.Instance.PlaySound("objective-success");
             }
             else
             {
                 objective.status = Objective.ObjectiveStatus.Failed;
+                SoundManager.Instance.PlaySound("objective-fail");
             }
             
             RemoveObjectiveFromUI(objective, wasSuccessful);
@@ -328,6 +330,7 @@ namespace Ekkam {
                 sequenceObjective.status = Objective.ObjectiveStatus.Active;
                 AddObjectiveToUI(sequenceObjective, 40f);
             }
+            SoundManager.Instance.PlaySound("objective-assign");
         }
 
         int GetNumberOfObjectives(Objective.ObjectiveStatus status)

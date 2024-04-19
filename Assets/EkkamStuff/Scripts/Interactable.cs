@@ -143,6 +143,7 @@ namespace Ekkam {
         {
             print("Interacting with " + gameObject.name);
             timesInteracted++;
+            SoundManager.Instance.PlaySound("interact");
             if (interactionAction == InteractionAction.Pickup)
             {
                 if (GetComponent<Item>())
@@ -170,6 +171,7 @@ namespace Ekkam {
                 if (inventory.GetSelectedItem() != null && inventory.GetSelectedItem().tag == tagToAccept)
                 {
                     print("Placing " + inventory.GetSelectedItem().name + " on " + gameObject.name);
+                    SoundManager.Instance.PlaySound("battery-place");
                     GameObject objectToPlace = inventory.GetSelectedItem().gameObject;
                     objectToPlace.transform.SetParent(transform);
                     if (objectToPlace.GetComponent<Interactable>() != null) objectToPlace.GetComponent<Interactable>().enabled = false;
@@ -196,6 +198,7 @@ namespace Ekkam {
                 else
                 {
                     interactColor = Color.red;
+                    SoundManager.Instance.PlaySound("interact-failed");
                     StartCoroutine(PulsePickupPromptText( 0.1f, 0.3f));
                 }
             }

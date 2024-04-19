@@ -65,6 +65,7 @@ namespace Ekkam {
             else if (other.gameObject.GetComponent<Interactable>() != null && other.gameObject.GetComponent<Interactable>().enabled && other.gameObject.GetComponent<Interactable>().interactionType == Interactable.InteractionType.Damage)
             {   
                 other.gameObject.GetComponent<Interactable>().Interact();
+                SoundManager.Instance.PlaySound("button-shot");
             }
             if (destroyOnHit) Destroy(gameObject);
         }

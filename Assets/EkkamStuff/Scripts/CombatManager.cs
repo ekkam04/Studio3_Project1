@@ -99,7 +99,7 @@ namespace Ekkam
             newArrow.SetActive(true);
             await Task.Delay(550);
             
-            SoundManager.Instance.PlaySound("bow-shoot");
+            SoundManager.Instance.PlaySound("arrow-shoot");
             newArrow.transform.SetParent(null);
             newArrow.transform.position = bow.transform.position;
             newArrow.GetComponent<Projectile>().speed = 15;
@@ -112,6 +112,7 @@ namespace Ekkam
         public async void MageAttack()
         {
             anim.SetTrigger("staffAttack");
+            SoundManager.Instance.PlaySound("staff-cast");
             await Task.Delay(250);
             GameObject newSpellBall = Instantiate(spellBall, transform.position + transform.forward + new Vector3(0, 1, 0), Quaternion.identity);
             newSpellBall.transform.LookAt(target.transform.position);
@@ -119,6 +120,7 @@ namespace Ekkam
             var spellBallCollider = newSpellBall.GetComponent<Collider>();
             spellBallCollider.excludeLayers = layersToIgnore;
             newSpellBall.SetActive(true);
+            SoundManager.Instance.PlaySound("staff-shoot");
         }
     }
 }

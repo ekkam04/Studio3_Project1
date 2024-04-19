@@ -40,7 +40,7 @@ namespace Ekkam
 
         private void OnDestroy()
         {
-            if (SoundManager.Instance != null) SoundManager.Instance.PlaySound("crate-break");
+            // if (SoundManager.Instance != null) SoundManager.Instance.PlaySound("crate-break");
         }
     }
 }

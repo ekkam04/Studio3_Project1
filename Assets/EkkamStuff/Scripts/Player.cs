@@ -270,6 +270,14 @@ namespace Ekkam
             }
             
             if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
+            if (Input.GetKeyUp(KeyCode.Mouse0))
+            {
+                if (inventory.GetSelectedItem() != null && inventory.GetSelectedItem().tag == "FireExtinguisher")
+                {
+                    var fireExtinguisher = inventory.GetSelectedItem().GetComponent<FireExtinguisher>();
+                    fireExtinguisher.StopSmoke();
+                }
+            }
             
             if (Input.GetKeyUp(KeyCode.Mouse1) || Input.GetKeyUp(KeyCode.L))
             {
@@ -549,7 +557,7 @@ namespace Ekkam
                     break;
                 case "FireExtinguisher":
                     var fireExtinguisher = item.GetComponent<FireExtinguisher>();
-                    fireExtinguisher.Toggle();
+                    fireExtinguisher.StartSmoke();
                     break;
                 default:
                     break;

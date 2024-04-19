@@ -28,11 +28,13 @@ namespace Ekkam
         public void SelectItem()
         {
             shop.SetSelectedShopItem(this);
+            SoundManager.Instance.PlaySound("button-click");
         }
         
         public void BuyItem()
         {
             shop.ShowConfirmationDialog(this);
+            SoundManager.Instance.PlaySound("button-click");
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Ekkam;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Action : Signalable
@@ -25,6 +26,9 @@ public class Action : Signalable
     public Vector3 targetOffset;
     public Vector3[] sequentialTargetOffsets;
     public bool assignNextObjectiveOnActionComplete;
+    public AudioClip actionSound;
+    private AudioSource audioSource;
+    private float audioVolume = 0.2f;
     
     private Vector3 startPosition;
     private Vector3 targetPosition;
@@ -56,6 +60,10 @@ public class Action : Signalable
     {
         originalTargetOffset = targetOffset;
         loopTimer = duration + loopDelay; // So that the first action is taken immediately if loop is enabled
+        audioSource = transform.AddComponent<AudioSource>();
+        audioSource.clip = actionSound;
+        audioSource.volume = audioVolume;
+        audioSource.loop = true;
     }
     
     void Update()
@@ -86,6 +94,7 @@ public class Action : Signalable
     public override void Signal()
     {
         print(gameObject.name + " is taking action: " + actionToTake);
+        audioSource.Play();
         StartCoroutine(TakeAction());
     }
     IEnumerator TakeAction()
@@ -201,6 +210,7 @@ public class Action : Signalable
         {
             if (FindObjectOfType<ObjectiveManager>() != null) FindObjectOfType<ObjectiveManager>().AddNextObjective();
         }
+        audioSource.Stop();
     }
     
     public void ResetSequence()

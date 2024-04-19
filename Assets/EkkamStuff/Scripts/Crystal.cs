@@ -54,18 +54,17 @@ public class Crystal : MonoBehaviour
         {
             tileUndamaged.SetActive(false);
             tileSlightlyDamaged.SetActive(true);
-            
+            SoundManager.Instance.PlaySound("crystal-hit");
         }
         else if (tileSlightlyDamaged.activeSelf)
         {
             tileSlightlyDamaged.SetActive(false);
             tileVeryDamaged.SetActive(true);
-            
+            SoundManager.Instance.PlaySound("crystal-hit");
         }
         else if (tileVeryDamaged.activeSelf)
         {
-            
-
+            SoundManager.Instance.PlaySound("crystal-hit");
             // jitter the tile
             for (int i = 0; i < 30; i++)
             {
@@ -77,6 +76,7 @@ public class Crystal : MonoBehaviour
 
             meshCollider.enabled = false;
             GetComponent<MeshCollider>().enabled = false;
+            SoundManager.Instance.PlaySound("crystal-break");
             foreach (GameObject piece in tileVeryDamagedPieces)
             {
                 // Add rigidbody to piece

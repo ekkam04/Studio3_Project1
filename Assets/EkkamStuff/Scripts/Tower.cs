@@ -113,6 +113,7 @@ namespace Ekkam
             exitPortal.SetActive(true);
             dropShip.transform.position = dropShipStartPoint.position;
             dropShip.SetActive(true);
+            SoundManager.Instance.PlaySound("dropship-enter");
             
             var dropPointsReached = 0;
             while (Vector3.Distance(dropShip.transform.position, dropShipEndPoint.position) > 0.1f)
@@ -140,6 +141,7 @@ namespace Ekkam
                 yield return null;
             }
             dropShip.SetActive(false);
+            SoundManager.Instance.PlaySound("dropship-exit");
             yield return new WaitForSeconds(2);
             entryPortal.SetActive(false);
             exitPortal.SetActive(false);
