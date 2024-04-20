@@ -39,6 +39,7 @@ namespace Ekkam
         
         private void OnTriggerStay(Collider other)
         {
+            print(other + " is in the fire");
             if (other.GetComponent<Damagable>() != null)
             {
                 timer += Time.deltaTime;

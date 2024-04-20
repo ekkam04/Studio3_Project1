@@ -235,7 +235,7 @@ namespace Ekkam
                     || enemy.pathNodes.Count > 0)
                 )
                 {
-                    print("Player is present");
+                    // print("Player is present");
 
                     if (
                         canMove &&
@@ -254,7 +254,7 @@ namespace Ekkam
         
                         if (grid.GetNode(enemy.endNodePosition).isBlocked)
                         {
-                            print("End node is blocked");
+                            // print("End node is blocked");
                         }
                     }
 
@@ -262,7 +262,7 @@ namespace Ekkam
                 }
                 else
                 {
-                    print("Player is not present");
+                    // print("Player is not present");
                     return NodeState.Failure;
                 }
             }
@@ -278,7 +278,7 @@ namespace Ekkam
             }
             public override NodeState Evaluate()
             {
-                print("Idle");
+                // print("Idle");
                 enemy.anim.SetBool("isMoving", false);
                 return NodeState.Success;
             }
@@ -304,13 +304,13 @@ namespace Ekkam
                     grid.GetPositionFromWorldPoint(Player.Instance.transform.position)
                 ))
                 {
-                    print("Line of sight");
+                    // print("Line of sight");
                     enemy.detectionRange = enemy.originalDetectionRange;
                     return NodeState.Success;
                 }
                 else
                 {
-                    print("No line of sight");
+                    // print("No line of sight");
                     return NodeState.Failure;
                 }
             }
@@ -333,7 +333,7 @@ namespace Ekkam
 
             // public override NodeState Evaluate()
             // {
-            //     print("Walking towards player");
+            //     // print("Walking towards player");
             //     enemy.anim.SetBool("isMoving", true);
             //     Vector3 targetPosition = new Vector3(Player.Instance.transform.position.x, transform.position.y, Player.Instance.transform.position.z);
             //     
@@ -347,7 +347,7 @@ namespace Ekkam
             // }
             public override NodeState Evaluate()
             {
-                print("Walking towards player");
+                // print("Walking towards player");
                 enemy.anim.SetBool("isMoving", true);
 
                 Vector3 toPlayer = Player.Instance.transform.position - transform.position;
@@ -389,12 +389,12 @@ namespace Ekkam
             {
                 if (enemy.canMove && enemy.followsPlayer)
                 {
-                    print("Can move");
+                    // print("Can move");
                     return NodeState.Success;
                 }
                 else
                 {
-                    print("Can't move");
+                    // print("Can't move");
                     return NodeState.Failure;
                 }
             }
@@ -428,13 +428,13 @@ namespace Ekkam
                 //         {
                 //             if (hit.collider.gameObject.layer != 6)
                 //             {
-                //                 print("Obstacle in the way");
+                //                 // print("Obstacle in the way");
                 //                 return NodeState.Failure;
                 //             }
                 //         }
                 //     }
                 //     
-                //     print("Ready to attack");
+                //     // print("Ready to attack");
                 //     enemy.canMove = false;
                 //     enemy.pathNodes.Clear();
                 //     enemy.pathfindingState = Enemy.PathfindingState.Idle;
@@ -461,13 +461,13 @@ namespace Ekkam
                         {
                             if (hit.collider.gameObject.layer != 6)
                             {
-                                print("Obstacle in the way");
+                                // print("Obstacle in the way");
                                 return NodeState.Failure;
                             }
                         }
                     }
                     
-                    print("Ready to attack");
+                    // print("Ready to attack");
                     enemy.canMove = false;
                     enemy.pathNodes.Clear();
                     enemy.pathfindingState = Enemy.PathfindingState.Idle;
@@ -491,7 +491,7 @@ namespace Ekkam
             }
             // public override NodeState Evaluate()
             // {
-            //     print("Attacking player");
+            //     // print("Attacking player");
             //     enemy.anim.SetBool("isMoving", false);
             //     enemy.shouldMove = false;
             //     
@@ -529,7 +529,7 @@ namespace Ekkam
             // }
             public override NodeState Evaluate()
             {
-                print("Attacking player");
+                // print("Attacking player");
                 enemy.anim.SetBool("isMoving", false);
                 enemy.shouldMove = false;
         
@@ -590,13 +590,13 @@ namespace Ekkam
                 }
                 if (closestDistance < closestRange)
                 {
-                    print("Closest enemy found");
+                    // print("Closest enemy found");
                     enemy.closestEnemy = closestEnemy;
                     return NodeState.Success;
                 }
                 else
                 {
-                    print("No closest enemy found");
+                    // print("No closest enemy found");
                     enemy.closestEnemy = null;
                     return NodeState.Failure;
                 }
@@ -618,7 +618,7 @@ namespace Ekkam
             {
                 if (enemy.closestEnemy != null && enemy.closestEnemy.pathNodes.Count > 0 && enemy.pathNodes.Count == 0)
                 {
-                    print("Copying closest enemy path");
+                    // print("Copying closest enemy path");
         
                     foreach (var node in enemy.closestEnemy.pathNodes)
                     {
@@ -634,7 +634,7 @@ namespace Ekkam
                 }
                 else
                 {
-                    print("No path to copy");
+                    // print("No path to copy");
                     return NodeState.Failure;
                 }
             }
@@ -693,17 +693,17 @@ namespace Ekkam
             {
                 if (enemy.pathfindingState == Enemy.PathfindingState.Success)
                 {
-                    print("Path found");
+                    // print("Path found");
                     return NodeState.Success;
                 }
                 else if (enemy.pathfindingState == Enemy.PathfindingState.Failure)
                 {
-                    print("Path not found");
+                    // print("Path not found");
                     return NodeState.Failure;
                 }
                 else
                 {
-                    print("Pathfinding in progress");
+                    // print("Pathfinding in progress");
                     return NodeState.Running;
                 }
             }
@@ -729,7 +729,7 @@ namespace Ekkam
             {
                 if (enemy.pathNodes.Count > 0)
                 {
-                    print("Following path");
+                    // print("Following path");
                     enemy.anim.SetBool("isMoving", true);
                     Vector3 targetPosition = new Vector3(
                         enemy.pathNodes[enemy.pathNodes.Count - 1].transform.position.x,
@@ -755,7 +755,7 @@ namespace Ekkam
                 }
                 else
                 {
-                    print("Path ended");
+                    // print("Path ended");
                     return NodeState.Success;
                 }
             }

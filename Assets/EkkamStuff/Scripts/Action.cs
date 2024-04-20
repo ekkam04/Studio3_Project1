@@ -80,6 +80,7 @@ public class Action : Signalable
         
         if (isMoving)
         {
+            print("Moving");
             transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
             timeElapsed += Time.deltaTime;
             if (timeElapsed >= duration)
@@ -200,6 +201,7 @@ public class Action : Signalable
 
     void HandleActionComplete()
     {
+        if (loop) return; // Looping actions should not trigger the action complete event because of performance reasons (Learned this the hard way)
         if (onActionComplete != null) onActionComplete();
         if (virtualCameraToTransitionTo != null)
         {

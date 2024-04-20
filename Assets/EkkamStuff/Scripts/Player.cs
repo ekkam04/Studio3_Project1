@@ -69,6 +69,8 @@ namespace Ekkam
         private Transform cameraObj;
         public GameObject explorationCamera;
         public GameObject combatCamera;
+        private CinemachineFreeLook combatCamCinemachine;
+        private CinemachineFreeLook explorationCamCinemachine;
         
         public Transform combatLookAt;
         private Vector3 cameraOffset;
@@ -181,6 +183,9 @@ namespace Ekkam
             cameraObj = explorationCamera.transform;
             cameraStyle = CameraStyle.Exploration;
             cameraOffset = cameraObj.position - transform.position;
+            
+            combatCamCinemachine = combatCamera.GetComponent<CinemachineFreeLook>();
+            explorationCamCinemachine = explorationCamera.GetComponent<CinemachineFreeLook>();
 
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
             initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
@@ -197,12 +202,24 @@ namespace Ekkam
             {
                 orientation.forward = viewDirection.normalized;
                 moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
+                
+                float explorationX = explorationCamCinemachine.m_XAxis.Value;
+                float explorationY = explorationCamCinemachine.m_YAxis.Value;
+                
+                combatCamCinemachine.m_XAxis.Value = explorationX;
+                combatCamCinemachine.m_YAxis.Value = explorationY;
             }
             else if (cameraStyle == CameraStyle.Combat)
             {
                 moveDirection = combatLookAt.position - new Vector3(cameraObj.position.x, combatLookAt.position.y, cameraObj.position.z);
                 orientation.forward = moveDirection.normalized;
                 combatRotationDirection = new Vector3(viewDirection.x, 0, viewDirection.z).normalized;
+                
+                float combatX = combatCamCinemachine.m_XAxis.Value;
+                float combatY = combatCamCinemachine.m_YAxis.Value;
+                
+                explorationCamCinemachine.m_XAxis.Value = combatX;
+                explorationCamCinemachine.m_YAxis.Value = combatY;
             }
             
             anim.SetBool("isMoving", verticalInput != 0 || horizontalInput != 0);
@@ -642,9 +659,6 @@ namespace Ekkam
         
         public void SwitchCameraStyle(CameraStyle style)
         {
-            var combatCamCinemachine = combatCamera.GetComponent<CinemachineFreeLook>();
-            var explorationCamCinemachine = explorationCamera.GetComponent<CinemachineFreeLook>();
-            
             float combatX = combatCamCinemachine.m_XAxis.Value;
             float combatY = combatCamCinemachine.m_YAxis.Value;
             

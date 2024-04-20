@@ -42,7 +42,8 @@ namespace Ekkam
         [Command("save-checkpoint")]
         public void SaveTempCheckpoint()
         {
-            SaveCheckpointData(Player.Instance.transform.position, Player.Instance.transform.eulerAngles);
+            var player = FindObjectOfType<Player>();
+            SaveCheckpointData(player.transform.position, player.transform.eulerAngles);
         }
         
         public void SaveCheckpointData(Vector3 position, Vector3 rotation)

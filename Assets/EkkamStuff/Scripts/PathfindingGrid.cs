@@ -90,6 +90,7 @@ namespace Ekkam
         [Command("updateBlockedNodes")]
         async void UpdateBlockedNodes()
         {
+            print("Updating blocked nodes...");
             await Task.Delay(100);
             if (nodes == null) return;
             for (int i = 0; i < nodes.Length; i++)
