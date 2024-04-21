@@ -2956,7 +2956,7 @@ MonoBehaviour:
   projectileOwner: {fileID: 2976624835355934119}
   speed: 0
   fallOffSpeed: 0
-  damage: 10
+  damage: 5
   knockback: 100
   destroyOnHit: 0
   freezeOnHit: 0

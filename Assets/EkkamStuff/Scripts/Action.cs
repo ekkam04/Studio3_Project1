@@ -80,7 +80,6 @@ public class Action : Signalable
         
         if (isMoving)
         {
-            print("Moving");
             transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
             timeElapsed += Time.deltaTime;
             if (timeElapsed >= duration)
@@ -96,6 +95,7 @@ public class Action : Signalable
     {
         print(gameObject.name + " is taking action: " + actionToTake);
         audioSource.Play();
+        if (!this.gameObject.activeSelf) return;
         StartCoroutine(TakeAction());
     }
     IEnumerator TakeAction()

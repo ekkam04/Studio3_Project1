@@ -15,6 +15,7 @@ namespace Ekkam
         public Dialog currentDialog;
         public List<Dialog> dialogs;
         public bool lookAtEachOther = true;
+        private bool lookedAtEachOther;
         public bool isDialogActive;
         
         private AudioSource audioSource;
@@ -40,10 +41,11 @@ namespace Ekkam
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             
-            if (lookAtEachOther)
+            if (lookAtEachOther && !lookedAtEachOther)
             {
                 Player.Instance.transform.LookAt(transform.position, Vector3.up);
                 transform.LookAt(Player.Instance.transform.position, Vector3.up);
+                lookedAtEachOther = true;
             }
             
             uiManager.HideAllOptions();
@@ -58,9 +60,9 @@ namespace Ekkam
             currentDialog = dialog;
             uiManager.ShowDialog(dialog.dialogText, dialog.dialogOptions.Length > 0);
             
-            audioSource.Play();
+            // audioSource.Play();
             yield return new WaitUntil(() => !uiManager.showingDialog);
-            audioSource.Stop();
+            // audioSource.Stop();
             
             if (dialog.dialogOptions.Length > 0)
             {
@@ -98,7 +100,7 @@ namespace Ekkam
                     signal.Signal();
                 }
             }
-            if (option.selectionActionKey != null && onOptionSelected != null)
+            if (option.selectionActionKey != "" && onOptionSelected != null)
             {
                 onOptionSelected(option.selectionActionKey);
             }

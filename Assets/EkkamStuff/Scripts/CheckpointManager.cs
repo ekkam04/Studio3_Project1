@@ -24,8 +24,9 @@ namespace Ekkam
             {
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
-                objectiveManager.InitializeFromCurrentIndex();
                 SaveTempCheckpoint();
+                Invoke(nameof(InitializeObjective), 2);
+                Invoke(nameof(OnCheckpointLoaded), 2.25f);
             }
             else
             {
@@ -92,7 +93,7 @@ namespace Ekkam
             Player.Instance.coins = checkpointData.coins;
             Player.Instance.tokens = checkpointData.tokens;
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.25f);
             print("Restoring " + currentCheckpointData.items.Count + " items to inventory...");
             foreach (GameObject go in currentCheckpointData.items)
             {
@@ -105,7 +106,7 @@ namespace Ekkam
             }
             currentCheckpointData.items.Clear();
             
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.25f);
             foreach (var item in inventory.items)
             {
                 var newItemGO = Instantiate(item.gameObject, savedItemsParent.transform);
@@ -114,7 +115,30 @@ namespace Ekkam
             }
             
             objectiveManager.currentObjectiveIndex = checkpointData.objectiveIndex;
+            InitializeObjective();
+
+            OnCheckpointLoaded();
+        }
+        
+        private void InitializeObjective()
+        {
+            if (currentCheckpointData.objectiveIndex > 38)
+            {
+                GameManager.Instance.objectiveManager.AddObjectiveToUI(GameManager.Instance.finalObjectiveVisual);
+            }
             objectiveManager.InitializeFromCurrentIndex();
+        }
+        
+        private void OnCheckpointLoaded()
+        {
+            if (objectiveManager.currentObjectiveIndex > 6)
+            {
+                GameManager.Instance.ShowGuideBot();
+            }
+            if (objectiveManager.currentObjectiveIndex > 38)
+            {
+                Player.Instance.SwitchDisguise(1);
+            }
         }
     }
     

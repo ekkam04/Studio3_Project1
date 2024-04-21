@@ -63,6 +63,8 @@ public class GameManager : MonoBehaviour
     public GameObject hovercraftVCam;
     public GameObject hovercraft;
     public Transform[] hovercraftPath;
+
+    public Objective finalObjectiveVisual;
     
     [Header("Drone Dialogs")]
     public List<Dialog> droneDialog1;
@@ -292,7 +294,7 @@ public class GameManager : MonoBehaviour
                 );
                 break;
             case "toggle-disguise":
-                Player.Instance.ToggleDisguise();
+                Player.Instance.SwitchDisguise(1);
                 break;
             case "send-hovercraft":
                 StartCoroutine(SendHovercraft());
@@ -456,6 +458,11 @@ public class GameManager : MonoBehaviour
         
         hovercraftVCam.SetActive(false);
         ResumeGame();
+        
+        // Adding core objective to UI (this is fake and has to be manually removed later)
+        objectiveManager.AddObjectiveToUI(finalObjectiveVisual);
+        
+        // Adding actual next objective
         objectiveManager.AddNextObjective();
     }
     

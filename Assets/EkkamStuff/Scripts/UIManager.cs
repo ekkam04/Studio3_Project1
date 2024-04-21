@@ -83,7 +83,7 @@ namespace Ekkam
 
             showingDialog = true;
             inventoryUI.SetActive(false);
-            dialogCamera.SetActive(true);
+            if (!dialogCamera.activeSelf) dialogCamera.SetActive(true);
             dialogText.text = "";
             dialogUI.SetActive(true);
             foreach (var letter in dialog)

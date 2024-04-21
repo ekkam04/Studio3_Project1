@@ -159,7 +159,6 @@ namespace Ekkam {
                     print("Signaling " + signalReceiver.name);
                     signalReceiver.Signal();
                 }
-                
                 foreach (var extraSignalReceiver in extraSignalReceivers)
                 {
                     extraSignalReceiver.Signal();
@@ -204,6 +203,15 @@ namespace Ekkam {
             }
             else if (interactionAction == InteractionAction.Talk)
             {
+                if (signalReceiver != null)
+                {
+                    print("Signaling " + signalReceiver.name);
+                    signalReceiver.Signal();
+                }
+                foreach (var extraSignalReceiver in extraSignalReceivers)
+                {
+                    extraSignalReceiver.Signal();
+                }
                 if (dialogManager == null)
                 {
                     dialogManager = GetComponent<DialogManager>();
@@ -214,6 +222,15 @@ namespace Ekkam {
             }
             else if (interactionAction == InteractionAction.Shop)
             {
+                if (signalReceiver != null)
+                {
+                    print("Signaling " + signalReceiver.name);
+                    signalReceiver.Signal();
+                }
+                foreach (var extraSignalReceiver in extraSignalReceivers)
+                {
+                    extraSignalReceiver.Signal();
+                }
                 uiManager.OpenShopUI();
                 StartCoroutine(PulsePickupPromptText(0.1f, 0.3f));
             }

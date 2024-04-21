@@ -24,6 +24,9 @@ namespace Ekkam
         public GameObject targetLockPrompt;
         public GameObject parachute;
         
+        private Vector3 startPosition;
+        private Vector3 startRotation;
+        
         [Header("--- Astar Pathfinding ---")]
         [SerializeField] Vector2Int startNodePosition;
         [SerializeField] public Vector2Int endNodePosition;
@@ -71,6 +74,9 @@ namespace Ekkam
             uiManager = FindObjectOfType<UIManager>();
             audioSource = GetComponent<AudioSource>();
             var mainCamera = Camera.main;
+            
+            startPosition = transform.position;
+            startRotation = transform.eulerAngles;
             
             originalDetectionRange = detectionRange;
             if (grid != null)
@@ -279,7 +285,24 @@ namespace Ekkam
             public override NodeState Evaluate()
             {
                 // print("Idle");
-                enemy.anim.SetBool("isMoving", false);
+                // if enemy is not at start position, move towards it
+                if (Vector3.Distance(enemy.transform.position, enemy.startPosition) > 0.1f)
+                {
+                    enemy.nextRotation = Quaternion.Slerp(enemy.transform.rotation, Quaternion.LookRotation(enemy.startPosition - enemy.transform.position), 10 * Time.deltaTime);
+                    enemy.nextPosition = Vector3.MoveTowards(enemy.transform.position, enemy.startPosition, enemy.speed * Time.deltaTime);
+                    enemy.shouldMove = true;
+                }
+                // if enemy rotation is not at start rotation, rotate towards it
+                else if (Quaternion.Angle(enemy.transform.rotation, Quaternion.Euler(enemy.startRotation)) > 0.1f)
+                {
+                    enemy.nextRotation = Quaternion.Slerp(enemy.transform.rotation, Quaternion.Euler(enemy.startRotation), 10 * Time.deltaTime);
+                    enemy.shouldMove = true;
+                }
+                else
+                {
+                    enemy.anim.SetBool("isMoving", false);
+                    enemy.shouldMove = false;
+                }
                 return NodeState.Success;
             }
         }

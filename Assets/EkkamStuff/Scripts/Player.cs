@@ -304,7 +304,7 @@ namespace Ekkam
             
             if (Input.GetKeyDown(KeyCode.F))
             {
-                ToggleDisguise();
+                SwitchDisguise(disguiseActive ? 0 : 1);
             }
             
             if (disguiseActive)
@@ -314,7 +314,7 @@ namespace Ekkam
                 if (disguiseBattery <= 0)
                 {
                     disguiseBattery = 0;
-                    ToggleDisguise();
+                    SwitchDisguise(0);
                 }
             }
             
@@ -552,6 +552,7 @@ namespace Ekkam
                     if (swordTimer < swordAttackCooldown || isGrounded == false || isAttacking) return;
                     allowMovement = false;
                     swordTimer = 0;
+                    if (disguiseActive) SwitchDisguise(0);
                     if (CheckForNearbyEnemies())
                     {
                         PerformFreeFlowAttack();
@@ -565,11 +566,13 @@ namespace Ekkam
                     if (bowTimer < bowAttackCooldown || isGrounded == false) return;
                     allowMovement = false;
                     bowTimer = 0;
+                    if (disguiseActive) SwitchDisguise(0);
                     combatManager.ArcherAttack(item, this);
                     break;
                 case "Staff":
                     if (staffTimer < staffAttackCooldown || isGrounded == false) return;
                     staffTimer = 0;
+                    if (disguiseActive) SwitchDisguise(0);
                     combatManager.MageAttack();
                     break;
                 case "FireExtinguisher":
@@ -614,12 +617,16 @@ namespace Ekkam
         public override void OnDamageTaken()
         {
             uiManager.PulseVignette(Color.red, 0.25f, 0.5f);
-            foreach (var facePlate in facePlates)
+            // foreach (var facePlate in facePlates)
+            // {
+            //     facePlate.SetActive(false);
+            // }
+            // facePlates[1].SetActive(true);
+            // Invoke("RevertFacePlate", 1f);
+            if (disguiseActive)
             {
-                facePlate.SetActive(false);
+                SwitchDisguise(0);
             }
-            facePlates[1].SetActive(true);
-            Invoke("RevertFacePlate", 1f);
         }
 
         public override void OnDeath()
@@ -642,36 +649,29 @@ namespace Ekkam
             facePlates[0].SetActive(true);
         }
         
-        public void ToggleDisguise()
+        // index 0 is normal, index 1 + is disguise
+        public void SwitchDisguise(int index)
         {
-            disguiseActive = !disguiseActive;
-            disguiseSlider.gameObject.SetActive(disguiseActive);
             foreach (var disguiseDetail in disguiseDetails)
             {
                 disguiseDetail.facePlate.SetActive(false);
             }
-            disguiseDetails[disguiseActive ? 1 : 0].facePlate.SetActive(true);
-            playerMesh.material = disguiseDetails[disguiseActive ? 1 : 0].material;
+            disguiseDetails[index].facePlate.SetActive(true);
+            playerMesh.material = disguiseDetails[index].material;
             var disguiseParticlesMain = disguiseParticles.main;
-            disguiseParticlesMain.startColor = disguiseDetails[disguiseActive ? 1 : 0].color;
+            disguiseParticlesMain.startColor = disguiseDetails[index].color;
             disguiseParticles.Play();
+            disguiseActive = index > 0;
+            disguiseSlider.gameObject.SetActive(index > 0);
         }
         
         public void SwitchCameraStyle(CameraStyle style)
         {
-            float combatX = combatCamCinemachine.m_XAxis.Value;
-            float combatY = combatCamCinemachine.m_YAxis.Value;
-            
-            float explorationX = explorationCamCinemachine.m_XAxis.Value;
-            float explorationY = explorationCamCinemachine.m_YAxis.Value;
-            
             cameraStyle = style;
             switch (style)
             {
                 case CameraStyle.Exploration:
                     cameraObj = explorationCamera.transform;
-                    // explorationCamCinemachine.m_XAxis.Value = combatX;
-                    // explorationCamCinemachine.m_YAxis.Value = combatY;
                     explorationCamera.SetActive(true);
                     combatCamera.SetActive(false);
                     uiManager.combatReticle.SetActive(false);
@@ -679,8 +679,6 @@ namespace Ekkam
                     break;
                 case CameraStyle.Combat:
                     cameraObj = combatCamera.transform;
-                    // combatCamCinemachine.m_XAxis.Value = explorationX;
-                    // combatCamCinemachine.m_YAxis.Value = explorationY;
                     combatCamera.SetActive(true);
                     explorationCamera.SetActive(false);
                     uiManager.explorationReticle.SetActive(false);
