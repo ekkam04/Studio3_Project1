@@ -124,6 +124,16 @@ namespace Ekkam
                 case DialogOption.OptionType.Jump:
                     StartDialog(option.jumpToIndex);
                     break;
+                case DialogOption.OptionType.ModelCheck:
+                    if (option.optionText == Player.Instance.currentDisguise.name)
+                    {
+                        StartDialog(dialogs.IndexOf(currentDialog) + 1);
+                    }
+                    else
+                    {
+                        StartDialog(dialogs.IndexOf(currentDialog) + 2);
+                    }
+                    break;
             }
             SoundManager.Instance.PlaySound("button-click");
         }
@@ -146,7 +156,8 @@ namespace Ekkam
             Next,
             End,
             Jump,
-            Signal
+            Signal,
+            ModelCheck
         }
 
         public OptionType optionType;

@@ -94,7 +94,7 @@ public class Action : Signalable
     public override void Signal()
     {
         print(gameObject.name + " is taking action: " + actionToTake);
-        audioSource.Play();
+        if (audioSource != null) audioSource.Play();
         if (!this.gameObject.activeSelf) return;
         StartCoroutine(TakeAction());
     }

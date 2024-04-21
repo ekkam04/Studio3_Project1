@@ -149,6 +149,7 @@ namespace Ekkam
         public SkinnedMeshRenderer playerMesh;
         
         public DisguiseDetails[] disguiseDetails;
+        public DisguiseDetails currentDisguise;
         public ParticleSystem disguiseParticles;
 
         public static Player Instance { get; private set; }
@@ -663,6 +664,7 @@ namespace Ekkam
             disguiseParticles.Play();
             disguiseActive = index > 0;
             disguiseSlider.gameObject.SetActive(index > 0);
+            currentDisguise = disguiseDetails[index];
         }
         
         public void SwitchCameraStyle(CameraStyle style)
