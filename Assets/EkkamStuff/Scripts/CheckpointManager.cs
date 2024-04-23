@@ -49,14 +49,15 @@ namespace Ekkam
         
         public void SaveCheckpointData(Vector3 position, Vector3 rotation)
         {
+            var player = FindObjectOfType<Player>();
             currentCheckpointData = new CheckpointData
             {
                 position = position,
                 rotation = rotation,
-                health = Player.Instance.health,
+                health = player.health,
                 items = new List<GameObject>(),
-                coins = Player.Instance.coins,
-                tokens = Player.Instance.tokens,
+                coins = player.coins,
+                tokens = player.tokens,
                 objectiveIndex = objectiveManager.currentObjectiveIndex
             };
             var savedItems = savedItemsParent.GetComponentsInChildren<Item>();

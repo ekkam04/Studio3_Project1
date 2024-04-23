@@ -30,6 +30,9 @@ namespace Ekkam
 
         public GameObject dialogUI;
         public TMP_Text dialogText;
+        public GameObject dialogSkipButton;
+        private int initialDialogLetterDelay = 20;
+        private int dialogLetterDelay;
         public bool showingDialog;
         public GameObject dialogCamera;
 
@@ -84,13 +87,16 @@ namespace Ekkam
             showingDialog = true;
             inventoryUI.SetActive(false);
             if (!dialogCamera.activeSelf) dialogCamera.SetActive(true);
+            dialogSkipButton.SetActive(true);
+            dialogLetterDelay = initialDialogLetterDelay;
             dialogText.text = "";
             dialogUI.SetActive(true);
             foreach (var letter in dialog)
             {
                 dialogText.text += letter;
-                await Task.Delay(20);
+                await Task.Delay(dialogLetterDelay);
             }
+            dialogSkipButton.SetActive(false);
 
             showingDialog = false;
         }
@@ -119,6 +125,11 @@ namespace Ekkam
             {
                 button.gameObject.SetActive(false);
             }
+        }
+        
+        public void OnDialogSkip()
+        {
+            dialogLetterDelay = 0;
         }
 
         public void OpenShopUI()

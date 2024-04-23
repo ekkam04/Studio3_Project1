@@ -204,8 +204,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ec7b95eed8a7d84faa7c1ddffda5c45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemTexture: {fileID: 2800000, guid: cfb26a9c59cf6514485ff26c924787aa, type: 3}
-  itemSize: 50
+  itemTexture: {fileID: 2800000, guid: 8c727f42e061da64eaa59106a16f19ee, type: 3}
+  itemSize: 75
   itemHolderPosition: {x: 0, y: 0, z: 0}
   useText: 
 --- !u!114 &4779317089457364017
@@ -235,4 +235,5 @@ MonoBehaviour:
   placeRotationOffset: {x: 0, y: 0, z: 0}
   placePositionOffset: {x: 0, y: 0, z: 0}
   tagToAccept: 
+  dialogManager: {fileID: 0}
   isBroken: 0
