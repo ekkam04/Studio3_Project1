@@ -48,6 +48,9 @@ namespace Ekkam
         
         public Volume vignetteVolume;
         public Vignette vignette;
+        
+        public GameObject mainMenuUI;
+        public GameObject mainMenuVCam;
 
         Player player;
 
@@ -203,6 +206,20 @@ namespace Ekkam
             }
             vignette.intensity.value = 0;
 
+        }
+        
+        public void HideAllUI()
+        {
+            inventoryUI.SetActive(false);
+            playerUI.SetActive(false);
+            objectivesUI.SetActive(false);
+        }
+        
+        public void ShowAllUI()
+        {
+            inventoryUI.SetActive(true);
+            playerUI.SetActive(true);
+            objectivesUI.SetActive(true);
         }
     }
 }

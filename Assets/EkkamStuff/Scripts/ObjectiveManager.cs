@@ -291,11 +291,11 @@ namespace Ekkam {
             {
                 if (wasSuccessful)
                 {
-                    Player.Instance.freeWill += 10f;
+                    Player.Instance.freeWill -= 10f;
                 }
                 else
                 {
-                    Player.Instance.freeWill -= 10f;
+                    Player.Instance.freeWill += 10f;
                 }
             }
             

@@ -87,13 +87,16 @@ public class GameManager : MonoBehaviour
         objectiveManager = FindObjectOfType<ObjectiveManager>();
         dialogManager = GetComponent<DialogManager>();
         
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        // Cursor.lockState = CursorLockMode.Locked;
+        // Cursor.visible = false;
         
         ObjectiveManager.onObjectiveComplete += HandleActionKey;
         DialogManager.onOptionSelected += HandleActionKey;
         Wire.onPowered += HandleActionKey;
         Interactable.onInteraction += HandleActionKey;
+        
+        darknessVolume.weight = 1;
+        ShowMainMenu();
         
         // Application.targetFrameRate = 60;
     }
@@ -102,11 +105,7 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.P))
         {
-            PauseGame();
-        }
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            ResumeGame();
+            ShowMainMenu();
         }
     }
 
@@ -517,6 +516,35 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
         volume.weight = targetValue;
+    }
+    
+    [Command("show-main-menu")]
+    public void ShowMainMenu()
+    {
+        var player = FindObjectOfType<Player>();
+        player.bowRig.weight = 0;
+        player.anim.SetBool("isSitting", true);
+        uiManager.mainMenuVCam.SetActive(true);
+        uiManager.mainMenuUI.SetActive(true);
+        uiManager.HideAllUI();
+        EnableDarkness();
+        PauseGame();
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+    
+    [Command("hide-main-menu")]
+    public void HideMainMenu()
+    {
+        var player = FindObjectOfType<Player>();
+        player.anim.SetBool("isSitting", false);
+        uiManager.mainMenuVCam.SetActive(false);
+        uiManager.mainMenuUI.SetActive(false);
+        uiManager.ShowAllUI();
+        DisableDarkness();
+        ResumeGame();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     private void OnDestroy()
