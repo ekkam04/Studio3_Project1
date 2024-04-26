@@ -19,6 +19,7 @@ namespace Ekkam
         [SerializeField] GameObject itemHolderRight;
         
         [SerializeField] GameObject target;
+        [SerializeField] private float targetHeightOffset;
         
         public static CombatManager CurrentAttacker = null;
 
@@ -115,7 +116,7 @@ namespace Ekkam
             SoundManager.Instance.PlaySound("staff-cast");
             await Task.Delay(250);
             GameObject newSpellBall = Instantiate(spellBall, transform.position + transform.forward + new Vector3(0, 1, 0), Quaternion.identity);
-            newSpellBall.transform.LookAt(target.transform.position);
+            newSpellBall.transform.LookAt(target.transform.position + new Vector3(0, targetHeightOffset, 0));
             newSpellBall.GetComponent<Projectile>().projectileOwner = GetComponent<Damagable>();
             var spellBallCollider = newSpellBall.GetComponent<Collider>();
             spellBallCollider.excludeLayers = layersToIgnore;

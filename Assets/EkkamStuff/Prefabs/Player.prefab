@@ -5642,6 +5642,127 @@ Transform:
   - {fileID: 9218621892863950980}
   m_Father: {fileID: 1910044361292063141}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2687587312637041526
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3185538208609871562}
+  - component: {fileID: 4214195072730525765}
+  - component: {fileID: 4795783184793465736}
+  - component: {fileID: 6437987336738066409}
+  - component: {fileID: 3413652873491457178}
+  m_Layer: 6
+  m_Name: ForceField
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &3185538208609871562
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2687587312637041526}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.6, z: 0}
+  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 779780838359391293}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &4214195072730525765
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2687587312637041526}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &4795783184793465736
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2687587312637041526}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: a04bd459aa5974d46ae8e2b6a0f7f214, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!135 &6437987336738066409
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2687587312637041526}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 257
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3413652873491457178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2687587312637041526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65998b70c00380e4ba268b946e4fbce1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 5115719971858934883}
+  shieldMaterial: {fileID: 0}
+  shieldAlpha: 0.64
 --- !u!1 &3173093822509728990
 GameObject:
   m_ObjectHideFlags: 0
@@ -16125,6 +16246,7 @@ Transform:
   - {fileID: 8567115470985013984}
   - {fileID: 5734728896206370766}
   - {fileID: 4204756885988999749}
+  - {fileID: 3185538208609871562}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &3199993596962982761
@@ -16161,6 +16283,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 100
+  isInvincible: 0
   col: {fileID: 7236751535330574248}
   rb: {fileID: 5729310267075334706}
   anim: {fileID: 3199993596962982761}
@@ -16172,9 +16295,11 @@ MonoBehaviour:
   energy: 100
   maxEnergy: 100
   energySlider: {fileID: 0}
+  energyRecharge: 10
   sprintEnergyDrain: 20
-  sprintEnergyRecharge: 5
   hoverSound: {fileID: 4778761506178740922}
+  shieldEnergyDrain: 2
+  shieldEnergyDrainOnHit: 3
   coins: 0
   tokens: 0
   cameraStyle: 0
@@ -16203,6 +16328,7 @@ MonoBehaviour:
   freeFlowLeapSpeedMultiplier: 2.5
   hoverParticlesL: {fileID: 7177819677210117354}
   hoverParticlesR: {fileID: 4306633643915444842}
+  shieldBubble: {fileID: 2687587312637041526}
   bowRig: {fileID: 8268098505618454862}
   secondHandArrowIK: {fileID: 2580890301193767390}
   secondHandArrowIKWeight: 0
@@ -16218,6 +16344,7 @@ MonoBehaviour:
   isGrounded: 0
   isJumping: 0
   isSprinting: 0
+  isShielding: 0
   allowDoubleJump: 1
   doubleJumped: 0
   hasLanded: 0
@@ -16237,6 +16364,15 @@ MonoBehaviour:
     facePlate: {fileID: 3173093822509728990}
     material: {fileID: 2100000, guid: abb89658ea237cd4886ddccdd706ce5d, type: 2}
     color: {r: 1, g: 0.4694984, b: 0, a: 1}
+  - name: Hyperon
+    facePlate: {fileID: 3173093822509728990}
+    material: {fileID: 2100000, guid: abb89658ea237cd4886ddccdd706ce5d, type: 2}
+    color: {r: 0, g: 0.87411356, b: 1, a: 1}
+  currentDisguise:
+    name: 
+    facePlate: {fileID: 0}
+    material: {fileID: 0}
+    color: {r: 0, g: 0, b: 0, a: 0}
   disguiseParticles: {fileID: 8920496087116825520}
 --- !u!114 &6212724073913735623
 MonoBehaviour:
@@ -16257,9 +16393,10 @@ MonoBehaviour:
   itemHolderLeft: {fileID: 2113868213001536142}
   itemHolderRight: {fileID: 3443114409793580193}
   target: {fileID: 0}
+  targetHeightOffset: 0
   layersToIgnore:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
 --- !u!114 &2651984194595381729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16334,6 +16471,10 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: fa23c69a-eefe-44f7-8933-313a36f8a4e8
     m_ActionName: Player/InventoryCycle[/Mouse/scroll]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: c8a72a4c-68b4-4e1e-a34e-b3dff71b1953
+    m_ActionName: Player/Look[/Mouse/delta]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player

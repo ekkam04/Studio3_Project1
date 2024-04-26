@@ -8,6 +8,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -6577281435229220291, guid: 9c146c544f8b5453e9bcfa47d85cce55,
+        type: 3}
+      propertyPath: m_ExcludeLayers.m_Bits
+      value: 260
+      objectReference: {fileID: 0}
     - target: {fileID: 565475752564101741, guid: 9c146c544f8b5453e9bcfa47d85cce55,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -77,6 +82,11 @@ PrefabInstance:
         type: 3}
       propertyPath: ColorModule.gradient.maxGradient.key1.r
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1809847087950786295, guid: 9c146c544f8b5453e9bcfa47d85cce55,
+        type: 3}
+      propertyPath: m_ExcludeLayers.m_Bits
+      value: 260
       objectReference: {fileID: 0}
     - target: {fileID: 3855110068949044105, guid: 9c146c544f8b5453e9bcfa47d85cce55,
         type: 3}

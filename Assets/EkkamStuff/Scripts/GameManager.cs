@@ -87,16 +87,16 @@ public class GameManager : MonoBehaviour
         objectiveManager = FindObjectOfType<ObjectiveManager>();
         dialogManager = GetComponent<DialogManager>();
         
-        // Cursor.lockState = CursorLockMode.Locked;
-        // Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         
         ObjectiveManager.onObjectiveComplete += HandleActionKey;
         DialogManager.onOptionSelected += HandleActionKey;
         Wire.onPowered += HandleActionKey;
         Interactable.onInteraction += HandleActionKey;
         
-        darknessVolume.weight = 1;
-        ShowMainMenu();
+        // darknessVolume.weight = 1;
+        // ShowMainMenu();
         
         // Application.targetFrameRate = 60;
     }
@@ -116,6 +116,8 @@ public class GameManager : MonoBehaviour
             onPauseGame();
         }
         
+        Player.Instance.isSprinting = false;
+        Player.Instance.isShielding = false;
         Player.Instance.anim.SetBool("isMoving", false);
         Player.Instance.anim.SetBool("isJumping", false);
         Player.Instance.rb.velocity = Vector3.zero;

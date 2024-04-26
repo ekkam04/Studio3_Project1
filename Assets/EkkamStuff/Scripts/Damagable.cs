@@ -11,6 +11,7 @@ namespace Ekkam
     public class Damagable : MonoBehaviour
     {
         public int health = 1;
+        public bool isInvincible;
         public Collider col;
         public Rigidbody rb;
         public Animator anim;
@@ -49,6 +50,7 @@ namespace Ekkam
 
         public void TakeDamage(int damage, float knockback, Damagable damageDealer)
         {
+            if (isInvincible) return;
             if (tagsToIgnore.Length > 0)
             {
                 foreach (var tag in tagsToIgnore)

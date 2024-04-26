@@ -33,9 +33,13 @@ namespace Ekkam
         public float maxEnergy = 100f;
         public Slider energySlider;
         
+        public float energyRecharge = 10f;
+        
         public float sprintEnergyDrain = 10f;
-        public float sprintEnergyRecharge = 10f;
         public AudioSource hoverSound;
+        
+        public float shieldEnergyDrain = 10f;
+        public float shieldEnergyDrainOnHit = 10f;
         
         public int coins;
         public int tokens;
@@ -89,6 +93,8 @@ namespace Ekkam
         public ParticleSystem hoverParticlesL;
         public ParticleSystem hoverParticlesR;
         
+        public GameObject shieldBubble;
+        
         [Header("--- Rig Settings ---")]
         public Rig bowRig;
         public TwoBoneIKConstraint secondHandArrowIK;
@@ -112,6 +118,7 @@ namespace Ekkam
         public bool isGrounded;
         public bool isJumping;
         public bool isSprinting;
+        public bool isShielding;
         public bool allowDoubleJump;
         public bool doubleJumped;
         public bool hasLanded;
@@ -196,7 +203,7 @@ namespace Ekkam
         {
             base.Update();
             
-            // Movement
+            // Camera and orientation
             viewDirection = transform.position - new Vector3(cameraObj.position.x, transform.position.y, cameraObj.position.z);
 
             if (cameraStyle == CameraStyle.Exploration)
@@ -223,30 +230,30 @@ namespace Ekkam
                 explorationCamCinemachine.m_YAxis.Value = combatY;
             }
             
+            // Animation
             anim.SetBool("isMoving", verticalInput != 0 || horizontalInput != 0);
             anim.SetBool("isHovering", isSprinting);
             float rbVelocity2D = new Vector2(rb.velocity.x, rb.velocity.z).magnitude;
             float rbVelocity2DNormalized = rbVelocity2D / maxSpeed;
             anim.SetFloat("hoverTilt", Mathf.Lerp(anim.GetFloat("hoverTilt"), rbVelocity2DNormalized, Time.deltaTime * 5));
             
-            if (Input.GetKeyDown(KeyCode.LeftShift))
-            {
-                if (isSprinting)
-                {
-                    isSprinting = false;
-                }
-                else if (energy > 15f)
-                {
-                    isSprinting = true;
-                }
-            }
-            
+            // Movement
             speed = isSprinting ? sprintSpeed : walkSpeed;
             maxSpeed = speed + maxSpeedOffset;
             downwardsGravityMultiplier = isSprinting ? hoveringDownwardsGravityMultiplier : normalDownwardsGravityMultiplier;
             ControlSpeed();
             CheckForGround();
             MovementStateHandler();
+            
+            // Sprinting / Hover boots
+            if (Input.GetKeyDown(KeyCode.LeftShift) && energy > 15f) isSprinting = true;
+            if (Input.GetKeyUp(KeyCode.LeftShift)) isSprinting = false;
+            
+            // Shield Bubble
+            if (Input.GetKeyDown(KeyCode.Mouse1) && energy > 15f) isShielding = true;
+            if (Input.GetKeyUp(KeyCode.Mouse1)) isShielding = false;
+            shieldBubble.SetActive(isShielding);
+            isInvincible = isShielding;
             
             if (isSprinting)
             {
@@ -257,9 +264,18 @@ namespace Ekkam
                     isSprinting = false;
                 }
             }
+            else if (isShielding)
+            {
+                energy -= shieldEnergyDrain * Time.deltaTime;
+                if (energy <= 0)
+                {
+                    energy = 0;
+                    isShielding = false;
+                }
+            }
             else
             {
-                energy += sprintEnergyRecharge * Time.deltaTime;
+                energy += energyRecharge * Time.deltaTime;
                 if (energy > maxEnergy) energy = maxEnergy;
             }
             
@@ -287,27 +303,8 @@ namespace Ekkam
                 }
             }
             
-            if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
-            if (Input.GetKeyUp(KeyCode.Mouse0))
-            {
-                if (inventory.GetSelectedItem() != null && inventory.GetSelectedItem().tag == "FireExtinguisher")
-                {
-                    var fireExtinguisher = inventory.GetSelectedItem().GetComponent<FireExtinguisher>();
-                    fireExtinguisher.StopSmoke();
-                }
-            }
-            
-            if (Input.GetKeyUp(KeyCode.Mouse1) || Input.GetKeyUp(KeyCode.L))
-            {
-                targetLock = false;
-                if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
-            }
-            
-            if (Input.GetKeyDown(KeyCode.F))
-            {
-                SwitchDisguise(disguiseActive ? 0 : 1);
-            }
-            
+            // Disguise
+            if (Input.GetKeyDown(KeyCode.F)) SwitchDisguise(disguiseActive ? 0 : 1);
             if (disguiseActive)
             {
                 disguiseBattery -= Time.deltaTime;
@@ -316,6 +313,17 @@ namespace Ekkam
                 {
                     disguiseBattery = 0;
                     SwitchDisguise(0);
+                }
+            }
+            
+            // Using Items
+            if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
+            if (Input.GetKeyUp(KeyCode.Mouse0))
+            {
+                if (inventory.GetSelectedItem() != null && inventory.GetSelectedItem().tag == "FireExtinguisher")
+                {
+                    var fireExtinguisher = inventory.GetSelectedItem().GetComponent<FireExtinguisher>();
+                    fireExtinguisher.StopSmoke();
                 }
             }
             
@@ -342,6 +350,7 @@ namespace Ekkam
                 }
             }
 
+            // Linear interpolate values
             freeWillSlider.value = Mathf.Lerp(freeWillSlider.value, freeWill, Time.deltaTime * 5);
             healthSlider.value = Mathf.Lerp(healthSlider.value, health, Time.deltaTime * 5);
             energySlider.value = Mathf.Lerp(energySlider.value, energy, Time.deltaTime * 5);

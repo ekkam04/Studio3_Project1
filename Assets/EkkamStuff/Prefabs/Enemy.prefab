@@ -1998,6 +1998,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 20
+  isInvincible: 0
   col: {fileID: 4247960809956907237}
   rb: {fileID: 0}
   anim: {fileID: 0}
@@ -2042,9 +2043,10 @@ MonoBehaviour:
   itemHolderLeft: {fileID: 2376309944885874681}
   itemHolderRight: {fileID: 935415510685801418}
   target: {fileID: 0}
+  targetHeightOffset: 0
   layersToIgnore:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 1280
 --- !u!136 &4247960809956907237
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2848,7 +2850,7 @@ GameObject:
   - component: {fileID: 5047285998468026737}
   - component: {fileID: 4732332743434031362}
   - component: {fileID: 4159856835041226591}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: AxeHitbox
   m_TagString: Axe
   m_Icon: {fileID: 0}

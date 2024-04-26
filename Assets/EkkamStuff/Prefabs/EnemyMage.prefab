@@ -8037,6 +8037,11 @@ PrefabInstance:
       propertyPath: itemHolderRight
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8011743055997342176, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: targetHeightOffset
+      value: 0.75
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 1736015220051388167, guid: 0c06e9a2032a6394596fb5e38d176552, type: 3}
