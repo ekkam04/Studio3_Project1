@@ -25,6 +25,7 @@ namespace Ekkam
 
         public GameObject explorationReticle;
         public GameObject combatReticle;
+        public GameObject scanReticle;
 
         public GameObject objectivesUI;
 
@@ -45,6 +46,10 @@ namespace Ekkam
         
         public GameObject areaPopupUI;
         public TMP_Text areaPopupText;
+        
+        public GameObject scanPanel;
+        public TMP_Text scanPanelText;
+        public TMP_Text scanPanelDescription;
         
         public Volume vignetteVolume;
         public Vignette vignette;

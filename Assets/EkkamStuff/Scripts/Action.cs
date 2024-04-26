@@ -29,6 +29,7 @@ public class Action : Signalable
     public AudioClip actionSound;
     private AudioSource audioSource;
     private float audioVolume = 0.2f;
+    public bool loopSound = true;
     
     private Vector3 startPosition;
     private Vector3 targetPosition;
@@ -63,7 +64,7 @@ public class Action : Signalable
         audioSource = transform.AddComponent<AudioSource>();
         audioSource.clip = actionSound;
         audioSource.volume = audioVolume;
-        audioSource.loop = true;
+        audioSource.loop = loopSound;
     }
     
     void Update()

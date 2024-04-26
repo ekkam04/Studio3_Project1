@@ -250,8 +250,16 @@ namespace Ekkam
             if (Input.GetKeyUp(KeyCode.LeftShift)) isSprinting = false;
             
             // Shield Bubble
-            if (Input.GetKeyDown(KeyCode.Mouse1) && energy > 15f) isShielding = true;
-            if (Input.GetKeyUp(KeyCode.Mouse1)) isShielding = false;
+            if (Input.GetKeyDown(KeyCode.Mouse1) && energy > 15f)
+            {
+                isShielding = true;
+                SoundManager.Instance.PlaySound("shield-activate", audioSource);
+            }
+            if (Input.GetKeyUp(KeyCode.Mouse1))
+            {
+                isShielding = false;
+                SoundManager.Instance.PlaySound("shield-deactivate", audioSource);
+            }
             shieldBubble.SetActive(isShielding);
             isInvincible = isShielding;
             

@@ -25,6 +25,7 @@ public class GameManager : MonoBehaviour
     public GuideBot guideBot;
     public DialogManager dialogManager;
     public ObjectiveManager objectiveManager;
+    public MousePosition3D mousePosition3D;
     
     public GameObject coinPrefab;
     public GameObject tokenPrefab;
@@ -39,6 +40,7 @@ public class GameManager : MonoBehaviour
     public Camera noPostCam;
     public Volume globalVolume;
     public Volume darknessVolume;
+    public Volume scanVolume;
     
     public delegate void OnResumeGame();
     public static event OnResumeGame onResumeGame;
@@ -107,6 +109,9 @@ public class GameManager : MonoBehaviour
         {
             ShowMainMenu();
         }
+        
+        if (Input.GetKeyDown(KeyCode.Q)) EnableScan();
+        if (Input.GetKeyUp(KeyCode.Q)) DisableScan();
     }
 
     public void PauseGame()
@@ -547,6 +552,20 @@ public class GameManager : MonoBehaviour
         ResumeGame();
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+    }
+    
+    public void EnableScan()
+    {
+        StartCoroutine(LerpVolume(scanVolume, 0.5f, 1));
+        uiManager.scanReticle.SetActive(true);
+        mousePosition3D.scanCollider = true;
+    }
+    
+    public void DisableScan()
+    {
+        StartCoroutine(LerpVolume(scanVolume, 0.5f, 0));
+        uiManager.scanReticle.SetActive(false);
+        mousePosition3D.scanCollider = false;
     }
 
     private void OnDestroy()
