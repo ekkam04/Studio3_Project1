@@ -33,7 +33,8 @@ namespace Ekkam {
             Place,
             Talk,
             Shop,
-            DamageCrystal
+            DamageCrystal,
+            Drive
         }
         public InteractionAction interactionAction;
 
@@ -63,6 +64,9 @@ namespace Ekkam {
         
         [Header("Crystal Settings")]
         public bool isBroken;
+
+        [Header("Drive Settings")]
+        public Buggy buggy;
         
         public delegate void OnInteraction(string actionKey);
         public static event OnInteraction onInteraction;
@@ -242,7 +246,11 @@ namespace Ekkam {
                     crystal.DamageTile();
                 }
             }
-            
+            else if (interactionAction == InteractionAction.Drive)
+            {
+                buggy.EnterVehicle();
+            }
+
             if (onInteraction != null && interactionActionKey != "")
             {
                 onInteraction.Invoke(interactionActionKey);

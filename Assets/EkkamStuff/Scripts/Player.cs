@@ -73,6 +73,7 @@ namespace Ekkam
         private Transform cameraObj;
         public GameObject explorationCamera;
         public GameObject combatCamera;
+        public GameObject drivingCamera;
         private CinemachineFreeLook combatCamCinemachine;
         private CinemachineFreeLook explorationCamCinemachine;
         
@@ -119,6 +120,7 @@ namespace Ekkam
         public bool isJumping;
         public bool isSprinting;
         public bool isShielding;
+        public bool isDriving;
         public bool allowDoubleJump;
         public bool doubleJumped;
         public bool hasLanded;
@@ -229,6 +231,8 @@ namespace Ekkam
                 explorationCamCinemachine.m_XAxis.Value = combatX;
                 explorationCamCinemachine.m_YAxis.Value = combatY;
             }
+            
+            if (isDriving) return; // ------------------------------------
             
             // Animation
             anim.SetBool("isMoving", verticalInput != 0 || horizontalInput != 0);
@@ -369,6 +373,8 @@ namespace Ekkam
         void FixedUpdate()
         {
             base.FixedUpdate();
+            
+            if (isDriving) return; // ------------------------------------
             
             // Move player
             if (isAttacking)
@@ -714,6 +720,32 @@ namespace Ekkam
             {
                 SoundManager.Instance.PlaySound("footstep", audioSource);
             }
+        }
+        
+        public void EnterVehicle(Transform teleportTransform)
+        {
+            col.isTrigger = true;
+            drivingCamera.SetActive(true);
+            isDriving = true;
+            rb.velocity = Vector3.zero;
+            rb.useGravity = false;
+            rb.isKinematic = true;
+            rb.interpolation = RigidbodyInterpolation.None;
+            transform.position = teleportTransform.position;
+            transform.rotation = teleportTransform.rotation;
+            transform.parent = teleportTransform;
+            anim.SetBool("isMoving", false);
+        }
+        
+        public void ExitVehicle()
+        {
+            drivingCamera.SetActive(false);
+            isDriving = false;
+            transform.parent = null;
+            rb.useGravity = true;
+            rb.isKinematic = false;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            col.isTrigger = false;
         }
         
         void OnDrawGizmos()
