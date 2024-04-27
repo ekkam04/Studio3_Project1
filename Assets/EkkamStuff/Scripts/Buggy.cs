@@ -31,6 +31,14 @@ namespace Ekkam
         
         private float horizontalInput;
         private float verticalInput;
+        
+        private void Start()
+        {
+            frontLeftWheel.ConfigureVehicleSubsteps(5, 12, 15);
+            frontRightWheel.ConfigureVehicleSubsteps(5, 12, 15);
+            rearLeftWheel.ConfigureVehicleSubsteps(5, 12, 15);
+            rearRightWheel.ConfigureVehicleSubsteps(5, 12, 15);
+        }
 
         private void Update()
         {
@@ -85,7 +93,7 @@ namespace Ekkam
         
         public void EnterVehicle()
         {
-            Player.Instance.EnterVehicle(drivingPosition);
+            Player.Instance.EnterVehicle(drivingPosition, this);
             isDriving = true;
         }
         
