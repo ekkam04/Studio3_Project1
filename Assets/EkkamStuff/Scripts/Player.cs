@@ -76,6 +76,7 @@ namespace Ekkam
         public GameObject drivingCamera;
         private CinemachineFreeLook combatCamCinemachine;
         private CinemachineFreeLook explorationCamCinemachine;
+        private CinemachineFreeLook drivingCamCinemachine;
         
         public Transform combatLookAt;
         private Vector3 cameraOffset;
@@ -196,6 +197,7 @@ namespace Ekkam
             
             combatCamCinemachine = combatCamera.GetComponent<CinemachineFreeLook>();
             explorationCamCinemachine = explorationCamera.GetComponent<CinemachineFreeLook>();
+            drivingCamCinemachine = drivingCamera.GetComponent<CinemachineFreeLook>();
 
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
             initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
@@ -722,9 +724,11 @@ namespace Ekkam
             }
         }
         
-        public void EnterVehicle(Transform teleportTransform)
+        public void EnterVehicle(Transform teleportTransform, Buggy buggy)
         {
             col.isTrigger = true;
+            drivingCamCinemachine.Follow = buggy.transform;
+            drivingCamCinemachine.LookAt = buggy.transform;
             drivingCamera.SetActive(true);
             isDriving = true;
             rb.velocity = Vector3.zero;

@@ -58,6 +58,7 @@ namespace Ekkam {
         public Vector3 placeRotationOffset;
         public Vector3 placePositionOffset;
         public string tagToAccept;
+        public Buggy buggyToRepair;
         
         [Header("Dialog Settings")]
         public DialogManager dialogManager;
@@ -193,6 +194,11 @@ namespace Ekkam {
                         {
                             extraSignalReceiver.Signal();
                         }
+                    }
+                    
+                    if (buggyToRepair != null)
+                    {
+                        buggyToRepair.CheckForWheels();
                     }
                     
                     pickUpPrompt.SetActive(false);

@@ -234,7 +234,7 @@ namespace Ekkam {
                     player.bowRig.weight = 1;
                     player.SwitchCameraStyle(Player.CameraStyle.Combat);
                 }
-                else if (item.tag == "Battery" || item.tag == "Drone")
+                else if (item.tag == "Battery" || item.tag == "Drone" || item.tag == "Wheel")
                 {
                     player.anim.SetBool("isHolding", true);
                 }
