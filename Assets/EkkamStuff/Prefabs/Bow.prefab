@@ -102,8 +102,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ec7b95eed8a7d84faa7c1ddffda5c45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemTexture: {fileID: 2800000, guid: 467dbf9ecfa5519469cc92bf44c13a00, type: 3}
-  itemSize: 50
+  itemTexture: {fileID: 2800000, guid: bf169217cad549749aad02058bd341b2, type: 3}
+  itemSize: 75
   itemHolderPosition: {x: 0, y: 0, z: 0}
   useText: 
 --- !u!114 &5928147736094839093
@@ -122,13 +122,19 @@ MonoBehaviour:
   interactionAction: 0
   interactText: Pick up
   timesInteracted: 0
+  extraInteractDistance: 0
+  singleUse: 0
+  interactionActionKey: 
   rotationOffset: {x: 0, y: 90, z: 0}
   positionOffset: {x: 0, y: 0, z: 0}
   heldInOffHand: 1
   signalReceiver: {fileID: 0}
+  extraSignalReceivers: []
   placeRotationOffset: {x: 0, y: 0, z: 0}
   placePositionOffset: {x: 0, y: 0, z: 0}
   tagToAccept: 
+  dialogManager: {fileID: 0}
+  isBroken: 0
 --- !u!1 &8647892028358135796
 GameObject:
   m_ObjectHideFlags: 0
@@ -227,6 +233,11 @@ PrefabInstance:
     - target: {fileID: 4911151791088974, guid: d4bccca7d86845245b5e98e8c3c01b27, type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 64371231926515606, guid: d4bccca7d86845245b5e98e8c3c01b27,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -389,6 +400,11 @@ PrefabInstance:
     - target: {fileID: 4911151791088974, guid: d4bccca7d86845245b5e98e8c3c01b27, type: 3}
       propertyPath: m_ConstrainProportionsScale
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 64371231926515606, guid: d4bccca7d86845245b5e98e8c3c01b27,
+        type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

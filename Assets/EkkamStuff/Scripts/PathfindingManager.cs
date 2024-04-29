@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
 using Unity.Mathematics;
+using EkkamPathfinding;
 
 namespace Ekkam
 {
@@ -66,7 +67,7 @@ namespace Ekkam
         
         pathfindingResults.Add(pathResult);
 
-        var findPathJob = new DOTSPathfinding.FindPathJob
+        var findPathJob = new Pathfinder.FindPathJob
         {
             startPosition = start,
             endPosition = end,

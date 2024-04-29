@@ -5001,8 +5001,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ec7b95eed8a7d84faa7c1ddffda5c45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemTexture: {fileID: 2800000, guid: a4627b7710d2e42438baeb80805cbb51, type: 3}
-  itemSize: 50
+  itemTexture: {fileID: 2800000, guid: bcff16853aa593a4d95306398e5ddb2e, type: 3}
+  itemSize: 75
   itemHolderPosition: {x: 0, y: 0, z: 0}
   useText: Use
 --- !u!114 &8035269353287581152
@@ -5021,13 +5021,19 @@ MonoBehaviour:
   interactionAction: 0
   interactText: Pick up
   timesInteracted: 0
+  extraInteractDistance: 0
+  singleUse: 0
+  interactionActionKey: 
   rotationOffset: {x: 25, y: 240, z: -5}
   positionOffset: {x: 0.35, y: -0.15, z: 0.2}
   heldInOffHand: 0
   signalReceiver: {fileID: 0}
+  extraSignalReceivers: []
   placeRotationOffset: {x: 0, y: 0, z: 0}
   placePositionOffset: {x: 0, y: 0, z: 0}
   tagToAccept: 
+  dialogManager: {fileID: 0}
+  isBroken: 0
 --- !u!114 &7484488413370829527
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5042,6 +5048,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   smoke: {fileID: 869395793084136771}
   smokeCollider: {fileID: 5771904195023987585}
+  smokeSound: {fileID: 8300000, guid: cc5b74f165d16df4a8d56bf531305402, type: 3}
 --- !u!136 &5771904195023987585
 CapsuleCollider:
   m_ObjectHideFlags: 0

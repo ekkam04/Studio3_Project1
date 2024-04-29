@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,6 +15,9 @@ namespace Ekkam {
         UIManager uiManager;
         GameObject pickUpPrompt;
         TMP_Text pickUpText;
+        Collider collider;
+        
+        public static Color interactColor;
         
         public enum InteractionType
         {
@@ -28,7 +32,9 @@ namespace Ekkam {
             Signal,
             Place,
             Talk,
-            Heal
+            Shop,
+            DamageCrystal,
+            Drive
         }
         public InteractionAction interactionAction;
 
@@ -37,6 +43,7 @@ namespace Ekkam {
         public int timesInteracted = 0;
         public float extraInteractDistance;
         public bool singleUse;
+        public string interactionActionKey;
         
         [Header("Item Settings")]
         public Vector3 rotationOffset;
@@ -45,17 +52,32 @@ namespace Ekkam {
         
         [Header("Signal Settings")]
         public Signalable signalReceiver;
+        public List<Signalable> extraSignalReceivers;
         
         [Header("Place Settings")]
         public Vector3 placeRotationOffset;
         public Vector3 placePositionOffset;
         public string tagToAccept;
+        public Buggy buggyToRepair;
+        
+        [Header("Dialog Settings")]
+        public DialogManager dialogManager;
+        
+        [Header("Crystal Settings")]
+        public bool isBroken;
+
+        [Header("Drive Settings")]
+        public Buggy buggy;
+        
+        public delegate void OnInteraction(string actionKey);
+        public static event OnInteraction onInteraction;
 
         void Start()
         {
             player = FindObjectOfType<Player>();
             inventory = FindObjectOfType<Inventory>();
             uiManager = FindObjectOfType<UIManager>();
+            collider = GetComponent<Collider>();
             var mainCamera = Camera.main;
             
             // pickUpPrompt = Instantiate(uiManager.pickUpPrompt, transform.position, Quaternion.identity);
@@ -80,6 +102,23 @@ namespace Ekkam {
                     return;
                 }
                 CheckForInteract();
+            }
+            
+            if (interactionAction == InteractionAction.DamageCrystal)
+            {
+                if (timesInteracted > 2 && collider.enabled == true)
+                {
+                    collider.enabled = false;
+                    if (signalReceiver != null)
+                    {
+                        signalReceiver.Signal();
+                        foreach (var extraSignalReceiver in extraSignalReceivers)
+                        {
+                            extraSignalReceiver.Signal();
+                        }
+                    }
+                    isBroken = true;
+                }
             }
         }
 
@@ -109,38 +148,34 @@ namespace Ekkam {
         {
             print("Interacting with " + gameObject.name);
             timesInteracted++;
+            SoundManager.Instance.PlaySound("interact");
             if (interactionAction == InteractionAction.Pickup)
             {
                 if (GetComponent<Item>())
                 {
-                    pickUpPrompt.SetActive(false);
-                    inventory.AddItem(GetComponent<Item>());
-                    if (heldInOffHand)
-                    {
-                        transform.SetParent(player.itemHolderLeft.transform);
-                    }
-                    else
-                    {
-                        transform.SetParent(player.itemHolderRight.transform);
-                    }
-                    
-                    transform.localPosition = Vector3.zero;
-                    transform.localPosition += positionOffset;
-                    transform.localRotation = Quaternion.identity;
-                    transform.Rotate(rotationOffset);
+                    PickUp();
                 }
             }
             else if (interactionAction == InteractionAction.Signal)
             {
-                print("Signaling " + signalReceiver.name);
-                signalReceiver.Signal();
-                StartCoroutine(PulsePickupPromptText(Color.yellow, 0.1f, 0.3f));
+                interactColor = Color.yellow;
+                if (signalReceiver != null)
+                {
+                    print("Signaling " + signalReceiver.name);
+                    signalReceiver.Signal();
+                }
+                foreach (var extraSignalReceiver in extraSignalReceivers)
+                {
+                    extraSignalReceiver.Signal();
+                }
+                StartCoroutine(PulsePickupPromptText(0.1f, 0.3f));
             }
             else if (interactionAction == InteractionAction.Place)
             {
                 if (inventory.GetSelectedItem() != null && inventory.GetSelectedItem().tag == tagToAccept)
                 {
                     print("Placing " + inventory.GetSelectedItem().name + " on " + gameObject.name);
+                    SoundManager.Instance.PlaySound("battery-place");
                     GameObject objectToPlace = inventory.GetSelectedItem().gameObject;
                     objectToPlace.transform.SetParent(transform);
                     if (objectToPlace.GetComponent<Interactable>() != null) objectToPlace.GetComponent<Interactable>().enabled = false;
@@ -151,48 +186,134 @@ namespace Ekkam {
                     objectToPlace.transform.Rotate(placeRotationOffset);
                     
                     await Task.Delay(100);
-                    inventory.RemoveItem(inventory.GetSelectedItem());
-                    if (signalReceiver != null) signalReceiver.Signal();
+                    inventory.RemoveItem(inventory.GetSelectedItem(), false);
+                    if (signalReceiver != null)
+                    {
+                        signalReceiver.Signal();
+                        foreach (var extraSignalReceiver in extraSignalReceivers)
+                        {
+                            extraSignalReceiver.Signal();
+                        }
+                    }
+                    
+                    if (buggyToRepair != null)
+                    {
+                        buggyToRepair.CheckForWheels();
+                    }
                     
                     pickUpPrompt.SetActive(false);
                     this.enabled = false;
                 }
                 else
                 {
-                    StartCoroutine(PulsePickupPromptText(Color.red, 0.1f, 0.3f));
+                    interactColor = Color.red;
+                    SoundManager.Instance.PlaySound("interact-failed");
+                    StartCoroutine(PulsePickupPromptText( 0.1f, 0.3f));
                 }
             }
             else if (interactionAction == InteractionAction.Talk)
             {
-                DialogManager dialogManager = GetComponent<DialogManager>();
+                if (signalReceiver != null)
+                {
+                    print("Signaling " + signalReceiver.name);
+                    signalReceiver.Signal();
+                }
+                foreach (var extraSignalReceiver in extraSignalReceivers)
+                {
+                    extraSignalReceiver.Signal();
+                }
+                if (dialogManager == null)
+                {
+                    dialogManager = GetComponent<DialogManager>();
+                }
                 dialogManager.StartDialog(0);
                 pickUpPrompt.SetActive(false);
                 this.enabled = false;
             }
-            else if (interactionAction == InteractionAction.Heal)
+            else if (interactionAction == InteractionAction.Shop)
             {
-                player.Heal(50);
-                StartCoroutine(PulsePickupPromptText(Color.green, 0.1f, 0.3f));
-                if (singleUse)
+                if (signalReceiver != null)
                 {
-                    pickUpPrompt.SetActive(false);
-                    this.enabled = false;
+                    print("Signaling " + signalReceiver.name);
+                    signalReceiver.Signal();
                 }
+                foreach (var extraSignalReceiver in extraSignalReceivers)
+                {
+                    extraSignalReceiver.Signal();
+                }
+                uiManager.OpenShopUI();
+                StartCoroutine(PulsePickupPromptText(0.1f, 0.3f));
+            }
+            else if (interactionAction == InteractionAction.DamageCrystal)
+            {
+                var crystals = GetComponentsInChildren<Crystal>();
+                foreach (var crystal in crystals)
+                {
+                    crystal.DamageTile();
+                }
+            }
+            else if (interactionAction == InteractionAction.Drive)
+            {
+                buggy.EnterVehicle();
+            }
+
+            if (onInteraction != null && interactionActionKey != "")
+            {
+                onInteraction.Invoke(interactionActionKey);
+            }
+            
+            if (singleUse)
+            {
+                pickUpPrompt.SetActive(false);
+                this.gameObject.SetActive(false);
             }
         }
         
-        IEnumerator PulsePickupPromptText(Color color, float fadeInDuration, float fadeOutDuration)
+        IEnumerator PulsePickupPromptText(float fadeInDuration, float fadeOutDuration)
         {
             for (float t = 0; t < fadeInDuration; t += Time.deltaTime)
             {
-                pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().color = Color.Lerp(Color.white, color, t / fadeInDuration);
+                pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().color = Color.Lerp(Color.white, interactColor, t / fadeInDuration);
                 yield return null;
             }
             for (float t = 0; t < fadeOutDuration; t += Time.deltaTime)
             {
-                pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().color = Color.Lerp(color, Color.white, t / fadeOutDuration);
+                pickUpPrompt.GetComponentInChildren<TextMeshProUGUI>().color = Color.Lerp(interactColor, Color.white, t / fadeOutDuration);
                 yield return null;
             }
+        }
+
+        public void PickUp()
+        {
+            if (uiManager == null) uiManager = FindObjectOfType<UIManager>();
+            if (inventory == null) inventory = FindObjectOfType<Inventory>();
+            if (player == null) player = FindObjectOfType<Player>();
+            
+            uiManager.pickUpPrompt.SetActive(false);
+            inventory.AddItem(GetComponent<Item>());
+            if (heldInOffHand)
+            {
+                transform.SetParent(player.itemHolderLeft.transform);
+            }
+            else
+            {
+                transform.SetParent(player.itemHolderRight.transform);
+            }
+                    
+            transform.localPosition = Vector3.zero;
+            transform.localPosition += positionOffset;
+            transform.localRotation = Quaternion.identity;
+            transform.Rotate(rotationOffset);
+        }
+
+        private void OnDisable()
+        {
+            Invoke("ResetTimesInteracted", 1f);
+        }
+        
+        void ResetTimesInteracted()
+        {
+            timesInteracted = 0;
         }
     }
 }

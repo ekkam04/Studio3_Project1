@@ -97,8 +97,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ec7b95eed8a7d84faa7c1ddffda5c45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemTexture: {fileID: 2800000, guid: 467dbf9ecfa5519469cc92bf44c13a00, type: 3}
-  itemSize: 50
+  itemTexture: {fileID: 2800000, guid: 4059c42d375551b4ca432fccb34a4f04, type: 3}
+  itemSize: 75
   itemHolderPosition: {x: 0, y: 0, z: 0}
   useText: 
 --- !u!114 &29017803712015021
@@ -113,7 +113,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 047ee73a55f8b3941b728a8fea19dbcb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  interactionType: 0
+  interactionAction: 0
   interactText: Pick up
   timesInteracted: 0
+  extraInteractDistance: 0
+  singleUse: 0
+  interactionActionKey: 
   rotationOffset: {x: 0, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0}
   heldInOffHand: 0
+  signalReceiver: {fileID: 0}
+  extraSignalReceivers: []
+  placeRotationOffset: {x: 0, y: 0, z: 0}
+  placePositionOffset: {x: 0, y: 0, z: 0}
+  tagToAccept: 
+  dialogManager: {fileID: 0}
+  isBroken: 0

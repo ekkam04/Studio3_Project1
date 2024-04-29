@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using QFSW.QC;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,12 +11,18 @@ namespace Ekkam
     public class Damagable : MonoBehaviour
     {
         public int health = 1;
-        public float selfKnockbackForce = 1;
+        public bool isInvincible;
         public Collider col;
         public Rigidbody rb;
         public Animator anim;
         public SkinnedMeshRenderer skinnedMeshRenderer;
         public string[] tagsToIgnore;
+        
+        public bool dropCoinsOnDeath;
+        public int coinsToDrop;
+        
+        private bool shouldKnockback;
+        private Vector3 knockbackDirection;
 
         void Start()
         {
@@ -23,7 +30,7 @@ namespace Ekkam
             rb = GetComponent<Rigidbody>();
         }
 
-        void Update()
+        public void Update()
         {
             // if the object falls off the map
             if (transform.position.y < -30)
@@ -32,8 +39,18 @@ namespace Ekkam
             }
         }
 
-        public void TakeDamage(int damage, GameObject damageDealer, Vector3 damageDealerForward)
+        public void FixedUpdate()
         {
+            if (shouldKnockback)
+            {
+                rb.AddForce(knockbackDirection);
+                print("taking knockback");
+            }
+        }
+
+        public void TakeDamage(int damage, float knockback, Damagable damageDealer)
+        {
+            if (isInvincible) return;
             if (tagsToIgnore.Length > 0)
             {
                 foreach (var tag in tagsToIgnore)
@@ -41,6 +58,12 @@ namespace Ekkam
                     if (damageDealer.gameObject.CompareTag(tag)) return;
                 }
             }
+            
+            if (GetComponent<Enemy>() != null)
+            {
+                GetComponent<Enemy>().attackTimer = 0;
+            }
+            
             health -= damage;
             OnDamageTaken();
             
@@ -50,9 +73,32 @@ namespace Ekkam
             }
             else
             {
-                TakeKnockback(damageDealerForward, selfKnockbackForce);
+                Vector3 damageDealerForward;
+                if (damageDealer != null)
+                {
+                    damageDealerForward = damageDealer.transform.forward;
+                }
+                else
+                {
+                    damageDealerForward = Vector3.zero;
+                }
+                
+                print("knockback: " + knockback);
+
+                StartCoroutine(TakeKnockback(damageDealerForward, knockback, 10f, 0.15f));
+                
                 if (skinnedMeshRenderer != null) StartCoroutine(PulseColor(Color.red, 0.2f, 0.5f));
                 if (anim != null) anim.SetTrigger("hit");
+            }
+            
+            if (damageDealer != null && damageDealer.GetComponent<Player>() != null)
+            {
+                // player damaged an enemy
+                var objectiveManager = FindObjectOfType<ObjectiveManager>();
+                if (objectiveManager != null)
+                {
+                    objectiveManager.playerDamagedEnemyCheck = true;
+                }
             }
         }
         
@@ -66,6 +112,7 @@ namespace Ekkam
             {
                 health += amount;
             }
+            OnHeal();
         }
         
         public virtual void OnDamageTaken()
@@ -73,14 +120,41 @@ namespace Ekkam
             // this function is meant to be overridden
         }
 
-        public void Die()
+        public virtual void OnDeath()
         {
-            gameObject.SetActive(false);
+            // this function is meant to be overridden
         }
         
-        public void TakeKnockback(Vector3 direction, float force)
+        public virtual void OnHeal()
         {
-            rb.AddForce(direction * force, ForceMode.Impulse);
+            // this function is meant to be overridden
+        }
+
+        public void Die()
+        {
+            if (dropCoinsOnDeath)
+            {
+                for (int i = 0; i < coinsToDrop; i++)
+                {
+                    GameObject coin = Instantiate(GameManager.Instance.coinPrefab, transform.position, Quaternion.identity);
+                }
+            }
+            gameObject.SetActive(false);
+            OnDeath();
+        }
+        
+        IEnumerator TakeKnockback(Vector3 direction, float force, float upForce, float duration)
+        {
+            float timer = 0;
+            while (timer < duration)
+            {
+                // rb.AddForce(direction * force + (Vector3.up * upForce));
+                knockbackDirection = direction * force + Vector3.up * upForce;
+                shouldKnockback = true;
+                timer += Time.deltaTime;
+                yield return null;
+            }
+            shouldKnockback = false;
         }
         
         IEnumerator PulseColor(Color color, float fadeInDuration, float fadeOutDuration)

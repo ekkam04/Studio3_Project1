@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -15,12 +16,16 @@ namespace Ekkam
     public class Enemy : Damagable
     {
         Node rootNode;
-
-        // Astar astar;
+        
         public PathfindingGrid grid;
         PathfindingManager pathfindingManager;
         UIManager uiManager;
+        AudioSource audioSource;
         public GameObject targetLockPrompt;
+        public GameObject parachute;
+        
+        private Vector3 startPosition;
+        private Vector3 startRotation;
         
         [Header("--- Astar Pathfinding ---")]
         [SerializeField] Vector2Int startNodePosition;
@@ -35,13 +40,21 @@ namespace Ekkam
         CombatManager combatManager;
 
         [Header("--- Enemy Stats ---")]
-        public float speed = 2f;
+        public float speed = 4f;
+        public float circlingRadius = 5f;
         public float attackRange = 3f;
         public float detectionRange = 25f;
         private float originalDetectionRange;
         private bool canMove = true;
-        private float attackTimer;
+        public float attackTimer;
         public float attackCooldown = 2f;
+
+        private float calculationTimer;
+        private float calculationCooldown = 0f;
+
+        private bool shouldMove;
+        private Vector3 nextPosition;
+        private Quaternion nextRotation;
         
         [Header("--- Enemy Behaviour ---")]
         public bool followsPlayer = true;
@@ -59,7 +72,11 @@ namespace Ekkam
         {
             pathfindingManager = FindObjectOfType<PathfindingManager>();
             uiManager = FindObjectOfType<UIManager>();
+            audioSource = GetComponent<AudioSource>();
             var mainCamera = Camera.main;
+            
+            startPosition = transform.position;
+            startRotation = transform.eulerAngles;
             
             originalDetectionRange = detectionRange;
             if (grid != null)
@@ -136,6 +153,9 @@ namespace Ekkam
             }
             else
             {
+                // remove the first node as it is the starting position
+                path.RemoveAt(0);
+                
                 foreach (var pos in path)
                 {
                     pathNodes.Add(grid.GetNode(new Vector2Int(pos.x, pos.y)));
@@ -147,21 +167,11 @@ namespace Ekkam
 
         void Update()
         {
+            base.Update();
+            
             rootNode.Evaluate();
             
-            // if(Input.GetKeyDown(KeyCode.P))
-            // {
-            //     int2 startPos = new int2(grid.GetPositionFromWorldPoint(transform.position).x, grid.GetPositionFromWorldPoint(transform.position).y);
-            //     int2 endPos = new int2(grid.GetPositionFromWorldPoint(Player.Instance.transform.position).x, grid.GetPositionFromWorldPoint(Player.Instance.transform.position).y);
-            //     int2[] blockedPositions =  new int2[0];
-            //     pathfindingManager.RequestPath(
-            //         startPos,
-            //         endPos,
-            //         new int2(grid.gridCellCountX, grid.gridCellCountZ),
-            //         blockedPositions,
-            //         OnPathfindingComplete
-            //     );
-            // }
+            calculationTimer += Time.deltaTime;
 
             if (!followsPlayer) return;
             var lastPos = grid.GetPositionFromWorldPoint(transform.position);
@@ -169,12 +179,41 @@ namespace Ekkam
             {
                 lastUnblockedNode = grid.GetNode(lastPos);
             }
+            startNodePosition = lastUnblockedNode.gridPosition;
+        }
+
+        private void FixedUpdate()
+        {
+            base.FixedUpdate();
+            
+            if (shouldMove)
+            {
+                rb.AddForce((nextPosition - transform.position).normalized * speed * 10f);
+                rb.rotation = nextRotation;
+                shouldMove = false;
+            }
+            else
+            {
+                rb.velocity = new Vector3(0, rb.velocity.y, 0);
+            }
+        }
+        
+        public void OnFootstep()
+        {
+            SoundManager.Instance.PlaySound("footstep-enemy", audioSource);
+        }
+        
+        private Vector3 GetCirclingDirection(Vector3 toPlayer, float angleDegrees)
+        {
+            Vector3 direction = toPlayer.normalized * circlingRadius;
+            Quaternion rotation = Quaternion.AngleAxis(angleDegrees, Vector3.up);
+            return rotation * direction;
         }
 
         public class CheckPlayerPresence : Node
         {
             Enemy enemy;
-            private float recalculationDistance = 3f;
+            private float recalculationDistance = 5f;
             private PathfindingGrid grid;
             private Transform transform;
             private bool canMove;
@@ -202,23 +241,26 @@ namespace Ekkam
                     || enemy.pathNodes.Count > 0)
                 )
                 {
-                    print("Player is present");
+                    // print("Player is present");
 
                     if (
-                        canMove && followsPlayer &&
+                        canMove &&
+                        followsPlayer &&
+                        enemy.calculationTimer >= enemy.calculationCooldown &&
                         grid.GetDistance(
                         grid.GetPositionFromWorldPoint(Player.Instance.transform.position),
                         enemy.endNodePosition
-                    ) > recalculationDistance)
+                        ) > recalculationDistance
+                    )
                     {
+                        enemy.calculationTimer = 0;
                         enemy.endNodePosition = grid.GetPositionFromWorldPoint(Player.Instance.transform.position);
                         enemy.pathNodes.Clear();
-                        enemy.startNodePosition = enemy.lastUnblockedNode.gridPosition;
                         enemy.pathfindingState = Enemy.PathfindingState.Idle;
         
                         if (grid.GetNode(enemy.endNodePosition).isBlocked)
                         {
-                            print("End node is blocked");
+                            // print("End node is blocked");
                         }
                     }
 
@@ -226,7 +268,7 @@ namespace Ekkam
                 }
                 else
                 {
-                    print("Player is not present");
+                    // print("Player is not present");
                     return NodeState.Failure;
                 }
             }
@@ -242,8 +284,25 @@ namespace Ekkam
             }
             public override NodeState Evaluate()
             {
-                print("Idle");
-                enemy.anim.SetBool("isMoving", false);
+                // print("Idle");
+                // if enemy is not at start position, move towards it
+                if (Vector3.Distance(enemy.transform.position, enemy.startPosition) > 0.1f)
+                {
+                    enemy.nextRotation = Quaternion.Slerp(enemy.transform.rotation, Quaternion.LookRotation(enemy.startPosition - enemy.transform.position), 10 * Time.deltaTime);
+                    enemy.nextPosition = Vector3.MoveTowards(enemy.transform.position, enemy.startPosition, enemy.speed * Time.deltaTime);
+                    enemy.shouldMove = true;
+                }
+                // if enemy rotation is not at start rotation, rotate towards it
+                else if (Quaternion.Angle(enemy.transform.rotation, Quaternion.Euler(enemy.startRotation)) > 0.1f)
+                {
+                    enemy.nextRotation = Quaternion.Slerp(enemy.transform.rotation, Quaternion.Euler(enemy.startRotation), 10 * Time.deltaTime);
+                    enemy.shouldMove = true;
+                }
+                else
+                {
+                    enemy.anim.SetBool("isMoving", false);
+                    enemy.shouldMove = false;
+                }
                 return NodeState.Success;
             }
         }
@@ -268,13 +327,13 @@ namespace Ekkam
                     grid.GetPositionFromWorldPoint(Player.Instance.transform.position)
                 ))
                 {
-                    print("Line of sight");
+                    // print("Line of sight");
                     enemy.detectionRange = enemy.originalDetectionRange;
                     return NodeState.Success;
                 }
                 else
                 {
-                    print("No line of sight");
+                    // print("No line of sight");
                     return NodeState.Failure;
                 }
             }
@@ -295,13 +354,47 @@ namespace Ekkam
                 this.speed = enemy.speed;
             }
 
+            // public override NodeState Evaluate()
+            // {
+            //     // print("Walking towards player");
+            //     enemy.anim.SetBool("isMoving", true);
+            //     Vector3 targetPosition = new Vector3(Player.Instance.transform.position.x, transform.position.y, Player.Instance.transform.position.z);
+            //     
+            //     // transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
+            //     // rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
+            //     enemy.nextRotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
+            //     enemy.nextPosition = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+            //     enemy.shouldMove = true;
+            //     
+            //     return NodeState.Success;
+            // }
             public override NodeState Evaluate()
             {
-                print("Walking towards player");
+                // print("Walking towards player");
                 enemy.anim.SetBool("isMoving", true);
-                Vector3 targetPosition = new Vector3(Player.Instance.transform.position.x, transform.position.y, Player.Instance.transform.position.z);
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
-                rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
+
+                Vector3 toPlayer = Player.Instance.transform.position - transform.position;
+                toPlayer.y = 0;
+
+                float distanceToPlayer = toPlayer.magnitude;
+                Vector3 targetPosition;
+
+                if (distanceToPlayer > enemy.circlingRadius + 1.0f)
+                {
+                    // Direct approach to maintain circling radius distance
+                    targetPosition = Vector3.MoveTowards(transform.position, Player.Instance.transform.position, enemy.speed * Time.deltaTime);
+                }
+                else
+                {
+                    // Circling behavior
+                    Vector3 circlingDirection = enemy.GetCirclingDirection(toPlayer, 90); // Right-hand circling
+                    targetPosition = transform.position + circlingDirection * Time.deltaTime * enemy.speed;
+                }
+
+                enemy.nextRotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(toPlayer), 10 * Time.deltaTime);
+                enemy.nextPosition = targetPosition;
+                enemy.shouldMove = true;
+
                 return NodeState.Success;
             }
         }
@@ -319,12 +412,12 @@ namespace Ekkam
             {
                 if (enemy.canMove && enemy.followsPlayer)
                 {
-                    print("Can move");
+                    // print("Can move");
                     return NodeState.Success;
                 }
                 else
                 {
-                    print("Can't move");
+                    // print("Can't move");
                     return NodeState.Failure;
                 }
             }
@@ -341,7 +434,42 @@ namespace Ekkam
 
             public override NodeState Evaluate()
             {
-                if (Vector3.Distance(Player.Instance.transform.position, enemy.transform.position) <= enemy.attackRange)
+                float distanceToPlayer = Vector3.Distance(Player.Instance.transform.position, enemy.transform.position);
+                
+                // if (Vector3.Distance(Player.Instance.transform.position, enemy.transform.position) <= enemy.attackRange)
+                // {
+                //     if (!enemy.followsPlayer)
+                //     {
+                //         var heightOffset = new Vector3(0, 1, 0);
+                //         if (Physics.Raycast(
+                //                 enemy.transform.position + heightOffset,
+                //                 (Player.Instance.transform.position + heightOffset) - (enemy.transform.position + heightOffset),
+                //                 out RaycastHit hit,
+                //                 enemy.attackRange * 2f
+                //            )
+                //         )
+                //         {
+                //             if (hit.collider.gameObject.layer != 6)
+                //             {
+                //                 // print("Obstacle in the way");
+                //                 return NodeState.Failure;
+                //             }
+                //         }
+                //     }
+                //     
+                //     // print("Ready to attack");
+                //     enemy.canMove = false;
+                //     enemy.pathNodes.Clear();
+                //     enemy.pathfindingState = Enemy.PathfindingState.Idle;
+                //     return NodeState.Success;
+                // }
+                // else
+                // {
+                //     enemy.canMove = true;
+                //     return NodeState.Failure;
+                // }
+                
+                if (distanceToPlayer <= enemy.attackRange)
                 {
                     if (!enemy.followsPlayer)
                     {
@@ -356,13 +484,13 @@ namespace Ekkam
                         {
                             if (hit.collider.gameObject.layer != 6)
                             {
-                                print("Obstacle in the way");
+                                // print("Obstacle in the way");
                                 return NodeState.Failure;
                             }
                         }
                     }
                     
-                    print("Ready to attack");
+                    // print("Ready to attack");
                     enemy.canMove = false;
                     enemy.pathNodes.Clear();
                     enemy.pathfindingState = Enemy.PathfindingState.Idle;
@@ -384,36 +512,69 @@ namespace Ekkam
             {
                 this.enemy = enemy;
             }
+            // public override NodeState Evaluate()
+            // {
+            //     // print("Attacking player");
+            //     enemy.anim.SetBool("isMoving", false);
+            //     enemy.shouldMove = false;
+            //     
+            //     Vector3 targetPosition = new Vector3(
+            //         Player.Instance.transform.position.x,
+            //         enemy.transform.position.y,
+            //         Player.Instance.transform.position.z
+            //     );
+            //     enemy.transform.rotation = Quaternion.Slerp(enemy.transform.rotation, Quaternion.LookRotation(targetPosition - enemy.transform.position), 10 * Time.deltaTime);
+            //     
+            //     enemy.attackTimer += Time.deltaTime;
+            //     if (enemy.attackTimer >= enemy.attackCooldown)
+            //     {
+            //         enemy.attackTimer = 0;
+            //         
+            //         switch (enemy.enemyType)
+            //         {
+            //             case Enemy.EnemyType.Melee:
+            //                 enemy.combatManager.MeleeAttack();
+            //                 break;
+            //             case Enemy.EnemyType.Archer:
+            //                 // enemy.combatManager.ArcherAttack();
+            //                 break;
+            //             case Enemy.EnemyType.Mage:
+            //                 enemy.combatManager.MageAttack();
+            //                 break;
+            //         }
+            //         
+            //         return NodeState.Success;
+            //     }
+            //     else
+            //     {
+            //         return NodeState.Running;
+            //     }
+            // }
             public override NodeState Evaluate()
             {
-                print("Attacking player");
+                // print("Attacking player");
                 enemy.anim.SetBool("isMoving", false);
-                
-                Vector3 targetPosition = new Vector3(
-                    Player.Instance.transform.position.x,
-                    enemy.transform.position.y,
-                    Player.Instance.transform.position.z
-                );
+                enemy.shouldMove = false;
+        
+                Vector3 targetPosition = Player.Instance.transform.position;
+                targetPosition.y = enemy.transform.position.y;
                 enemy.transform.rotation = Quaternion.Slerp(enemy.transform.rotation, Quaternion.LookRotation(targetPosition - enemy.transform.position), 10 * Time.deltaTime);
-                
+
                 enemy.attackTimer += Time.deltaTime;
                 if (enemy.attackTimer >= enemy.attackCooldown)
                 {
                     enemy.attackTimer = 0;
-                    
                     switch (enemy.enemyType)
                     {
                         case Enemy.EnemyType.Melee:
                             enemy.combatManager.MeleeAttack();
                             break;
-                        case Enemy.EnemyType.Archer:
-                            // enemy.combatManager.ArcherAttack();
-                            break;
                         case Enemy.EnemyType.Mage:
                             enemy.combatManager.MageAttack();
                             break;
+                        default:
+                            break;
                     }
-                    
                     return NodeState.Success;
                 }
                 else
@@ -452,13 +613,13 @@ namespace Ekkam
                 }
                 if (closestDistance < closestRange)
                 {
-                    print("Closest enemy found");
+                    // print("Closest enemy found");
                     enemy.closestEnemy = closestEnemy;
                     return NodeState.Success;
                 }
                 else
                 {
-                    print("No closest enemy found");
+                    // print("No closest enemy found");
                     enemy.closestEnemy = null;
                     return NodeState.Failure;
                 }
@@ -480,7 +641,7 @@ namespace Ekkam
             {
                 if (enemy.closestEnemy != null && enemy.closestEnemy.pathNodes.Count > 0 && enemy.pathNodes.Count == 0)
                 {
-                    print("Copying closest enemy path");
+                    // print("Copying closest enemy path");
         
                     foreach (var node in enemy.closestEnemy.pathNodes)
                     {
@@ -496,7 +657,7 @@ namespace Ekkam
                 }
                 else
                 {
-                    print("No path to copy");
+                    // print("No path to copy");
                     return NodeState.Failure;
                 }
             }
@@ -555,17 +716,17 @@ namespace Ekkam
             {
                 if (enemy.pathfindingState == Enemy.PathfindingState.Success)
                 {
-                    print("Path found");
+                    // print("Path found");
                     return NodeState.Success;
                 }
                 else if (enemy.pathfindingState == Enemy.PathfindingState.Failure)
                 {
-                    print("Path not found");
+                    // print("Path not found");
                     return NodeState.Failure;
                 }
                 else
                 {
-                    print("Pathfinding in progress");
+                    // print("Pathfinding in progress");
                     return NodeState.Running;
                 }
             }
@@ -573,7 +734,7 @@ namespace Ekkam
 
         public class FollowPath : Node
         {
-            private float nodeReachedDistance = 0.75f;
+            private float nodeReachedDistance = 0.85f;
             private Enemy enemy;
             private Transform transform;
             private Rigidbody rb;
@@ -586,47 +747,42 @@ namespace Ekkam
                 this.rb = enemy.rb;
                 this.speed = enemy.speed;
             }
-
+            
             public override NodeState Evaluate()
             {
                 if (enemy.pathNodes.Count > 0)
                 {
-                    print("Following path");
+                    // print("Following path");
                     enemy.anim.SetBool("isMoving", true);
                     Vector3 targetPosition = new Vector3(
                         enemy.pathNodes[enemy.pathNodes.Count - 1].transform.position.x,
                         transform.position.y,
                         enemy.pathNodes[enemy.pathNodes.Count - 1].transform.position.z
                     );
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
-                    rb.MovePosition(Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime));
+                    
+                    enemy.nextRotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(targetPosition - transform.position), 10 * Time.deltaTime);
+                    enemy.nextPosition = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+                    enemy.shouldMove = true;
+                    
                     if (Vector3.Distance(transform.position, enemy.pathNodes[enemy.pathNodes.Count - 1].transform.position) < nodeReachedDistance)
                     {
                         enemy.pathNodes.RemoveAt(enemy.pathNodes.Count - 1);
                     }
-                    else if (enemy.pathNodes[enemy.pathNodes.Count - 2] != null && Vector3.Distance(transform.position, enemy.pathNodes[enemy.pathNodes.Count - 2].transform.position) < nodeReachedDistance)
+                    else if (enemy.pathNodes.Count > 1 && enemy.pathNodes[enemy.pathNodes.Count - 2] != null && Vector3.Distance(transform.position, enemy.pathNodes[enemy.pathNodes.Count - 2].transform.position) < nodeReachedDistance)
                     {
                         enemy.pathNodes.RemoveAt(enemy.pathNodes.Count - 2);
                         enemy.pathNodes.RemoveAt(enemy.pathNodes.Count - 1);
                     }
-                    
-                    // Debug.Log("Distance to next node: " + Vector3.Distance(transform.position, astar.pathNodes[astar.pathNodes.Count - 1].transform.position));
                         
                     return NodeState.Running;
                 }
                 else
                 {
-                    print("Path ended");
+                    // print("Path ended");
                     return NodeState.Success;
                 }
             }
 
-        }
-        
-        [Command("kill-all-enemies", MonoTargetType.All)]
-        private void KillAllEnemies()
-        {
-            Die();
         }
     }
 }

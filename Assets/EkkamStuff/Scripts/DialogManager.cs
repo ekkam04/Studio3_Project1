@@ -5,6 +5,7 @@ using TMPro;
 using System.Threading.Tasks;
 using Ekkam;
 using System;
+using Unity.VisualScripting;
 
 namespace Ekkam
 {
@@ -14,25 +15,37 @@ namespace Ekkam
         public Dialog currentDialog;
         public List<Dialog> dialogs;
         public bool lookAtEachOther = true;
+        private bool lookedAtEachOther;
         public bool isDialogActive;
+        
+        private AudioSource audioSource;
+        private float dialogSoundVolume = 0.5f;
+        public AudioClip dialogSound;
+        
+        public delegate void OnOptionSelected(string actionKey);
+        public static event OnOptionSelected onOptionSelected;
 
         void Start()
         {
             uiManager = FindObjectOfType<UIManager>();
+            audioSource = transform.AddComponent<AudioSource>();
+            audioSource.volume = dialogSoundVolume;
+            audioSource.clip = dialogSound;
+            audioSource.loop = true;
         }
 
         public void StartDialog(int dialogIndex)
         {
             isDialogActive = true;
-            Player.Instance.enabled = false;
-            Player.Instance.anim.SetBool("isMoving", false);
+            GameManager.Instance.PauseGame();
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             
-            if (lookAtEachOther)
+            if (lookAtEachOther && !lookedAtEachOther)
             {
                 Player.Instance.transform.LookAt(transform.position, Vector3.up);
                 transform.LookAt(Player.Instance.transform.position, Vector3.up);
+                lookedAtEachOther = true;
             }
             
             uiManager.HideAllOptions();
@@ -47,7 +60,9 @@ namespace Ekkam
             currentDialog = dialog;
             uiManager.ShowDialog(dialog.dialogText, dialog.dialogOptions.Length > 0);
             
+            // audioSource.Play();
             yield return new WaitUntil(() => !uiManager.showingDialog);
+            // audioSource.Stop();
             
             if (dialog.dialogOptions.Length > 0)
             {
@@ -77,9 +92,18 @@ namespace Ekkam
         
         public void HandleOption(DialogOption option)
         {
-            Player.Instance.enabled = true;
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            if (option.signal != null) option.signal.Signal();
+            if (option.extraSignals != null)
+            {
+                foreach (var signal in option.extraSignals)
+                {
+                    signal.Signal();
+                }
+            }
+            if (option.selectionActionKey != "" && onOptionSelected != null)
+            {
+                onOptionSelected(option.selectionActionKey);
+            }
             
             switch (option.optionType)
             {
@@ -89,10 +113,10 @@ namespace Ekkam
                 case DialogOption.OptionType.End:
                     uiManager.HideDialog();
                     isDialogActive = false;
-                    GetComponent<Interactable>().enabled = true;
+                    if (GetComponent<Interactable>() != null) GetComponent<Interactable>().enabled = true;
                     break;
                 case DialogOption.OptionType.Signal:
-                    option.signal.Signal();
+                    // option.signal.Signal();
                     uiManager.HideDialog();
                     isDialogActive = false;
                     if (GetComponent<Interactable>() != null) GetComponent<Interactable>().enabled = true;
@@ -100,7 +124,18 @@ namespace Ekkam
                 case DialogOption.OptionType.Jump:
                     StartDialog(option.jumpToIndex);
                     break;
+                case DialogOption.OptionType.ModelCheck:
+                    if (option.optionText == Player.Instance.currentDisguise.name)
+                    {
+                        StartDialog(dialogs.IndexOf(currentDialog) + 1);
+                    }
+                    else
+                    {
+                        StartDialog(dialogs.IndexOf(currentDialog) + 2);
+                    }
+                    break;
             }
+            SoundManager.Instance.PlaySound("button-click");
         }
     }
     
@@ -121,12 +156,15 @@ namespace Ekkam
             Next,
             End,
             Jump,
-            Signal
+            Signal,
+            ModelCheck
         }
 
         public OptionType optionType;
         
         public int jumpToIndex;
         public Signalable signal;
+        public List<Signalable> extraSignals;
+        public string selectionActionKey;
     }
 }

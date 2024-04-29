@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Ekkam;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Action : Signalable
@@ -14,17 +15,44 @@ public class Action : Signalable
         Disable,
         EnableChild,
         Destroy,
+        RemoveTagFromInventory,
+        AddCoins,
+        EnableDarkness,
+        DisableDarkness
     }
+    [Header("Action Settings")]
     public ActionToTake actionToTake;
     private Vector3 originalTargetOffset;
     public Vector3 targetOffset;
     public Vector3[] sequentialTargetOffsets;
+    public bool assignNextObjectiveOnActionComplete;
+    public AudioClip actionSound;
+    private AudioSource audioSource;
+    private float audioVolume = 0.2f;
+    public bool loopSound = true;
     
+    private Vector3 startPosition;
+    private Vector3 targetPosition;
+    float timeElapsed;
+    bool isMoving;
+    
+    [Header("Sequence Settings")]
     public int sequenceIndex = 0;
     public float duration = 2f;
     
     public GameObject virtualCameraToTransitionTo;
     private float delayActionDuration = 1.5f;
+    
+    [Header("Loop Settings")]
+    public bool loop;
+    public float loopDelay;
+    private float loopTimer;
+    
+    [Header("Remove Tag From Inventory Settings")]
+    public string tagToRemove;
+    
+    [Header("Coin Settings")]
+    public int coinsToAdd = 0;
     
     public delegate void OnActionComplete();
     public static event OnActionComplete onActionComplete;
@@ -32,10 +60,43 @@ public class Action : Signalable
     void Start()
     {
         originalTargetOffset = targetOffset;
+        loopTimer = duration + loopDelay; // So that the first action is taken immediately if loop is enabled
+        audioSource = transform.AddComponent<AudioSource>();
+        audioSource.clip = actionSound;
+        audioSource.volume = audioVolume;
+        audioSource.loop = loopSound;
     }
+    
+    void Update()
+    {
+        if (loop)
+        {
+            loopTimer += Time.deltaTime;
+            if (loopTimer >= duration + loopDelay)
+            {
+                loopTimer = 0;
+                StartCoroutine(TakeAction());
+            }
+        }
+        
+        if (isMoving)
+        {
+            transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            if (timeElapsed >= duration)
+            {
+                isMoving = false;
+                transform.position = targetPosition;
+                HandleActionComplete();
+            }
+        }
+    }
+    
     public override void Signal()
     {
         print(gameObject.name + " is taking action: " + actionToTake);
+        if (audioSource != null) audioSource.Play();
+        if (!this.gameObject.activeSelf) return;
         StartCoroutine(TakeAction());
     }
     IEnumerator TakeAction()
@@ -43,7 +104,7 @@ public class Action : Signalable
         if (virtualCameraToTransitionTo != null)
         {
             virtualCameraToTransitionTo.SetActive(true);
-            Player.Instance.enabled = false;
+            GameManager.Instance.PauseGame();
             yield return new WaitForSeconds(delayActionDuration);
         }
         
@@ -60,11 +121,16 @@ public class Action : Signalable
         switch (actionToTake)
         {
             case ActionToTake.Move:
-                StartCoroutine(Move());
+                // StartCoroutine(Move());
+                startPosition = transform.position;
+                targetPosition = startPosition + targetOffset;
+                timeElapsed = 0;
+                isMoving = true;
                 break;
             case ActionToTake.Rotate:
-                transform.rotation = Quaternion.Euler(targetOffset); // Maybe use Quaternion.Lerp for smooth rotation in the future
-                Invoke("HandleActionComplete", 0.1f);
+                // transform.rotation = Quaternion.Euler(targetOffset); // Maybe use Quaternion.Lerp for smooth rotation in the future
+                // Invoke("HandleActionComplete", 0.1f);
+                StartCoroutine(Rotate());
                 break;
             case ActionToTake.Scale:
                 transform.localScale = targetOffset;
@@ -81,6 +147,20 @@ public class Action : Signalable
             case ActionToTake.Destroy:
                 Destroy(gameObject);
                 // ActionComplete event is handled in OnDestroy
+                break;
+            case ActionToTake.RemoveTagFromInventory:
+                var inventory = FindObjectOfType<Inventory>();
+                inventory.RemoveItemByTag(tagToRemove);
+                break;
+            case ActionToTake.AddCoins:
+                Player.Instance.coins += coinsToAdd;
+                if (Player.Instance.coins < 0) Player.Instance.coins = 0;
+                break;
+            case ActionToTake.EnableDarkness:
+                GameManager.Instance.EnableDarkness();
+                break;
+            case ActionToTake.DisableDarkness:
+                GameManager.Instance.DisableDarkness();
                 break;
         }
         
@@ -100,6 +180,20 @@ public class Action : Signalable
         }
         HandleActionComplete();
     }
+    
+    IEnumerator Rotate()
+    {
+        Quaternion startRotation = transform.rotation;
+        Quaternion targetRotation = Quaternion.Euler(targetOffset);
+        float timeElapsed = 0;
+        while (timeElapsed < duration)
+        {
+            transform.rotation = Quaternion.Slerp(startRotation, targetRotation, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+        HandleActionComplete();
+    }
 
     private void OnDestroy()
     {
@@ -108,12 +202,42 @@ public class Action : Signalable
 
     void HandleActionComplete()
     {
+        if (loop) return; // Looping actions should not trigger the action complete event because of performance reasons (Learned this the hard way)
         if (onActionComplete != null) onActionComplete();
         if (virtualCameraToTransitionTo != null)
         {
-            Player.Instance.enabled = true;
+            GameManager.Instance.ResumeGame();
             virtualCameraToTransitionTo.SetActive(false);
         }
+        if (assignNextObjectiveOnActionComplete)
+        {
+            if (FindObjectOfType<ObjectiveManager>() != null) FindObjectOfType<ObjectiveManager>().AddNextObjective();
+        }
+        audioSource.Stop();
+    }
+    
+    public void ResetSequence()
+    {
+        targetOffset = originalTargetOffset;
+        sequenceIndex = 0;
+    }
+    
+    public void MoveToWorldPosition(Vector3 targetPosition, float duration)
+    {
+        StartCoroutine(MoveToWorldPositionCoroutine(targetPosition, duration));
+    }
+    
+    IEnumerator MoveToWorldPositionCoroutine(Vector3 targetPosition, float duration)
+    {
+        float timeElapsed = 0;
+        Vector3 startPosition = transform.position;
+        while (timeElapsed < duration)
+        {
+            transform.position = Vector3.Lerp(startPosition, targetPosition, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+        transform.position = targetPosition;
     }
     
 }
