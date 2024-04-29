@@ -18,11 +18,14 @@ namespace Ekkam
     
     public Vector2 uvAnimationRate = new Vector2(0.1f, 0.1f);
     private Vector2 uvOffset = Vector2.zero;
+    
+    public bool staticBoi = false;
 
     void Start()
     {
         MeshRenderer meshRenderer = gameObject.AddComponent<MeshRenderer>();
         meshRenderer.material = material;
+        meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
         MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
         Mesh terrainMesh = GenerateGridMesh(gridSize.x, gridSize.y);
@@ -33,6 +36,8 @@ namespace Ekkam
     
     void Update()
     {
+        if (staticBoi) return;
+        
         // if (Input.GetKeyDown(KeyCode.M))
         // {
         //     MeshFilter meshFilter = gameObject.GetComponent<MeshFilter>();
