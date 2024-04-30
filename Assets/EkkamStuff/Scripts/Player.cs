@@ -321,7 +321,7 @@ namespace Ekkam
             if (Input.GetKeyDown(KeyCode.F)) SwitchDisguise(disguiseActive ? 0 : 1);
             if (disguiseActive)
             {
-                disguiseBattery -= Time.deltaTime;
+                // disguiseBattery -= Time.deltaTime;
                 disguiseSlider.value = disguiseBattery;
                 if (disguiseBattery <= 0)
                 {

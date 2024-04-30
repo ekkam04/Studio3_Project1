@@ -22,6 +22,11 @@ namespace Ekkam
         [SerializeField] Interactable rearLeftWheelHub;
         [SerializeField] Interactable rearRightWheelHub;
         
+        public float leftFrontWheelYRotationOffset;
+        public float rightFrontWheelYRotationOffset;
+        public float leftRearWheelYRotationOffset;
+        public float rightRearWheelYRotationOffset;
+        
         public bool startWithWheels = true;
         private bool hasWheels;
         public GameObject repairSupport;
@@ -108,19 +113,19 @@ namespace Ekkam
             rearLeftWheel.brakeTorque = currentBrakingForce;
             rearRightWheel.brakeTorque = currentBrakingForce;
             
-            UpdateWheelMesh(frontLeftWheel, frontLeftWheelMesh);
-            UpdateWheelMesh(frontRightWheel, frontRightWheelMesh);
-            UpdateWheelMesh(rearLeftWheel, rearLeftWheelMesh);
-            UpdateWheelMesh(rearRightWheel, rearRightWheelMesh);
+            UpdateWheelMesh(frontLeftWheel, frontLeftWheelMesh, leftFrontWheelYRotationOffset);
+            UpdateWheelMesh(frontRightWheel, frontRightWheelMesh, rightFrontWheelYRotationOffset);
+            UpdateWheelMesh(rearLeftWheel, rearLeftWheelMesh, leftRearWheelYRotationOffset);
+            UpdateWheelMesh(rearRightWheel, rearRightWheelMesh, rightRearWheelYRotationOffset);
         }
         
-        private void UpdateWheelMesh(WheelCollider wheelCollider, Transform wheelTransform)
+        private void UpdateWheelMesh(WheelCollider wheelCollider, Transform wheelTransform, float rotationOffset)
         {
             if (!wheelTransform) return;
             Vector3 pos;
             Quaternion rot;
             wheelCollider.GetWorldPose(out pos, out rot);
-            wheelTransform.rotation = rot;
+            wheelTransform.rotation = rot * Quaternion.Euler(0, rotationOffset, 0);
             wheelTransform.position = pos;
         }
         

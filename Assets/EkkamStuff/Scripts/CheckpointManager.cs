@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using QFSW.QC;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -14,7 +15,14 @@ namespace Ekkam
         public Transform savedItemsParent;
 
         private ObjectiveManager objectiveManager;
+        private UIManager uiManager;
         private Inventory inventory;
+        
+        [Header("--- Levels ---")]
+        public CheckpointData prologueCheckpointData;
+        public CheckpointData theTowerCheckpointData;
+        public CheckpointData theDeceptionCheckpointData;
+        public CheckpointData theGarageCheckpointData;
 
         private void Awake()
         {
@@ -38,6 +46,11 @@ namespace Ekkam
         {
             objectiveManager = FindObjectOfType<ObjectiveManager>();
             inventory = FindObjectOfType<Inventory>();
+            uiManager = FindObjectOfType<UIManager>();
+            uiManager.prologueButton.onClick.AddListener(LoadPrologueCheckpoint);
+            uiManager.theTowerButton.onClick.AddListener(LoadTheTowerCheckpoint);
+            uiManager.theDeceptionButton.onClick.AddListener(LoadTheDeceptionCheckpoint);
+            uiManager.theGarageButton.onClick.AddListener(LoadTheGarageCheckpoint);
         }
 
         [Command("save-checkpoint")]
@@ -130,16 +143,51 @@ namespace Ekkam
             objectiveManager.InitializeFromCurrentIndex();
         }
         
-        private void OnCheckpointLoaded()
+        private async void OnCheckpointLoaded()
         {
             if (objectiveManager.currentObjectiveIndex > 6)
             {
                 GameManager.Instance.ShowGuideBot();
             }
+            if (objectiveManager.currentObjectiveIndex > 16)
+            {
+                GameManager.Instance.GrantWeapon(GameManager.Items.Staff);
+                await Task.Delay(1000);
+            }
+            if (objectiveManager.currentObjectiveIndex > 35)
+            {
+                GameManager.Instance.GrantWeapon(GameManager.Items.Bow);
+                await Task.Delay(1000);
+            }
+            if (objectiveManager.currentObjectiveIndex > 9)
+            {
+                GameManager.Instance.GrantWeapon(GameManager.Items.Sword);
+                await Task.Delay(1000);
+            }
             if (objectiveManager.currentObjectiveIndex > 38)
             {
                 Player.Instance.SwitchDisguise(1);
             }
+        }
+        
+        public void LoadPrologueCheckpoint()
+        {
+            StartCoroutine(LoadCheckpoint(prologueCheckpointData));
+        }
+        
+        public void LoadTheTowerCheckpoint()
+        {
+            StartCoroutine(LoadCheckpoint(theTowerCheckpointData));
+        }
+        
+        public void LoadTheDeceptionCheckpoint()
+        {
+            StartCoroutine(LoadCheckpoint(theDeceptionCheckpointData));
+        }
+        
+        public void LoadTheGarageCheckpoint()
+        {
+            StartCoroutine(LoadCheckpoint(theGarageCheckpointData));
         }
     }
     
