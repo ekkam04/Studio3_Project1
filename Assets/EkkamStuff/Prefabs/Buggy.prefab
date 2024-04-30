@@ -1013,7 +1013,7 @@ GameObject:
   - component: {fileID: 9168386251734864923}
   - component: {fileID: 9018411939496591239}
   - component: {fileID: 91905031326241948}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Buggy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1169,6 +1169,8 @@ MonoBehaviour:
   rearLeftWheelHub: {fileID: 6212550909773230100}
   rearRightWheelHub: {fileID: 7322689379112089350}
   startWithWheels: 0
+  repairSupport: {fileID: 0}
+  signalOnRepairComplete: []
   drivingPosition: {fileID: 3977957058908133356}
   exitPosition: {fileID: 3120752322937422918}
   maxSteerAngle: 30
@@ -1192,6 +1194,7 @@ MonoBehaviour:
   targetOffset: {x: 0, y: 0, z: 0}
   sequentialTargetOffsets: []
   assignNextObjectiveOnActionComplete: 0
+  signalOnActionComplete: []
   actionSound: {fileID: 0}
   loopSound: 1
   sequenceIndex: 0

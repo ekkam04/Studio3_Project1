@@ -151,9 +151,19 @@ namespace Ekkam {
             SoundManager.Instance.PlaySound("interact");
             if (interactionAction == InteractionAction.Pickup)
             {
-                if (GetComponent<Item>())
+                if (inventory == null) inventory = FindObjectOfType<Inventory>();
+                if (inventory.items.Count < 5)
                 {
-                    PickUp();
+                    if (GetComponent<Item>())
+                    {
+                        PickUp();
+                    }
+                }
+                else
+                {
+                    interactColor = Color.red;
+                    SoundManager.Instance.PlaySound("interact-failed");
+                    StartCoroutine(PulsePickupPromptText(0.1f, 0.3f));
                 }
             }
             else if (interactionAction == InteractionAction.Signal)

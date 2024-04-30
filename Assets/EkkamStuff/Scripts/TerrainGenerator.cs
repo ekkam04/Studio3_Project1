@@ -20,6 +20,7 @@ namespace Ekkam
     private Vector2 uvOffset = Vector2.zero;
     
     public bool staticBoi = false;
+    public bool addCollider = false;
 
     void Start()
     {
@@ -117,6 +118,11 @@ namespace Ekkam
         mesh.uv = uvs;
         mesh.RecalculateBounds();
         mesh.RecalculateNormals();
+        if (addCollider)
+        {
+            MeshCollider meshCollider = gameObject.AddComponent<MeshCollider>();
+            meshCollider.sharedMesh = mesh;
+        }
     }
 
 }

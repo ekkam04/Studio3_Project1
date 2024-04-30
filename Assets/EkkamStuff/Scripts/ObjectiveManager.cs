@@ -202,6 +202,14 @@ namespace Ekkam {
                     playerObservedColliderCheck = false;
                 }
             }
+            else if (objective.objectiveType == Objective.ObjectiveType.ReachInCar)
+            {
+                if (distance < (objectiveWaypointDistance + 1f) && player.isDriving)
+                {
+                    CompleteObjective(objective, !objective.objectiveMessedUp);
+                    CheckSequence(isSequential, objective, parentObjective);
+                }
+            }
         }
 
         private void CheckSequence(bool isSequential, Objective objective, Objective parentObjective = null)

@@ -26,6 +26,7 @@ public class Action : Signalable
     public Vector3 targetOffset;
     public Vector3[] sequentialTargetOffsets;
     public bool assignNextObjectiveOnActionComplete;
+    public Signalable[] signalOnActionComplete;
     public AudioClip actionSound;
     private AudioSource audioSource;
     private float audioVolume = 0.2f;
@@ -212,6 +213,10 @@ public class Action : Signalable
         if (assignNextObjectiveOnActionComplete)
         {
             if (FindObjectOfType<ObjectiveManager>() != null) FindObjectOfType<ObjectiveManager>().AddNextObjective();
+        }
+        foreach (Signalable signal in signalOnActionComplete)
+        {
+            signal.Signal();
         }
         audioSource.Stop();
     }

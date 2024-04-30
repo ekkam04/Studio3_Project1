@@ -24,6 +24,8 @@ namespace Ekkam
         
         public bool startWithWheels = true;
         private bool hasWheels;
+        public GameObject repairSupport;
+        public Signalable[] signalOnRepairComplete;
         
         public Transform drivingPosition;
         public Transform exitPosition;
@@ -173,10 +175,15 @@ namespace Ekkam
             if (frontLeftWheelMesh && frontRightWheelMesh && rearLeftWheelMesh && rearRightWheelMesh)
             {
                 print("All wheels are set!");
+                if (repairSupport != null) repairSupport.SetActive(false);
                 hasWheels = true;
                 rb.isKinematic = false;
                 rb.useGravity = true;
                 reenableDriveButton.Signal();
+                foreach (Signalable signalable in signalOnRepairComplete)
+                {
+                    signalable.Signal();
+                }
             }
         }
     }
