@@ -1,0 +1,548 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Action">
+    <Position X="15.75" Y="10" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Action.ActionToTake" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Action.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Delegate Name="Action.OnActionComplete" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Action.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AFQFkAoAgKAADBAMAAAAAAgAUAoBEAAI4AABgAAAAYA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Action.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="InvertDecorator" Collapsed="true">
+    <Position X="9.75" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAACAAgAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\BehaviorTree\InvertDecorator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Node" Collapsed="true">
+    <Position X="6.25" Y="14.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAEAAAABAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\BehaviorTree\Node.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Selector" Collapsed="true">
+    <Position X="6.25" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAgAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\BehaviorTree\Selector.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Sequence" Collapsed="true">
+    <Position X="8" Y="12.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAgAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\BehaviorTree\Sequence.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Crystal" Collapsed="true">
+    <Position X="15.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQABAAIACAABIAAAAAAAABAQAAAAAAABAABIAAAgAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Crystal.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameManager" Collapsed="true">
+    <Position X="15.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EIQVAAwAgCBU4DoCIAoYGxIVACDSAAKMRGQgAUgIQkA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\GameManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MapCamera" Collapsed="true">
+    <Position X="24" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AASAAAAAACAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\MapCamera.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.AreaTrigger" Collapsed="true">
+    <Position X="15.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAEAAIIAgAAAAAAAAEAQAAIAAABQAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\AreaTrigger.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.AstarOld" Collapsed="true">
+    <Position X="17" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIQAAQBACCIABQCAkAAgAAAgoAAAAAAUAmAQAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\AstarOld.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Buggy" Collapsed="true">
+    <Position X="18.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEQAAQIAAiQBkAQEBDAQAINBAAIAhAQgABBUASBAAQg=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Buggy.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.CheckpointManager" Collapsed="true">
+    <Position X="22.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AyAAIEQIAAgQAAQAAAABAgAAAAAACCACQFAAABEEAEA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\CheckpointManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.CheckpointData" Collapsed="true">
+    <Position X="20.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEAAAQAAAAAAAAIAAiAIAAAAAAAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\CheckpointManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Chest">
+    <Position X="24.75" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAABAAEAAAAAAAAAAAAAAAAAAIAAAAAIAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Chest.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Collectible" Collapsed="true">
+    <Position X="24" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAACAIAAAAQAQAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Collectible.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.CombatManager" Collapsed="true">
+    <Position X="25.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAUBEAAABCiAAAAEIAAAAAAAAgQAAAAIAQAAAAAIAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\CombatManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Damagable">
+    <Position X="2.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQgYQAAAiAAAACmAAAAgYAgAAAAAAAgAQCIgAAAAAg=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Damagable.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.DialogManager" Collapsed="true">
+    <Position X="17" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>FAAAAAQAACAAAIAAAAKAAwAAAAAAEAAAAAAIABAAAgI=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\DialogManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Drone" Collapsed="true">
+    <Position X="20.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQEAAAAACASAgACAAQgAAAAAAACAQAAQAIAAQACAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Drone.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Enemy">
+    <Position X="4.5" Y="6.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Class Name="Ekkam.Enemy.CheckPathFound" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Ekkam.Enemy.CanAttack" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Enum Name="Ekkam.Enemy.PathfindingState" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Class Name="Ekkam.Enemy.AttackPlayer" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Ekkam.Enemy.AddToPathfindingQueue" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Ekkam.Enemy.CheckPlayerPresence" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Ekkam.Enemy.CopyEnemyPath" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Ekkam.Enemy.FollowPath" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Enum Name="Ekkam.Enemy.EnemyType" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Class Name="Ekkam.Enemy.Idle" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Ekkam.Enemy.CheckClosestEnemyDistance" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Ekkam.Enemy.CheckLineOfSight" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Ekkam.Enemy.CanMove" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+      <Class Name="Ekkam.Enemy.WalkTowardsPlayer" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Enemy.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>IAcQQACAGyojABBANEQiAgAAIAAAUQAAAgAIAKAAgAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Enemy.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.FacePlateCharger" Collapsed="true">
+    <Position X="22.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQABAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\FacePlateCharger.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Fire" Collapsed="true">
+    <Position X="24" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABQAAAAAACAAgBAAACAAAAAEAAAAEAABBAAAAAACAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Fire.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.FireExtinguisher" Collapsed="true">
+    <Position X="25.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAABEAAAAAAAAAEEBAARAAAAAAAQAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\FireExtinguisher.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.GuideBot" Collapsed="true">
+    <Position X="17" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAQAAEACAAAAIQAAAAQQAQAAAAAQCBEQBAAAAAAAM=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\GuideBot.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Interactable" Collapsed="true">
+    <Position X="18.75" Y="2.5" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Ekkam.Interactable.InteractionType" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Interactable.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Enum Name="Ekkam.Interactable.InteractionAction" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Interactable.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Delegate Name="Ekkam.Interactable.OnInteraction" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Interactable.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>QAYAAKAAACAAAAAAoOQREgBGMAAAQAALAAAAUIABALQ=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Interactable.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Inventory" Collapsed="true">
+    <Position X="20.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAgAAACAAAAAQAQhEAAAAgEAAABAFAAABAQAgAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Inventory.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Item" Collapsed="true">
+    <Position X="22.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAAAAAAAIAAAAAQAAAAAAAAAIAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Item.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.MousePosition3D" Collapsed="true">
+    <Position X="25.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQACAAAACAAAAAAAAAAAAAAEAAAEAAgAAIAAAAAACA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\MousePosition3D.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.MovesWithPhysicsOnGrid" Collapsed="true">
+    <Position X="15.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQBAAAAACAAAAAEAAAAAAAAAAAAAAAAAQABAAACAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\MovesWithPhysicsOnGrid.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Objective" Collapsed="true">
+    <Position X="17" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABQEAgAAgAAAAAAAiEAAAABEIAAAAAAAAAAAAAACkAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Objective.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.ObjectiveCompletionAction" Collapsed="true">
+    <Position X="18.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAAAAAIAAAAAAAAAAAAAAQAAAAAAAAAAI=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\ObjectiveCompletionAction.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.ObjectiveManager" Collapsed="true">
+    <Position X="20.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QEYAAAAAACAAgAACSBAgQAAkAABAIIABEUIIgAAAAAQ=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\ObjectiveManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.ObjectiveMarker" Collapsed="true">
+    <Position X="22.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAACAAAAAAAAAAAAgAAAAAAAABAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\ObjectiveMarker.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.PathfindingGrid" Collapsed="true">
+    <Position X="24" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACQBAABAACAQAAAgAAAAAkAAFAAgIAIAAAAAAAACJEI=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\PathfindingGrid.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.PathfindingManager" Collapsed="true">
+    <Position X="25.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAAAAAAAAAAAAAAAAAIAAAAAAIAAAAAAEAAAAAEA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\PathfindingManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.PathfindingNode" Collapsed="true">
+    <Position X="15.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAQAAAAMAAAECACAAAAAQAAgAAAAAAAAQAoAIQAAAMM=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\PathfindingNode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Player">
+    <Position X="0.5" Y="6.5" Width="1.5" />
+    <NestedTypes>
+      <Enum Name="Ekkam.Player.MovementState" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Player.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+      <Enum Name="Ekkam.Player.CameraStyle" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Player.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>qAclAqwWBigAKYadAHQAguOoSxrFEwjecQRQBJ5oOHk=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Player.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.DisguiseDetails" Collapsed="true">
+    <Position X="18.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAACAgAAAAABAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Player.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.PlayerSilhouette" Collapsed="true">
+    <Position X="17" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAACAAAAAQEAAAAAAAAAAAAAgAAAAAAAABAAEI=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\PlayerSilhouette.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.PortalCamera" Collapsed="true">
+    <Position X="18.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAEAACAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\PortalCamera.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Projectile" Collapsed="true">
+    <Position X="20.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAUIAAAAACAgmAAAAAAAAAAAABAAAQAgQEAAAIAAAgA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Projectile.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Scannable" Collapsed="true">
+    <Position X="22.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAABAAAAIAAAAAAAAAAEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Scannable.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.ShieldBubble" Collapsed="true">
+    <Position X="24" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAACAAAAAAAABAAAAAAAAAAAEBQAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\ShieldBubble.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Shop">
+    <Position X="18" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAABAAAACAAAEAEAAIgIgAEABIAAEAAwAgIAAAABQA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Shop.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.ShopItemStats" Collapsed="true">
+    <Position X="15.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAMAAAABAAAAAAAQAAAAAAAABAAAAAAAgAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Shop.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.ShopItem" Collapsed="true">
+    <Position X="25.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAEAAACACAAAAAARAAAIAAAABAAAAAAggwIAAQAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\ShopItem.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Signalable">
+    <Position X="21.25" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Signalable.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.SoundManager" Collapsed="true">
+    <Position X="18.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAAAAAAAAAAAAAAAAgAAAAAAAABQAAAAAAAAEA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\SoundManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.SoundCue" Collapsed="true">
+    <Position X="17" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAEAAAAAAAAAAACAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\SoundManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.TargetButton">
+    <Position X="27" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAIAAAAAAAAAIAAAABAAAAAABAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\TargetButton.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.TerrainGenerator" Collapsed="true">
+    <Position X="20.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAwAAAQgQCAAAoAAABAAAAAAAAAAEAAAAgAAAABAIAE=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\TerrainGenerator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Tower">
+    <Position X="20.25" Y="10" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAQAaASBQQEAAIAEAUgABAANCAQBACIACgIAQAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Tower.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Turret" Collapsed="true">
+    <Position X="22.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAACAAAAAAAAQAAAAoAAABAAABAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Turret.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.UIManager" Collapsed="true">
+    <Position X="24" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAQFDDAUSSoECDQEACgBEAEsAAAQBAABIBiACJABgFE=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\UIManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ekkam.Wire">
+    <Position X="22.5" Y="10" Width="1.5" />
+    <NestedTypes>
+      <Delegate Name="Ekkam.Wire.OnPowered" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Assets\EkkamStuff\Scripts\Wire.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Delegate>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>KAQAABAAACIAAAAAoAAQAAAAAAIEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Wire.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="Ekkam.Dialog" Collapsed="true">
+    <Position X="15.25" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\DialogManager.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="Ekkam.DialogOption" Collapsed="true">
+    <Position X="17" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAAAAAAAAAAAAAAAAAYAgCAAAAQAAAAAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\DialogManager.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="Ekkam.MTAstar" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="18.75" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAABAAgAQAgQBQCAgAEgAEAABBIAAAoAAAAAAIAA=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Multithreading\MTAstar.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Struct>
+  <Struct Name="Ekkam.MTPathfindingGrid" Collapsed="true">
+    <Position X="20.5" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABAABAAAAQAQAAASAAAkAAEAAgAAAAAIAAAAACIEI=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Multithreading\MTPathfindingGrid.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="Ekkam.MTPathNode" Collapsed="true">
+    <Position X="22.25" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQEgAEIAAAACAAAAAEAAAAAAAAAAAAAAAIAAQAAAIE=</HashCode>
+      <FileName>Assets\EkkamStuff\Scripts\Multithreading\MTPathNode.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
