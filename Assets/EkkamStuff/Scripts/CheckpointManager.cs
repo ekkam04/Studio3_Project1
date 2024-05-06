@@ -47,6 +47,7 @@ namespace Ekkam
             objectiveManager = FindObjectOfType<ObjectiveManager>();
             inventory = FindObjectOfType<Inventory>();
             uiManager = FindObjectOfType<UIManager>();
+            uiManager.tutorialButton.onClick.AddListener(ReloadGameCheckpoint);
             uiManager.prologueButton.onClick.AddListener(LoadPrologueCheckpoint);
             uiManager.theTowerButton.onClick.AddListener(LoadTheTowerCheckpoint);
             uiManager.theDeceptionButton.onClick.AddListener(LoadTheDeceptionCheckpoint);
@@ -169,24 +170,34 @@ namespace Ekkam
                 Player.Instance.SwitchDisguise(1);
             }
         }
+
+        public void ReloadGameCheckpoint()
+        {
+            // reload scene
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
         
         public void LoadPrologueCheckpoint()
         {
+            currentCheckpointData = prologueCheckpointData;
             StartCoroutine(LoadCheckpoint(prologueCheckpointData));
         }
         
         public void LoadTheTowerCheckpoint()
         {
+            currentCheckpointData = theTowerCheckpointData;
             StartCoroutine(LoadCheckpoint(theTowerCheckpointData));
         }
         
         public void LoadTheDeceptionCheckpoint()
         {
+            currentCheckpointData = theDeceptionCheckpointData;
             StartCoroutine(LoadCheckpoint(theDeceptionCheckpointData));
         }
         
         public void LoadTheGarageCheckpoint()
         {
+            currentCheckpointData = theGarageCheckpointData;
             StartCoroutine(LoadCheckpoint(theGarageCheckpointData));
         }
     }

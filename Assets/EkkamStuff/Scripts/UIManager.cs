@@ -57,6 +57,7 @@ namespace Ekkam
         public GameObject mainMenuUI;
         public GameObject mainMenuVCam;
         
+        public Button tutorialButton;
         public Button prologueButton;
         public Button theTowerButton;
         public Button theDeceptionButton;
