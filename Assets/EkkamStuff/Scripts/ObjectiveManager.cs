@@ -31,9 +31,9 @@ namespace Ekkam {
         [SerializeField] GameObject objectiveUI;
         [SerializeField] GameObject objectiveItem;
         Player player;
-
-        public Volume vignetteVolume;
-        public Vignette vignette;
+        public bool playerDamagedEnemyCheck = false;
+        public bool playerObservedColliderCheck = false;
+        private bool mousePosition3DObserverCheck = false;
         
         public delegate void OnObjectiveComplete(string completionActionKey);
         public static event OnObjectiveComplete onObjectiveComplete;
@@ -44,13 +44,16 @@ namespace Ekkam {
             gameManager = FindObjectOfType<GameManager>();
             
             HideAllObjectiveMarkers();
-
+        }
+        
+        public void InitializeFromCurrentIndex()
+        {
+            SkipTasks(currentObjectiveIndex);
+            
             if (objectives.Count > 0)
             {
                 AddNextObjective();
             }
-            
-            SkipTasks(currentObjectiveIndex);
         }
 
         void Update()
@@ -62,12 +65,12 @@ namespace Ekkam {
                 foreach (Objective objectivesThatFailThisObjective in objective.objectivesThatFailThisObjective)
                 {
                     CheckObjectiveCompletion(objectivesThatFailThisObjective);
-                    // if (objectivesThatFailThisObjective.status != Objective.ObjectiveStatus.Active)
-                    // {
-                    //     // CompleteObjective(objective, false);
-                    //     objective.objectiveMessedUp = true;
-                    //     // return;
-                    // }
+                    if (objectivesThatFailThisObjective.status != Objective.ObjectiveStatus.Active)
+                    {
+                        // CompleteObjective(objective, false);
+                        objective.objectiveMessedUp = true;
+                        // return;
+                    }
                 }
                 
                 if (objective.objectiveType == Objective.ObjectiveType.Sequence)
@@ -106,35 +109,7 @@ namespace Ekkam {
                 if (distance < objectiveWaypointDistance)
                 {
                     CompleteObjective(objective, !objective.objectiveMessedUp);
-                    if (isSequential && parentObjective != null)
-                    {
-                        int sequenceObjectiveIndex = Array.IndexOf(parentObjective.objectiveSequence, objective);
-                        int completedSequenceObjectives = 0;
-                        foreach (Objective sequenceObjective in parentObjective.objectiveSequence)
-                        {
-                            if (sequenceObjective.status != Objective.ObjectiveStatus.Active)
-                            {
-                                completedSequenceObjectives++;
-                            }
-                        }
-                        int remainingSequenceObjectives = parentObjective.objectiveSequence.Length - completedSequenceObjectives;
-                        
-                        print("completedSequenceObjectives: " + completedSequenceObjectives);
-                        if (remainingSequenceObjectives > 0)
-                        {
-                            if (sequenceObjectiveIndex == completedSequenceObjectives - 1)
-                            {
-                                print("Sequence maintained");
-                                parentObjective.objectiveMessedUp = false;
-                            }
-                            else
-                            {
-                                print("Sequence not maintained");
-                                parentObjective.objectiveMessedUp = true;
-                            }
-                        }
-                        print("Sequence maintained? " + !parentObjective.objectiveMessedUp);
-                    }
+                    CheckSequence(isSequential, objective, parentObjective);
                 }
             }
             else if (objective.objectiveType == Objective.ObjectiveType.Interact) // if objective is of type Interact -------------------------------
@@ -144,6 +119,7 @@ namespace Ekkam {
                     if (target.GetComponent<Interactable>() != null && target.GetComponent<Interactable>().timesInteracted > 0)
                     {
                         CompleteObjective(objective, !objective.objectiveMessedUp);
+                        CheckSequence(isSequential, objective, parentObjective);
                     }
                 }
             }
@@ -154,6 +130,7 @@ namespace Ekkam {
                     if (target.GetComponent<Wire>() != null && target.GetComponent<Wire>().isPowered)
                     {
                         CompleteObjective(objective, !objective.objectiveMessedUp);
+                        CheckSequence(isSequential, objective, parentObjective);
                     }
                 }
             }
@@ -167,11 +144,20 @@ namespace Ekkam {
                     {
                         numberOfDestroyedTargets++;
                     }
+                    else if (
+                        target.GetComponent<Interactable>() != null
+                        && target.GetComponent<Interactable>().interactionAction == Interactable.InteractionAction.DamageCrystal
+                        && target.GetComponent<Interactable>().isBroken == true
+                    )
+                    {
+                        numberOfDestroyedTargets++;
+                    }
                 }
 
                 if (numberOfDestroyedTargets == numberOfTargetsToDestroy)
                 {
                     CompleteObjective(objective, !objective.objectiveMessedUp);
+                    CheckSequence(isSequential, objective, parentObjective);
                 }
             }
             else if (objective.objectiveType == Objective.ObjectiveType.Sequence)
@@ -189,7 +175,73 @@ namespace Ekkam {
                 if (sequenceCompleted)
                 {
                     CompleteObjective(objective, !objective.objectiveMessedUp);
+                    CheckSequence(isSequential, objective, parentObjective);
                 }
+            }
+            else if (objective.objectiveType == Objective.ObjectiveType.DamageAnyEnemy)
+            {
+                if (playerDamagedEnemyCheck)
+                {
+                    CompleteObjective(objective, !objective.objectiveMessedUp);
+                    CheckSequence(isSequential, objective, parentObjective);
+                    playerDamagedEnemyCheck = false;
+                }
+            }
+            else if (objective.objectiveType == Objective.ObjectiveType.ObserveCollider)
+            {
+                if (!mousePosition3DObserverCheck)
+                {
+                    FindObjectOfType<MousePosition3D>().colliderToObserve = objective.objectiveTargets[0].GetComponent<Collider>();
+                    FindObjectOfType<MousePosition3D>().observeCollider = true;
+                    mousePosition3DObserverCheck = true;
+                }
+                if (playerObservedColliderCheck)
+                {
+                    CompleteObjective(objective, !objective.objectiveMessedUp);
+                    CheckSequence(isSequential, objective, parentObjective);
+                    playerObservedColliderCheck = false;
+                }
+            }
+            else if (objective.objectiveType == Objective.ObjectiveType.ReachInCar)
+            {
+                if (distance < (objectiveWaypointDistance + 1f) && player.isDriving)
+                {
+                    CompleteObjective(objective, !objective.objectiveMessedUp);
+                    CheckSequence(isSequential, objective, parentObjective);
+                }
+            }
+        }
+
+        private void CheckSequence(bool isSequential, Objective objective, Objective parentObjective = null)
+        {
+            if (isSequential && parentObjective != null)
+            {
+                int sequenceObjectiveIndex = Array.IndexOf(parentObjective.objectiveSequence, objective);
+                int completedSequenceObjectives = 0;
+                foreach (Objective sequenceObjective in parentObjective.objectiveSequence)
+                {
+                    if (sequenceObjective.status != Objective.ObjectiveStatus.Active)
+                    {
+                        completedSequenceObjectives++;
+                    }
+                }
+                int remainingSequenceObjectives = parentObjective.objectiveSequence.Length - completedSequenceObjectives;
+                        
+                print("completedSequenceObjectives: " + completedSequenceObjectives);
+                if (remainingSequenceObjectives > 0)
+                {
+                    if (sequenceObjectiveIndex == completedSequenceObjectives - 1)
+                    {
+                        print("Sequence maintained");
+                        parentObjective.objectiveMessedUp = false;
+                    }
+                    else
+                    {
+                        print("Sequence not maintained");
+                        parentObjective.objectiveMessedUp = true;
+                    }
+                }
+                print("Sequence maintained? " + !parentObjective.objectiveMessedUp);
             }
         }
 
@@ -199,10 +251,12 @@ namespace Ekkam {
             if (wasSuccessful)
             {
                 objective.status = Objective.ObjectiveStatus.Completed;
+                SoundManager.Instance.PlaySound("objective-success");
             }
             else
             {
                 objective.status = Objective.ObjectiveStatus.Failed;
+                SoundManager.Instance.PlaySound("objective-fail");
             }
             
             RemoveObjectiveFromUI(objective, wasSuccessful);
@@ -227,7 +281,31 @@ namespace Ekkam {
             
             HideAllObjectiveMarkers();
             
+            if (wasSuccessful && objective.completionDialogs.Count > 0)
+            {
+                gameManager.PlayDroneDialog(objective.completionDialogs);
+                objective.doNotAssignNextObjectiveOnCompletion = true;
+            }
+            else if (!wasSuccessful && objective.failedDialogs.Count > 0)
+            {
+                gameManager.PlayDroneDialog(objective.failedDialogs);
+                objective.doNotAssignNextObjectiveOnCompletion = true;
+            }
+            
             if (!objectives.Contains(objective)) return; // Only main objectives should progress the story
+            
+            // Determine freewill change if defiance was possible
+            if (objective.objectivesThatFailThisObjective.Length > 0 || objective.objectiveSequence.Length > 0)
+            {
+                if (wasSuccessful)
+                {
+                    Player.Instance.freeWill -= 10f;
+                }
+                else
+                {
+                    Player.Instance.freeWill += 10f;
+                }
+            }
             
             if (currentObjectiveIndex < objectives.Count - 1)
             {
@@ -245,6 +323,8 @@ namespace Ekkam {
         
         public void AddNextObjective()
         {
+            playerDamagedEnemyCheck = false;
+            playerObservedColliderCheck = false;
             objectives[currentObjectiveIndex].status = Objective.ObjectiveStatus.Active;
             AddObjectiveToUI(objectives[currentObjectiveIndex]);
             foreach (Objective objectivesThatFailThisObjective in objectives[currentObjectiveIndex].objectivesThatFailThisObjective)
@@ -258,6 +338,7 @@ namespace Ekkam {
                 sequenceObjective.status = Objective.ObjectiveStatus.Active;
                 AddObjectiveToUI(sequenceObjective, 40f);
             }
+            SoundManager.Instance.PlaySound("objective-assign");
         }
 
         int GetNumberOfObjectives(Objective.ObjectiveStatus status)
@@ -271,11 +352,6 @@ namespace Ekkam {
                 }
             }
             return numberOfObjectives;
-        }
-
-        void DetermineFreeWill(Objective completedObjective)
-        {
-            
         }
         
         [Command("skip-tasks")]
@@ -294,7 +370,7 @@ namespace Ekkam {
             
             for (int i = firstActiveObjectiveIndex; i < numberOfTasksToSkip; i++)
             {
-                print("Skipping task " + i);
+                // print("Skipping task " + i);
                 if (objectives[i].status == Objective.ObjectiveStatus.Active)
                 {
                     foreach (Objective objectivesThatFailThisObjective in objectives[i].objectivesThatFailThisObjective)
@@ -342,31 +418,6 @@ namespace Ekkam {
             }
             await Task.Delay(2000);
             objective.objectiveUIItem.SetActive(false);
-        }
-
-        IEnumerator PulseVignette(Color color, float fadeInDuration, float fadeOutDuration)
-        {
-            // set intensity from 0 to 0.5 and back to 0
-            vignetteVolume.profile.TryGet(out vignette);
-            vignette.color.value = color;
-            float startTime = Time.time;
-            float endTime = startTime + fadeInDuration;
-            while (Time.time < endTime)
-            {
-                float t = (Time.time - startTime) / fadeInDuration;
-                vignette.intensity.value = Mathf.Lerp(0, 0.5f, t);
-                yield return null;
-            }
-            startTime = Time.time;
-            endTime = startTime + fadeOutDuration;
-            while (Time.time < endTime)
-            {
-                float t = (Time.time - startTime) / fadeOutDuration;
-                vignette.intensity.value = Mathf.Lerp(0.5f, 0, t);
-                yield return null;
-            }
-            vignette.intensity.value = 0;
-
         }
 
         public void HideAllObjectiveMarkers()

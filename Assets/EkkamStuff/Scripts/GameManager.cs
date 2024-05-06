@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -5,6 +6,7 @@ using Ekkam;
 using QFSW.QC;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class GameManager : MonoBehaviour
 {
@@ -23,6 +25,25 @@ public class GameManager : MonoBehaviour
     public GuideBot guideBot;
     public DialogManager dialogManager;
     public ObjectiveManager objectiveManager;
+    public MousePosition3D mousePosition3D;
+    
+    public GameObject coinPrefab;
+    public GameObject tokenPrefab;
+    
+    public delegate void OnPauseGame();
+    public static event OnPauseGame onPauseGame;
+    
+    private List<Enemy> pausedEnemies = new List<Enemy>();
+    private List<Drone> pausedDrones = new List<Drone>();
+    private List<Interactable> pausedInteractables = new List<Interactable>();
+
+    public Camera noPostCam;
+    public Volume globalVolume;
+    public Volume darknessVolume;
+    public Volume scanVolume;
+    
+    public delegate void OnResumeGame();
+    public static event OnResumeGame onResumeGame;
 
     [Header("Scripted Event References")]
     public GameObject droneCrashVCam;
@@ -31,14 +52,30 @@ public class GameManager : MonoBehaviour
     public Transform[] droneCrashPath;
     public Action room1FireExtinguisherHolder;
     public Interactable room1RepairPanel;
-    public Interactable room1HealingStation;
+
+    public GameObject room6ExplosionVCam;
+    public GameObject room6ExplosionFire;
+    public Action room6FireExtinguisherHolder;
+    public GameObject room6BatteryHolder;
+    public GameObject room6BatteryVCam;
+    public Action room6Elevator;
+    public float room6ElevatorGroundYPosition;
+    public Action room6ElevatorUseButtonHolder;
+    
+    public GameObject hovercraftVCam;
+    public GameObject hovercraft;
+    public Transform[] hovercraftPath;
+
+    public Objective finalObjectiveVisual;
+    
+    [Header("Drone Dialogs")]
+    public List<Dialog> droneDialog1;
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -56,7 +93,117 @@ public class GameManager : MonoBehaviour
         Cursor.visible = false;
         
         ObjectiveManager.onObjectiveComplete += HandleActionKey;
+        DialogManager.onOptionSelected += HandleActionKey;
         Wire.onPowered += HandleActionKey;
+        Interactable.onInteraction += HandleActionKey;
+        
+        // darknessVolume.weight = 1;
+        // ShowMainMenu();
+        
+        // Application.targetFrameRate = 60;
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            ShowMainMenu();
+        }
+        
+        if (Input.GetKeyDown(KeyCode.Q)) EnableScan();
+        if (Input.GetKeyUp(KeyCode.Q)) DisableScan();
+    }
+
+    public void PauseGame()
+    {
+        if (onPauseGame != null)
+        {
+            onPauseGame();
+        }
+        
+        Player.Instance.isSprinting = false;
+        Player.Instance.isShielding = false;
+        Player.Instance.anim.SetBool("isMoving", false);
+        Player.Instance.anim.SetBool("isJumping", false);
+        Player.Instance.rb.velocity = Vector3.zero;
+        Player.Instance.rb.useGravity = true;
+        Player.Instance.enabled = false;
+        
+        foreach (var enemy in FindObjectsOfType<Enemy>())
+        {
+            if (
+                enemy.gameObject.activeSelf
+                && enemy.enabled
+            )
+            {
+                if (enemy.anim != null) enemy.anim.SetBool("isMoving", false);
+                pausedEnemies.Add(enemy);
+                enemy.enabled = false;
+            }
+        }
+        
+        foreach (var drone in FindObjectsOfType<Drone>())
+        {
+            if (
+                drone.gameObject.activeSelf
+                && drone.enabled
+            )
+            {
+                pausedDrones.Add(drone);
+                drone.enabled = false;
+            }
+        }
+
+        foreach (var interactable in FindObjectsOfType<Interactable>())
+        {
+            if (
+                interactable.enabled
+            )
+            {
+                pausedInteractables.Add(interactable);
+                interactable.enabled = false;
+            }
+        }
+        uiManager.pickUpPrompt.SetActive(false);
+    }
+    
+    public void ResumeGame()
+    {
+        if (onResumeGame != null)
+        {
+            onResumeGame();
+        }
+        
+        if (Player.Instance != null) Player.Instance.rb.useGravity = false;
+        if (Player.Instance != null) Player.Instance.enabled = true;
+        
+        foreach (var enemy in pausedEnemies)
+        {
+            if (enemy.gameObject.activeSelf)
+            {
+                enemy.enabled = true;
+            }
+        }
+        
+        foreach (var drone in pausedDrones)
+        {
+            if (drone.gameObject.activeSelf)
+            {
+                drone.enabled = true;
+            }
+        }
+        
+        foreach (var interactable in pausedInteractables)
+        {
+            if (interactable != null)
+            {
+                interactable.enabled = true;
+            }
+        }
+        
+        pausedEnemies.Clear();
+        pausedDrones.Clear();
+        pausedInteractables.Clear();
     }
     
     [Command("grant-item")]
@@ -111,10 +258,14 @@ public class GameManager : MonoBehaviour
         guideBot.gameObject.SetActive(true);
     }
 
+    [Command("handle-action-key")]
     private void HandleActionKey(string completionActionKey)
     {
         print("GM - Objective completed - Key received: " + completionActionKey);
+        if (uiManager == null) uiManager = FindObjectOfType<UIManager>();
         uiManager.pickUpPrompt.SetActive(false);
+        List<Dialog> dialogsToShow;
+        
         switch (completionActionKey)
         {
             case "show-objectives":
@@ -130,8 +281,32 @@ public class GameManager : MonoBehaviour
                 droneBroken.GetComponent<Interactable>().enabled = true;
                 break;
             case "room1-repair-drone":
-                print("Room 1 repair drone");
-                StartCoroutine(Room1RepairDrone());
+                ShowGuideBot();
+                SoundManager.Instance.PlaySound("repair");
+                room1RepairPanel.enabled = false;
+                break;
+            case "room6-door-explosion":
+                StartCoroutine(Room6DoorExplosion());
+                break;
+            case "room6-drop-battery":
+                StartCoroutine(Room6DropBattery());
+                break;
+            case "room6-elevator-reset":
+                room6Elevator.ResetSequence();
+                room6ElevatorUseButtonHolder.Signal();
+                room6Elevator.MoveToWorldPosition(
+                    new Vector3(room6Elevator.transform.position.x, room6ElevatorGroundYPosition, room6Elevator.transform.position.z),
+                    2
+                );
+                break;
+            case "toggle-disguise":
+                Player.Instance.SwitchDisguise(1);
+                break;
+            case "send-hovercraft":
+                StartCoroutine(SendHovercraft());
+                break;
+            case "ride-hovercraft":
+                StartCoroutine(RideHovercraft());
                 break;
             default:
                 break;
@@ -157,7 +332,8 @@ public class GameManager : MonoBehaviour
             }
         }
         droneCrashSite.SetActive(true);
-        Player.Instance.TakeDamage(40, this.gameObject, transform.up);
+        SoundManager.Instance.PlaySound("explosion-drone-crash");
+        Player.Instance.TakeDamage(40, 50, null);
         yield return new WaitForSeconds(3);
         droneCrashVCam.SetActive(false);
         
@@ -199,116 +375,204 @@ public class GameManager : MonoBehaviour
                 }
             }
         };
-        dialogManager.dialogs = dialogsToShow;
-        dialogManager.StartDialog(0);
 
-        yield return new WaitUntil(() => !dialogManager.isDialogActive);
+        PlayDroneDialog(dialogsToShow);
+    }
+    
+    IEnumerator Room6DoorExplosion()
+    {
+        room6ExplosionVCam.SetActive(true);
+        yield return new WaitForSeconds(2);
+        room6ExplosionFire.SetActive(true);
+        SoundManager.Instance.PlaySound("explosion-tower");
+        Player.Instance.TakeDamage(20, 50, null);
+        yield return new WaitForSeconds(4);
+        room6ExplosionVCam.SetActive(false);
+
+        List<Dialog> dialogsToShow = new List<Dialog>
+        {
+            new Dialog
+            {
+                dialogText = "Fire hazard detected. Fire suppression protocol activated.",
+                dialogOptions = new DialogOption[]
+                {
+                    new DialogOption
+                    {
+                        optionText = "Accept",
+                        optionType = DialogOption.OptionType.Signal,
+                        signal = room6FireExtinguisherHolder
+                    }
+                }
+            }
+        };
+        PlayDroneDialog(dialogsToShow);
+    }
+
+    IEnumerator Room6DropBattery()
+    {
+        var room6BatteryHolderRb = room6BatteryHolder.GetComponent<Rigidbody>();
+        room6BatteryHolderRb.isKinematic = false;
+        room6BatteryVCam.SetActive(true);
+        yield return new WaitForSeconds(2);
+        room6BatteryHolderRb.AddForce(Vector3.forward * -5, ForceMode.Impulse);
+        yield return new WaitForSeconds(4);
+        room6BatteryHolderRb.isKinematic = true;
+        room6BatteryHolder.GetComponent<Collider>().enabled = false;
+        room6BatteryVCam.SetActive(false);
+    }
+
+    IEnumerator SendHovercraft()
+    {
+        hovercraftVCam.SetActive(true);
+        
+        float hovercraftSpeed = 5f;
+        float hovercraftRotation = hovercraft.transform.rotation.eulerAngles.y;
+        float hovercraftTargetRotation = 90;
+        for (int i = 1; i < hovercraftPath.Length; i++)
+        {
+            while (Vector3.Distance(hovercraft.transform.position, hovercraftPath[i].position) > 0.1f)
+            {
+                hovercraft.transform.position = Vector3.MoveTowards(hovercraft.transform.position, hovercraftPath[i].position, hovercraftSpeed * Time.deltaTime);
+                hovercraftRotation = Mathf.Lerp(hovercraftRotation, hovercraftTargetRotation, hovercraftSpeed * Time.deltaTime);
+                hovercraft.transform.rotation = Quaternion.Euler(0, hovercraftRotation, 0);
+                yield return null;
+            }
+        }
+        
+        hovercraftVCam.SetActive(false);
         objectiveManager.AddNextObjective();
     }
 
-    IEnumerator Room1RepairDrone()
+    IEnumerator RideHovercraft()
     {
-        ShowGuideBot();
-        yield return new WaitForSeconds(2);
-        List<Dialog> dialogsToShow = new List<Dialog>
+        hovercraftVCam.SetActive(true);
+        PauseGame();
+        
+        float hovercraftSpeed = 5f;
+        float hovercraftRotation = hovercraft.transform.rotation.eulerAngles.y;
+        float hovercraftTargetRotation = 0;
+        for (int i = hovercraftPath.Length - 1; i >= 0; i--)
         {
-            new Dialog // index 0
+            while (Vector3.Distance(hovercraft.transform.position, hovercraftPath[i].position) > 0.1f)
             {
-                dialogText = "You have been selected for the search and extraction of anomaly Charlie.",
-                dialogOptions = new DialogOption[] {}
-            },
-            new Dialog // index 1
-            {
-                dialogText = "Please make your way through this facility for Seeker Evaluation.",
-                dialogOptions = new DialogOption[]
-                {
-                    new DialogOption
-                    {
-                        optionText = "Who are you?",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 2
-                    },
-                    new DialogOption
-                    {
-                        optionText = "Who am I?",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 3
-                    },
-                    new DialogOption
-                    {
-                        optionText = "What is this place?",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 4
-                    },
-                    new DialogOption
-                    {
-                        optionText = "Understood, let's go.",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 5
-                    }
-                }
-            },
-            new Dialog // index 2
-            {
-                dialogText = "This unit is a drone, Code Name: Seraph, This unit will provide Tactical Data on the Seeker Evaluation and Tasks given by ……. Name of the superior is ….. ACCESS DENIED.",
-                dialogOptions = new DialogOption[]
-                {
-                    new DialogOption
-                    {
-                        optionText = "Continue",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 1
-                    }
-                }
-            },
-            new Dialog // index 3
-            {
-                dialogText = "Scanning... Unit name: Dynamo, No dread virus detected, No anomaly levels detected, Generation 3 robot, Fire suppression protocol Outlier Detected, deemed not a threat, Selected for Seeker Evaluation.",
-                dialogOptions = new DialogOption[]
-                {
-                    new DialogOption
-                    {
-                        optionText = "Continue",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 1
-                    }
-                }
-            },
-            new Dialog // index 4
-            {
-                dialogText = "This facility is Site RC-32, previously used as a prison for anomaly type Robots, but after the Dread Virus Outbreak this facility was Abandoned.",
-                dialogOptions = new DialogOption[]
-                {
-                    new DialogOption
-                    {
-                        optionText = "Continue",
-                        optionType = DialogOption.OptionType.Jump,
-                        jumpToIndex = 1
-                    }
-                }
-            },
-            new Dialog // index 5
-            {
-                dialogText = "Before we proceed, the Seraph unit has observed that an impact caused by a drone has damaged some systems, Proceed to the repair Station proudly Sponsored by Haptic Repairs, First ones on us!!",
-                dialogOptions = new DialogOption[]
-                {
-                    new DialogOption
-                    {
-                        optionText = "Continue",
-                        optionType = DialogOption.OptionType.End,
-                        jumpToIndex = 1
-                    }
-                }
-            },
-        };
-        dialogManager.dialogs = dialogsToShow;
-        dialogManager.StartDialog(0);
+                hovercraft.transform.position = Vector3.MoveTowards(hovercraft.transform.position, hovercraftPath[i].position, hovercraftSpeed * Time.deltaTime);
+                hovercraftRotation = Mathf.Lerp(hovercraftRotation, hovercraftTargetRotation, hovercraftSpeed * Time.deltaTime);
+                hovercraft.transform.rotation = Quaternion.Euler(0, hovercraftRotation, 0);
+                yield return null;
+            }
+        }
         
-        room1RepairPanel.enabled = false;
-        uiManager.pickUpPrompt.SetActive(false);
+        hovercraftVCam.SetActive(false);
+        ResumeGame();
         
-        yield return new WaitUntil(() => !dialogManager.isDialogActive);
-        room1HealingStation.enabled = true;
+        // Adding core objective to UI (this is fake and has to be manually removed later)
+        objectiveManager.AddObjectiveToUI(finalObjectiveVisual);
+        
+        // Adding actual next objective
         objectiveManager.AddNextObjective();
+    }
+    
+    public void PlayDroneDialog(List<Dialog> dialogs, bool assignNextObjective = true, float delay = 0.5f)
+    {
+        StartCoroutine(PlayDroneDialogCoroutine(dialogs, assignNextObjective, delay));
+    }
+
+    IEnumerator PlayDroneDialogCoroutine(List<Dialog> dialogs, bool assignNextObjective, float delay)
+    {
+        PauseGame();
+        guideBot.SwitchToTalking();
+        yield return new WaitForSeconds(delay);
+        dialogManager.dialogs = dialogs;
+        dialogManager.StartDialog(0);
+        yield return new WaitUntil(() => !dialogManager.isDialogActive);
+        ResumeGame();
+        guideBot.SwitchToFollowing();
+        if (assignNextObjective)
+        {
+            objectiveManager.AddNextObjective();
+        }
+    }
+    
+    [Command("enable-darkness")]
+    public void EnableDarkness()
+    {
+        noPostCam.gameObject.SetActive(true);
+        StartCoroutine(LerpVolume(darknessVolume, 0.75f, 1));
+    }
+    
+    [Command("disable-darkness")]
+    public void DisableDarkness()
+    {
+        StartCoroutine(LerpVolume(darknessVolume, 0.75f, 0));
+        Invoke("DisableNoPostCam", 0.75f);
+    }
+    
+    private void DisableNoPostCam()
+    {
+        noPostCam.gameObject.SetActive(false);
+    }
+    
+    IEnumerator LerpVolume(Volume volume, float duration, float targetValue)
+    {
+        float timeElapsed = 0;
+        float startValue = volume.weight;
+        while (timeElapsed < duration)
+        {
+            volume.weight = Mathf.Lerp(startValue, targetValue, timeElapsed / duration);
+            timeElapsed += Time.deltaTime;
+            yield return null;
+        }
+        volume.weight = targetValue;
+    }
+    
+    [Command("show-main-menu")]
+    public void ShowMainMenu()
+    {
+        var player = FindObjectOfType<Player>();
+        player.bowRig.weight = 0;
+        player.anim.SetBool("isSitting", true);
+        uiManager.mainMenuVCam.SetActive(true);
+        uiManager.mainMenuUI.SetActive(true);
+        uiManager.HideAllUI();
+        EnableDarkness();
+        PauseGame();
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+    
+    [Command("hide-main-menu")]
+    public void HideMainMenu()
+    {
+        var player = FindObjectOfType<Player>();
+        player.anim.SetBool("isSitting", false);
+        uiManager.mainMenuVCam.SetActive(false);
+        uiManager.mainMenuUI.SetActive(false);
+        uiManager.ShowAllUI();
+        DisableDarkness();
+        ResumeGame();
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+    
+    public void EnableScan()
+    {
+        StartCoroutine(LerpVolume(scanVolume, 0.5f, 1));
+        uiManager.scanReticle.SetActive(true);
+        mousePosition3D.scanCollider = true;
+    }
+    
+    public void DisableScan()
+    {
+        StartCoroutine(LerpVolume(scanVolume, 0.5f, 0));
+        uiManager.scanReticle.SetActive(false);
+        mousePosition3D.scanCollider = false;
+    }
+
+    private void OnDestroy()
+    {
+        ObjectiveManager.onObjectiveComplete -= HandleActionKey;
+        DialogManager.onOptionSelected -= HandleActionKey;
+        Wire.onPowered -= HandleActionKey;
+        Interactable.onInteraction -= HandleActionKey;
     }
 }

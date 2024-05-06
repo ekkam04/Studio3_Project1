@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 using System.Threading.Tasks;
+using Cinemachine;
 using QFSW.QC;
 using Unity.VisualScripting;
 using UnityEngine.Animations.Rigging;
@@ -16,6 +17,32 @@ namespace Ekkam
     {
         Inventory inventory;
         CombatManager combatManager;
+        UIManager uiManager;
+        AudioSource audioSource;
+        
+        public enum MovementState
+        {
+            Walking,
+            Sprinting,
+            Air
+        }
+        [Header("--- Player Settings and References ---")]
+        public MovementState movementState;
+        
+        public float energy = 100f;
+        public float maxEnergy = 100f;
+        public Slider energySlider;
+        
+        public float energyRecharge = 10f;
+        
+        public float sprintEnergyDrain = 10f;
+        public AudioSource hoverSound;
+        
+        public float shieldEnergyDrain = 10f;
+        public float shieldEnergyDrainOnHit = 10f;
+        
+        public int coins;
+        public int tokens;
         
         public enum CameraStyle
         {
@@ -23,11 +50,6 @@ namespace Ekkam
             Combat
         }
         public CameraStyle cameraStyle;
-        public Rig bowRig;
-        public TwoBoneIKConstraint secondHandArrowIK;
-        public float secondHandArrowIKWeight;
-
-        public GameObject[] facePlates;
         
         private bool allowMovement = true;
         public bool allowFall = true;
@@ -39,6 +61,10 @@ namespace Ekkam
         public float freeWill = 50f;
         public Slider freeWillSlider;
         
+        public float interactDistance = 3f;
+        
+        public GameObject[] facePlates;
+        
         public Slider healthSlider;
 
         public Vector3 viewDirection;
@@ -47,23 +73,55 @@ namespace Ekkam
         private Transform cameraObj;
         public GameObject explorationCamera;
         public GameObject combatCamera;
+        public GameObject drivingCamera;
+        private CinemachineFreeLook combatCamCinemachine;
+        private CinemachineFreeLook explorationCamCinemachine;
+        private CinemachineFreeLook drivingCamCinemachine;
         
         public Transform combatLookAt;
         private Vector3 cameraOffset;
-        public float rotationSpeed = 5f;
         
+        public GameObject playerSilhouette;
+        private float silhouetteTimer;
+        
+        public float freeFlowSphereCastRadius = 2f;
+        public float freeFlowSphereCastDistance = 5f;
+        public float freeFlowLeapSpeedMultiplier = 3f;
+        
+        private Enemy attackTarget = null;
+        private bool isAttacking = false;
+        private float attackStopDistance = 1.5f;
+
+        public ParticleSystem hoverParticlesL;
+        public ParticleSystem hoverParticlesR;
+        
+        public GameObject shieldBubble;
+        
+        [Header("--- Rig Settings ---")]
+        public Rig bowRig;
+        public TwoBoneIKConstraint secondHandArrowIK;
+        public float secondHandArrowIKWeight;
+        
+        [Header("--- Movement Settings ---")]
+        public float rotationSpeed = 5f;
         public float horizontalInput = 0f;
         public float verticalInput = 0f;
         Vector3 moveDirection;
-        public float speed = 1.0f;
-        private float initialSpeed;
-        public float maxSpeed = 5.0f;
+        Vector3 combatRotationDirection;
+        private float speed = 3.0f;
+        private float maxSpeed = 5.0f;
+        public float walkSpeed = 3.0f;
+        public float sprintSpeed = 5.0f;
+        public float maxSpeedOffset = 2.0f;
         public float groundDrag = 3f;
 
         public float groundDistance = 0.5f;
         public float groundDistanceLandingOffset = 0.2f;
         public bool isGrounded;
         public bool isJumping;
+        public bool isSprinting;
+        public bool isShielding;
+        public bool isDriving;
         public bool allowDoubleJump;
         public bool doubleJumped;
         public bool hasLanded;
@@ -71,13 +129,14 @@ namespace Ekkam
         public float jumpHeightApex = 2f;
         public float jumpDuration = 1f;
         float currentJumpDuration;
-        public float downwardsGravityMultiplier = 1f;
+        private float downwardsGravityMultiplier = 1.5f;
+        public float normalDownwardsGravityMultiplier = 1.5f;
+        public float hoveringDownwardsGravityMultiplier = 0.5f;
         float gravity;
         private float initialJumpVelocity;
         private float jumpStartTime;
-
-        public float interactDistance = 3f;
         
+        // --- constant values ---
         float swordTimer;
         float swordResetCooldown = 1.25f;
         float swordAttackCooldown = 0.25f;
@@ -85,12 +144,23 @@ namespace Ekkam
         private float bowTimer;
         private float bowResetCooldown = 1.25f;
         private float bowAttackCooldown = 1.25f;
+        
+        private float staffTimer;
+        private float staffAttackCooldown = 0.1f;
 
         private bool targetLock;
         private Enemy previousNearestEnemy;
+        
+        [Header("--- Model Settings ---")]
 
         [SerializeField] public GameObject itemHolderRight;
         [SerializeField] public GameObject itemHolderLeft;
+        
+        public SkinnedMeshRenderer playerMesh;
+        
+        public DisguiseDetails[] disguiseDetails;
+        public DisguiseDetails currentDisguise;
+        public ParticleSystem disguiseParticles;
 
         public static Player Instance { get; private set; }
 
@@ -112,111 +182,169 @@ namespace Ekkam
             rb = GetComponent<Rigidbody>();
             anim = GetComponent<Animator>();
             inventory = FindObjectOfType<Inventory>();
+            uiManager = FindObjectOfType<UIManager>();
             combatManager = GetComponent<CombatManager>();
+            audioSource = GetComponent<AudioSource>();
             
-            foreach (var facePlate in facePlates)
-            {
-                facePlate.SetActive(false);
-            }
-            facePlates[0].SetActive(true);
+            energySlider.maxValue = maxEnergy;
+            
             disguiseSlider.maxValue = disguiseBattery;
             disguiseSlider.gameObject.SetActive(false);
 
             cameraObj = explorationCamera.transform;
             cameraStyle = CameraStyle.Exploration;
             cameraOffset = cameraObj.position - transform.position;
+            
+            combatCamCinemachine = combatCamera.GetComponent<CinemachineFreeLook>();
+            explorationCamCinemachine = explorationCamera.GetComponent<CinemachineFreeLook>();
+            drivingCamCinemachine = drivingCamera.GetComponent<CinemachineFreeLook>();
 
             gravity = -2 * jumpHeightApex / (jumpDuration * jumpDuration);
             initialJumpVelocity = Mathf.Abs(gravity) * jumpDuration;
-            initialSpeed = speed;
         }
 
         void Update()
         {
-            // Movement
+            base.Update();
+            
+            // Camera and orientation
             viewDirection = transform.position - new Vector3(cameraObj.position.x, transform.position.y, cameraObj.position.z);
-            orientation.forward = viewDirection.normalized;
 
             if (cameraStyle == CameraStyle.Exploration)
             {
+                orientation.forward = viewDirection.normalized;
                 moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-                 
-                if(moveDirection != Vector3.zero)
-                {
-                    if(!targetLock) transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
-                    // anim.SetBool("isMoving", true);
-                }
-                // else
-                // {
-                //     anim.SetBool("isMoving", false);
-                // }
+                
+                float explorationX = explorationCamCinemachine.m_XAxis.Value;
+                float explorationY = explorationCamCinemachine.m_YAxis.Value;
+                
+                combatCamCinemachine.m_XAxis.Value = explorationX;
+                combatCamCinemachine.m_YAxis.Value = explorationY;
             }
             else if (cameraStyle == CameraStyle.Combat)
             {
                 moveDirection = combatLookAt.position - new Vector3(cameraObj.position.x, combatLookAt.position.y, cameraObj.position.z);
                 orientation.forward = moveDirection.normalized;
+                combatRotationDirection = new Vector3(viewDirection.x, 0, viewDirection.z).normalized;
                 
-                transform.forward = Vector3.Slerp(transform.forward, moveDirection.normalized, Time.deltaTime * rotationSpeed);
+                float combatX = combatCamCinemachine.m_XAxis.Value;
+                float combatY = combatCamCinemachine.m_YAxis.Value;
+                
+                explorationCamCinemachine.m_XAxis.Value = combatX;
+                explorationCamCinemachine.m_YAxis.Value = combatY;
             }
             
-            // set isMoving parameter in animator to true if player is moving
-            anim.SetBool("isMoving", verticalInput != 0 || horizontalInput != 0);
+            if (isDriving) return; // ------------------------------------
             
+            // Animation
+            anim.SetBool("isMoving", verticalInput != 0 || horizontalInput != 0);
+            anim.SetBool("isHovering", isSprinting);
+            float rbVelocity2D = new Vector2(rb.velocity.x, rb.velocity.z).magnitude;
+            float rbVelocity2DNormalized = rbVelocity2D / maxSpeed;
+            anim.SetFloat("hoverTilt", Mathf.Lerp(anim.GetFloat("hoverTilt"), rbVelocity2DNormalized, Time.deltaTime * 5));
+            
+            // Movement
+            speed = isSprinting ? sprintSpeed : walkSpeed;
+            maxSpeed = speed + maxSpeedOffset;
+            downwardsGravityMultiplier = isSprinting ? hoveringDownwardsGravityMultiplier : normalDownwardsGravityMultiplier;
             ControlSpeed();
             CheckForGround();
-
-            // temporary, need to use new input system but for now this will do
-            if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
-            if (Input.GetKey(KeyCode.Mouse1) || Input.GetKey(KeyCode.L)) LookAtNearestEnemy();
+            MovementStateHandler();
             
-            if (Input.GetKeyUp(KeyCode.Mouse1) || Input.GetKeyUp(KeyCode.L))
+            // Sprinting / Hover boots
+            if (Input.GetKeyDown(KeyCode.LeftShift) && energy > 15f) isSprinting = true;
+            if (Input.GetKeyUp(KeyCode.LeftShift)) isSprinting = false;
+            
+            // Shield Bubble
+            if (Input.GetKeyDown(KeyCode.Mouse1) && energy > 15f)
             {
-                targetLock = false;
-                if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
+                isShielding = true;
+                SoundManager.Instance.PlaySound("shield-activate", audioSource);
+            }
+            if (Input.GetKeyUp(KeyCode.Mouse1))
+            {
+                isShielding = false;
+                SoundManager.Instance.PlaySound("shield-deactivate", audioSource);
+            }
+            shieldBubble.SetActive(isShielding);
+            isInvincible = isShielding;
+            
+            if (isSprinting)
+            {
+                energy -= sprintEnergyDrain * Time.deltaTime;
+                if (energy <= 0)
+                {
+                    energy = 0;
+                    isSprinting = false;
+                }
+            }
+            else if (isShielding)
+            {
+                energy -= shieldEnergyDrain * Time.deltaTime;
+                if (energy <= 0)
+                {
+                    energy = 0;
+                    isShielding = false;
+                }
+            }
+            else
+            {
+                energy += energyRecharge * Time.deltaTime;
+                if (energy > maxEnergy) energy = maxEnergy;
             }
             
-            if (Input.GetKeyDown(KeyCode.F))
+            if (isSprinting && (verticalInput != 0 || horizontalInput != 0))
             {
-                ToggleDisguise();
+                if (hoverParticlesL.isStopped) hoverParticlesL.Play();
+                if (hoverParticlesR.isStopped) hoverParticlesR.Play();
+                if (!hoverSound.isPlaying)
+                {
+                    hoverSound.volume = 0.75f;
+                    hoverSound.Play();
+                }
+            }
+            else
+            {
+                if (hoverParticlesL.isPlaying) hoverParticlesL.Stop();
+                if (hoverParticlesR.isPlaying) hoverParticlesR.Stop();
+                if (hoverSound.isPlaying)
+                {
+                    hoverSound.volume -= Time.deltaTime * 2;
+                    if (hoverSound.volume <= 0)
+                    {
+                        hoverSound.Stop();
+                    }
+                }
             }
             
+            // Disguise
+            if (Input.GetKeyDown(KeyCode.F)) SwitchDisguise(disguiseActive ? 0 : 1);
             if (disguiseActive)
             {
-                disguiseBattery -= Time.deltaTime;
+                // disguiseBattery -= Time.deltaTime;
                 disguiseSlider.value = disguiseBattery;
                 if (disguiseBattery <= 0)
                 {
                     disguiseBattery = 0;
-                    ToggleDisguise();
+                    SwitchDisguise(0);
                 }
             }
             
-            //cycle faceplates on P key (Testing)
-            if (Input.GetKeyDown(KeyCode.P))
+            // Using Items
+            if (Input.GetKeyDown(KeyCode.Mouse0)) UseItem();
+            if (Input.GetKeyUp(KeyCode.Mouse0))
             {
-                int currentFacePlateIndex = 0;
-                for (int i = 0; i < facePlates.Length; i++)
+                if (inventory.GetSelectedItem() != null && inventory.GetSelectedItem().tag == "FireExtinguisher")
                 {
-                    if (facePlates[i].activeSelf)
-                    {
-                        currentFacePlateIndex = i;
-                    }
-                }
-                // disable current faceplate
-                facePlates[currentFacePlateIndex].SetActive(false);
-                // enable next faceplate
-                if (currentFacePlateIndex == facePlates.Length - 1)
-                {
-                    facePlates[0].SetActive(true);
-                }
-                else
-                {
-                    facePlates[currentFacePlateIndex + 1].SetActive(true);
+                    var fireExtinguisher = inventory.GetSelectedItem().GetComponent<FireExtinguisher>();
+                    fireExtinguisher.StopSmoke();
                 }
             }
             
             swordTimer += Time.deltaTime;
             bowTimer += Time.deltaTime;
+            staffTimer += Time.deltaTime;
+            silhouetteTimer += Time.deltaTime;
             
             if (swordTimer >= swordResetCooldown)
             {
@@ -236,16 +364,49 @@ namespace Ekkam
                 }
             }
 
+            // Linear interpolate values
             freeWillSlider.value = Mathf.Lerp(freeWillSlider.value, freeWill, Time.deltaTime * 5);
             healthSlider.value = Mathf.Lerp(healthSlider.value, health, Time.deltaTime * 5);
+            energySlider.value = Mathf.Lerp(energySlider.value, energy, Time.deltaTime * 5);
             
             secondHandArrowIK.weight = Mathf.Lerp(secondHandArrowIK.weight, secondHandArrowIKWeight, Time.deltaTime * 5);
         }
 
         void FixedUpdate()
         {
+            base.FixedUpdate();
+            
+            if (isDriving) return; // ------------------------------------
+            
             // Move player
-            MovePlayer();
+            if (isAttacking)
+            {
+                MoveTowardsAttackTarget();
+                if (silhouetteTimer > 0.075f)
+                {
+                    GameObject newPlayerSilhouette = Instantiate(playerSilhouette, transform.position, transform.rotation);
+                    silhouetteTimer = 0f;
+                }
+            }
+            else
+            {
+                MovePlayer();
+            }
+            
+            // Orient player
+            if (cameraStyle == CameraStyle.Exploration)
+            {
+                if (moveDirection != Vector3.zero)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(moveDirection.normalized);
+                    rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                }
+            }
+            else if (cameraStyle == CameraStyle.Combat)
+            {
+                Quaternion combatTargetRotation = Quaternion.LookRotation(combatRotationDirection);
+                rb.MoveRotation(Quaternion.Slerp(rb.rotation, combatTargetRotation, Time.fixedDeltaTime * rotationSpeed));
+            }
 
             // Jumping
             if (isJumping)
@@ -276,16 +437,19 @@ namespace Ekkam
         {
             if (context.started)
             {
+                if (!this.enabled) return;
                 if (!isGrounded && allowDoubleJump && !doubleJumped)
                 {
                     doubleJumped = true;
                     anim.SetTrigger("doubleJump");
                     StartJump(jumpHeightApex, jumpDuration);
+                    SoundManager.Instance.PlaySound("jump", audioSource);
                 }
                 else if (isGrounded)
                 {
                     doubleJumped = false;
                     StartJump(jumpHeightApex, jumpDuration);
+                    SoundManager.Instance.PlaySound("jump", audioSource);
                 }
             }
         }
@@ -310,6 +474,25 @@ namespace Ekkam
                 moveSpeed = speed / 2f;
             }
             rb.AddForce(moveDirection * moveSpeed * 10f, ForceMode.Force);
+        }
+        
+        void MoveTowardsAttackTarget()
+        {
+            if (attackTarget != null && Vector3.Distance(transform.position, attackTarget.transform.position) > attackStopDistance)
+            {
+                Vector3 moveDirection = Vector3.MoveTowards(transform.position, attackTarget.transform.position, speed * freeFlowLeapSpeedMultiplier * Time.fixedDeltaTime);
+                rb.MovePosition(moveDirection);
+                
+                Vector3 lookDirection = attackTarget.transform.position - transform.position;
+                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed * freeFlowLeapSpeedMultiplier));
+            }
+            else
+            {
+                isAttacking = false;
+                attackTarget = null;
+                combatManager.MeleeAttack();
+            }
         }
 
         void ControlSpeed()
@@ -339,8 +522,10 @@ namespace Ekkam
         
         void CheckForGround()
         {
-            RaycastHit hit1;
-            if (Physics.BoxCast(transform.position + new Vector3(0, 0.5f, 0), new Vector3(0.2f, 0.5f, 0.2f), Vector3.down, out hit1, Quaternion.identity, groundDistance + 0.1f))
+            RaycastHit hit;
+            // if (Physics.BoxCast(transform.position + new Vector3(0, 0.5f, 0), new Vector3(0.2f, 0.5f, 0.2f), Vector3.down, out hit, Quaternion.identity, groundDistance + 0.1f))
+            bool foundGround = Physics.Raycast(transform.position, Vector3.down, out hit, groundDistance + 0.1f);
+            if (foundGround)
             {
                 isGrounded = true;
                 rb.drag = groundDrag;
@@ -349,12 +534,13 @@ namespace Ekkam
                 {
                     hasLanded = true;
                     anim.SetBool("isJumping", false);
+                    SoundManager.Instance.PlaySound("land", audioSource);
                 }
                 
-                if (hit1.collider.CompareTag("Movable"))
+                if (hit.collider.CompareTag("Movable"))
                 {
-                    transform.parent = hit1.transform;
-                    // transform.SetParent(hit1.transform, true);
+                    transform.parent = hit.transform;
+                    rb.interpolation = RigidbodyInterpolation.None;
                 }
             }
             else
@@ -362,40 +548,23 @@ namespace Ekkam
                 isGrounded = false;
                 rb.drag = 0;
                 transform.parent = null;
+                rb.interpolation = RigidbodyInterpolation.Interpolate;
             }
         }
-
-        void LookAtNearestEnemy()
+        
+        void MovementStateHandler()
         {
-            var enemies = GameObject.FindObjectsOfType<Enemy>();
-            var nearestEnemy = enemies[0];
-            var nearestDistance = Mathf.Infinity;
-            foreach (var enemy in enemies)
+            if (isGrounded && isSprinting)
             {
-                var distance = Vector3.Distance(enemy.transform.position, transform.position);
-                if (distance < nearestDistance)
-                {
-                    nearestDistance = distance;
-                    nearestEnemy = enemy;
-                    if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
-                    previousNearestEnemy = nearestEnemy;
-                }
+                movementState = MovementState.Sprinting;
             }
-
-            if (nearestDistance < 10f)
+            else if (isGrounded)
             {
-                targetLock = true;
-                nearestEnemy.targetLockPrompt.SetActive(true);
-                var viewDirection = nearestEnemy.transform.position - transform.position;
-                viewDirection.y = 0;
-                transform.forward = Vector3.Slerp(transform.forward, viewDirection.normalized,
-                    Time.deltaTime * rotationSpeed);
-                print("Locked on to " + nearestEnemy.name);
+                movementState = MovementState.Walking;
             }
             else
             {
-                targetLock = false;
-                if (previousNearestEnemy != null) previousNearestEnemy.targetLockPrompt.SetActive(false);
+                movementState = MovementState.Air;
             }
         }
         
@@ -406,40 +575,94 @@ namespace Ekkam
             switch (item.tag)
             {
                 case "Sword":
-                    if (swordTimer < swordAttackCooldown || isGrounded == false) return;
+                    if (swordTimer < swordAttackCooldown || isGrounded == false || isAttacking) return;
                     allowMovement = false;
                     swordTimer = 0;
-                    combatManager.MeleeAttack();
+                    if (disguiseActive) SwitchDisguise(0);
+                    if (CheckForNearbyEnemies())
+                    {
+                        PerformFreeFlowAttack();
+                    }
+                    else
+                    {
+                        combatManager.MeleeAttack();
+                    }
                     break;
                 case "Bow":
                     if (bowTimer < bowAttackCooldown || isGrounded == false) return;
                     allowMovement = false;
                     bowTimer = 0;
+                    if (disguiseActive) SwitchDisguise(0);
                     combatManager.ArcherAttack(item, this);
                     break;
                 case "Staff":
-                    if (swordTimer < swordAttackCooldown || isGrounded == false) return;
-                    swordTimer = 0;
-                    allowMovement = false;
+                    if (staffTimer < staffAttackCooldown || isGrounded == false) return;
+                    staffTimer = 0;
+                    if (disguiseActive) SwitchDisguise(0);
                     combatManager.MageAttack();
                     break;
                 case "FireExtinguisher":
                     var fireExtinguisher = item.GetComponent<FireExtinguisher>();
-                    fireExtinguisher.Toggle();
+                    fireExtinguisher.StartSmoke();
                     break;
                 default:
                     break;
             }
         }
         
+        bool CheckForNearbyEnemies()
+        {
+            float detectionRadius = 10f;
+            LayerMask enemyLayerMask = LayerMask.GetMask("Enemy");
+            Collider[] hitColliders = Physics.OverlapSphere(transform.position, detectionRadius, enemyLayerMask);
+            return hitColliders.Length > 0;
+        }
+        
+        void PerformFreeFlowAttack()
+        {
+            RaycastHit hit;
+            float sphereCastRadius = freeFlowSphereCastRadius;
+            float sphereCastDistance = freeFlowSphereCastDistance;
+            Vector3 sphereCastDirection = orientation.forward;
+            LayerMask enemyLayerMask = LayerMask.GetMask("Enemy");
+            if (Physics.SphereCast(transform.position, sphereCastRadius, sphereCastDirection, out hit, sphereCastDistance, enemyLayerMask))
+            {
+                Enemy enemy = hit.collider.GetComponent<Enemy>();
+                if (enemy != null)
+                {
+                    attackTarget = enemy;
+                    isAttacking = true;
+                }
+            }
+            else
+            {
+                combatManager.MeleeAttack();
+            }
+        }
+        
         public override void OnDamageTaken()
         {
-            foreach (var facePlate in facePlates)
+            uiManager.PulseVignette(Color.red, 0.25f, 0.5f);
+            // foreach (var facePlate in facePlates)
+            // {
+            //     facePlate.SetActive(false);
+            // }
+            // facePlates[1].SetActive(true);
+            // Invoke("RevertFacePlate", 1f);
+            if (disguiseActive)
             {
-                facePlate.SetActive(false);
+                SwitchDisguise(0);
             }
-            facePlates[1].SetActive(true);
-            Invoke("RevertFacePlate", 1f);
+        }
+
+        public override void OnDeath()
+        {
+            CheckpointManager.Instance.LoadCheckpointData();
+        }
+
+        public override void OnHeal()
+        {
+            uiManager.PulseVignette(Color.green, 0.25f, 5f);
         }
 
         private void RevertFacePlate()
@@ -452,15 +675,21 @@ namespace Ekkam
             facePlates[0].SetActive(true);
         }
         
-        public void ToggleDisguise()
+        // index 0 is normal, index 1 + is disguise
+        public void SwitchDisguise(int index)
         {
-            disguiseActive = !disguiseActive;
-            disguiseSlider.gameObject.SetActive(disguiseActive);
-            foreach (var facePlate in facePlates)
+            foreach (var disguiseDetail in disguiseDetails)
             {
-                facePlate.SetActive(false);
+                disguiseDetail.facePlate.SetActive(false);
             }
-            facePlates[disguiseActive ? 3 : 0].SetActive(true);
+            disguiseDetails[index].facePlate.SetActive(true);
+            playerMesh.material = disguiseDetails[index].material;
+            var disguiseParticlesMain = disguiseParticles.main;
+            disguiseParticlesMain.startColor = disguiseDetails[index].color;
+            disguiseParticles.Play();
+            disguiseActive = index > 0;
+            disguiseSlider.gameObject.SetActive(index > 0);
+            currentDisguise = disguiseDetails[index];
         }
         
         public void SwitchCameraStyle(CameraStyle style)
@@ -472,15 +701,87 @@ namespace Ekkam
                     cameraObj = explorationCamera.transform;
                     explorationCamera.SetActive(true);
                     combatCamera.SetActive(false);
+                    uiManager.combatReticle.SetActive(false);
+                    uiManager.explorationReticle.SetActive(true);
                     break;
                 case CameraStyle.Combat:
                     cameraObj = combatCamera.transform;
                     combatCamera.SetActive(true);
                     explorationCamera.SetActive(false);
+                    uiManager.explorationReticle.SetActive(false);
+                    uiManager.combatReticle.SetActive(true);
                     break;
                 default:
                     break;
             }
         }
+        
+        public void OnFootstep()
+        {
+            if (isGrounded)
+            {
+                SoundManager.Instance.PlaySound("footstep", audioSource);
+            }
+        }
+        
+        public void EnterVehicle(Transform teleportTransform, Buggy buggy)
+        {
+            col.isTrigger = true;
+            drivingCamCinemachine.Follow = buggy.transform;
+            drivingCamCinemachine.LookAt = buggy.transform;
+            drivingCamera.SetActive(true);
+            isDriving = true;
+            rb.velocity = Vector3.zero;
+            rb.useGravity = false;
+            rb.isKinematic = true;
+            rb.interpolation = RigidbodyInterpolation.None;
+            transform.position = teleportTransform.position;
+            transform.rotation = teleportTransform.rotation;
+            transform.parent = teleportTransform;
+            anim.SetBool("isMoving", false);
+        }
+        
+        public void ExitVehicle()
+        {
+            drivingCamera.SetActive(false);
+            isDriving = false;
+            transform.parent = null;
+            rb.useGravity = true;
+            rb.isKinematic = false;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            col.isTrigger = false;
+        }
+        
+        void OnDrawGizmos()
+        {
+            if (!Application.isPlaying)
+                return;
+
+            Vector3 sphereCastDirection = orientation.forward;
+            float sphereCastRadius = freeFlowSphereCastRadius;
+            float sphereCastDistance = freeFlowSphereCastDistance;
+
+            Vector3 startSphereCenter = transform.position;
+            Vector3 endSphereCenter = transform.position + sphereCastDirection * sphereCastDistance;
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(startSphereCenter, endSphereCenter);
+            Gizmos.DrawWireSphere(startSphereCenter, sphereCastRadius);
+            Gizmos.DrawWireSphere(endSphereCenter, sphereCastRadius);
+            
+            for (float i = 0; i <= sphereCastDistance; i += sphereCastDistance / 5)
+            {
+                Gizmos.DrawWireSphere(transform.position + sphereCastDirection * i, sphereCastRadius);
+            }
+        }
+    }
+
+    [System.Serializable]
+    public class DisguiseDetails
+    {
+        public string name;
+        public GameObject facePlate;
+        public Material material;
+        public Color color;
     }
 }

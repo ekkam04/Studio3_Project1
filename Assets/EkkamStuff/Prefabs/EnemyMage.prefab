@@ -7984,12 +7984,17 @@ PrefabInstance:
     - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
         type: 3}
       propertyPath: attackRange
-      value: 15
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
         type: 3}
       propertyPath: followsPlayer
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: detectionRange
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 2976624835355934119, guid: 0c06e9a2032a6394596fb5e38d176552,
         type: 3}
@@ -8013,6 +8018,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8011743055997342176, guid: 0c06e9a2032a6394596fb5e38d176552,
         type: 3}
+      propertyPath: spellBall
+      value: 
+      objectReference: {fileID: 8097889936582474140, guid: b8a7bda2b97833945937293edfbe2f71,
+        type: 3}
+    - target: {fileID: 8011743055997342176, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
       propertyPath: meleeHitbox
       value: 
       objectReference: {fileID: 0}
@@ -8025,6 +8036,11 @@ PrefabInstance:
         type: 3}
       propertyPath: itemHolderRight
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011743055997342176, guid: 0c06e9a2032a6394596fb5e38d176552,
+        type: 3}
+      propertyPath: targetHeightOffset
+      value: 0.75
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
